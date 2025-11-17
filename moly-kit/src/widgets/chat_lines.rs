@@ -140,6 +140,7 @@ live_design! {
             edit_actions = <EditActions> { visible: false }
             actions_modal = <MolyModal> {
                 content: <RoundedView> {
+                    width: 100,
                     height: Fit,
                     flow: Down,
 

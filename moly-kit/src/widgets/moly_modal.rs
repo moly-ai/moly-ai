@@ -70,6 +70,9 @@ pub struct MolyModal {
 
     #[rust]
     opened: bool,
+
+    #[rust]
+    desired_popup_position: Option<DVec2>,
 }
 
 impl LiveHook for MolyModal {
@@ -103,6 +106,8 @@ impl Widget for MolyModal {
                 }
             }
         }
+
+        self.ui_runner().handle(cx, event, scope, self);
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
@@ -115,13 +120,19 @@ impl Widget for MolyModal {
             let _ = self
                 .bg_view
                 .draw_walk(cx, scope, walk.with_abs_pos(DVec2 { x: 0., y: 0. }));
-            let _ = self.content.draw_all(cx, scope);
+            self.content.draw_all(cx, scope);
         }
 
         self.draw_bg.end(cx);
 
         cx.end_pass_sized_turtle();
         self.draw_list.end(cx);
+
+        if let Some(pos) = self.desired_popup_position.take() {
+            self.ui_runner().defer(move |me, cx, _| {
+                me.correct_popup_position(cx, pos);
+            });
+        }
 
         DrawStep::done()
     }
@@ -153,13 +164,17 @@ impl MolyModal {
         self.open(cx);
     }
 
-    pub fn open_as_popup(&mut self, cx: &mut Cx, pos: Vec2) {
+    pub fn open_as_popup(&mut self, cx: &mut Cx, pos: DVec2) {
+        self.desired_popup_position = Some(pos);
+        let screen_size = cx.display_context.screen_size;
+
         self.apply_over(
             cx,
             live! {
                 align: {x: 0.0, y: 0.0}
                 content: {
-                    margin: {left: (pos.x), top: (pos.y) }
+                    // We will place the popup off-screen first, to know its size, and then correct its position.
+                    margin: {left: (screen_size.x), top: (screen_size.y) }
                 }
                 bg_view: {
                     visible: false
@@ -183,6 +198,34 @@ impl MolyModal {
             MolyModalAction::Dismissed
         )
     }
+
+    fn correct_popup_position(&mut self, cx: &mut Cx, pos: DVec2) {
+        let content_size = self.content.area().rect(cx).size;
+        let screen_size = cx.display_context.screen_size;
+
+        let pos_x = if pos.x + content_size.x > screen_size.x {
+            screen_size.x - content_size.x - 10.0
+        } else {
+            pos.x
+        };
+
+        let pos_y = if pos.y + content_size.y > screen_size.y {
+            screen_size.y - content_size.y - 10.0
+        } else {
+            pos.y
+        };
+
+        self.apply_over(
+            cx,
+            live! {
+                content: {
+                    margin: {left: (pos_x), top: (pos_y) }
+                }
+            },
+        );
+
+        self.redraw(cx);
+    }
 }
 
 impl MolyModalRef {
@@ -200,7 +243,7 @@ impl MolyModalRef {
         }
     }
 
-    pub fn open_as_popup(&self, cx: &mut Cx, pos: Vec2) {
+    pub fn open_as_popup(&self, cx: &mut Cx, pos: DVec2) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.open_as_popup(cx, pos);
         }

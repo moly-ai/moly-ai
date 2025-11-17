@@ -2,9 +2,9 @@ use makepad_widgets::*;
 
 pub trait HitExt {
     /// If the primary pointer action happened, returns the position where it happened.
-    fn primary_pointer_action_pos(&self) -> Option<Vec2>;
+    fn primary_pointer_action_pos(&self) -> Option<DVec2>;
     /// If the secondary pointer action happened, returns the position where it happened.
-    fn secondary_pointer_action_pos(&self) -> Option<Vec2>;
+    fn secondary_pointer_action_pos(&self) -> Option<DVec2>;
     /// This was a left mouse click or a simple touch screen tap.
     fn is_primary_pointer_action(&self) -> bool;
     /// This was a right mouse click or a long press on touch screen.
@@ -12,27 +12,27 @@ pub trait HitExt {
 }
 
 impl HitExt for Hit {
-    fn primary_pointer_action_pos(&self) -> Option<Vec2> {
+    fn primary_pointer_action_pos(&self) -> Option<DVec2> {
         match self {
             Hit::FingerUp(fu)
                 if fu.was_tap()
                     && ((fu.is_mouse() && fu.mouse_button().unwrap().is_primary())
                         || fu.is_touch()) =>
             {
-                Some(fu.abs.into_vec2())
+                Some(fu.abs)
             }
             _ => None,
         }
     }
 
-    fn secondary_pointer_action_pos(&self) -> Option<Vec2> {
+    fn secondary_pointer_action_pos(&self) -> Option<DVec2> {
         match self {
             Hit::FingerUp(fu)
                 if fu.was_tap() && fu.is_mouse() && fu.mouse_button().unwrap().is_secondary() =>
             {
-                Some(fu.abs.into_vec2())
+                Some(fu.abs)
             }
-            Hit::FingerLongPress(flp) => Some(flp.abs.into_vec2()),
+            Hit::FingerLongPress(flp) => Some(flp.abs),
             _ => None,
         }
     }
