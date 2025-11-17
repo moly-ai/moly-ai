@@ -595,6 +595,13 @@ impl Glue {
     }
 
     fn replicate_bot_id_to_store(&self, bot_id: Option<BotId>) {
+        // Only update Store when user actively selects a bot (Some).
+        // Don't clear Store when controller is cleared due to unavailability (None).
+        // This preserves the last selected bot for chat history display and restoration.
+        let Some(bot_id) = bot_id else {
+            return;
+        };
+
         self.ui.defer(move |chat_view, _, scope| {
             let store = scope.data.get_mut::<Store>().unwrap();
 
@@ -602,7 +609,7 @@ impl Glue {
                 return;
             };
 
-            store_chat.borrow_mut().associated_bot = bot_id;
+            store_chat.borrow_mut().associated_bot = Some(bot_id);
 
             // Write to disk.
             store_chat.borrow_mut().save_and_forget();
