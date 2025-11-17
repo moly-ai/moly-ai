@@ -140,7 +140,6 @@ live_design! {
             edit_actions = <EditActions> { visible: false }
             actions_modal = <MolyModal> {
                 content: <RoundedView> {
-                    width: Fit,
                     height: Fit,
                     flow: Down,
 
@@ -151,6 +150,7 @@ live_design! {
                     }
 
                     copy = <ActionButton> {
+                        width: Fill,
                         text: "Copy"
                         draw_icon: {
                             svg_file: dep("crate://self/resources/copy.svg")
@@ -158,6 +158,7 @@ live_design! {
                     }
 
                     edit = <ActionButton> {
+                        width: Fill,
                         text: "Edit"
                         draw_icon: {
                             svg_file: dep("crate://self/resources/edit.svg")
@@ -165,6 +166,7 @@ live_design! {
                     }
 
                     delete = <ActionButton> {
+                        width: Fill,
                         text: "Delete"
                         draw_icon: {
                             svg_file: dep("crate://self/resources/delete.svg")

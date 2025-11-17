@@ -513,10 +513,13 @@ impl Messages {
             if let Some(mut hook_view) = item.as_hook_view().borrow_mut() {
                 hook_view.on_after_event(move |hook, cx, event, _scope| {
                     if let Some(pos) = event.hits(cx, hook.area()).secondary_pointer_action_pos() {
+                        let actions_modal = hook.moly_modal(ids!(actions_modal));
                         if cx.display_context.is_desktop() {
-                            hook.moly_modal(ids!(actions_modal)).open_as_popup(cx, pos);
+                            actions_modal.apply_over(cx, live! {content: {width: 100}});
+                            actions_modal.open_as_popup(cx, pos);
                         } else {
-                            hook.moly_modal(ids!(actions_modal)).open_as_dialog(cx);
+                            actions_modal.apply_over(cx, live! {content: {width: 250}});
+                            actions_modal.open_as_dialog(cx);
                         }
                     }
                 });
