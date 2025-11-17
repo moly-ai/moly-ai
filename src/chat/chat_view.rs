@@ -230,78 +230,149 @@ impl Widget for ChatView {
 }
 
 impl ChatView {
-    // TODO: Only perform this checks after certain actions like provider sync or provider updates (e.g. disable/enable provider)
-    // Refactor this to be simpler and more unified with the behavior of the model selector
+    /// Manages bot selection state synchronization between Store and Controller.
+    ///
+    /// This method handles three responsibilities:
+    /// 1. **Clearing**: Removes unavailable bots from controller when provider is disabled
+    /// 2. **Restoration**: Restores persisted bot selection when controller is empty
+    /// 3. **UI State**: Updates prompt input enabled/disabled state based on bot availability
+    ///
+    /// # State Synchronization Strategy
+    /// - **Controller** (`ChatState.bot_id`): Runtime source of truth for active selection
+    /// - **Store** (`Chat.associated_bot`): Persistent source of truth, survives provider disable/enable
+    /// - **Available Bots**: Dynamic list filtered by enabled status + provider status
     fn handle_current_bot(&mut self, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
 
-        // Read bot_id from controller (runtime source of truth)
-        let controller_bot_id = self.chat_controller.lock().unwrap().state().bot_id.clone();
-
-        // Check if the controller's bot is currently available (prevents race condition with Store)
-        let controller_bot_available = if let Some(bot_id) = &controller_bot_id {
-            store
-                .chats
-                .get_all_bots(true)
-                .iter()
-                .any(|bot| &bot.id == bot_id)
-        } else {
-            false
+        // Read controller state once to minimize lock contention
+        let (controller_bot_id, controller_bots, is_streaming) = {
+            let lock = self.chat_controller.lock().unwrap();
+            let state = lock.state();
+            (state.bot_id.clone(), state.bots.clone(), state.is_streaming)
         };
 
+        // Check if controller's bot is currently available
+        let controller_bot_available = self.is_bot_available(&controller_bot_id, store);
+
+        // 1. CLEARING: Remove unavailable bot from controller (preserves Store for restoration)
+        if !controller_bot_available && controller_bot_id.is_some() {
+            self.clear_unavailable_bot(store);
+        }
+        // 2. RESTORATION: Restore bot from Store when controller is empty
+        else if controller_bot_id.is_none() {
+            self.restore_bot_from_store(store, &controller_bots);
+        }
+
+        // 3. UI STATE: Update prompt input based on bot availability and streaming status
+        self.update_prompt_input_state(
+            &controller_bot_id,
+            controller_bot_available,
+            is_streaming,
+            store,
+        );
+    }
+
+    /// Checks if a bot is available in the Store's enabled bots list.
+    ///
+    /// Returns false if:
+    /// - bot_id is None
+    /// - Provider syncing is not complete (prevents race conditions)
+    /// - Bot is not in the enabled bots list (disabled or provider disabled)
+    fn is_bot_available(&self, bot_id: &Option<BotId>, store: &Store) -> bool {
+        let Some(bot_id) = bot_id else {
+            return false;
+        };
+
+        // Don't trust availability checks during provider syncing
+        if store.provider_syncing_status != ProviderSyncingStatus::Synced {
+            return false;
+        }
+
+        store
+            .chats
+            .get_all_bots(true) // true = only enabled bots
+            .iter()
+            .any(|bot| &bot.id == bot_id)
+    }
+
+    /// Clears unavailable bot from controller when provider is disabled.
+    ///
+    /// The bot is temporarily removed from runtime state but preserved in Store's
+    /// `associated_bot` for restoration when the provider is re-enabled.
+    ///
+    /// This only happens when `provider_syncing_status == Synced` to avoid clearing
+    /// during async loading (which would cause flicker).
+    fn clear_unavailable_bot(&mut self, store: &Store) {
+        // Only clear when syncing is complete to avoid race conditions
+        if store.provider_syncing_status != ProviderSyncingStatus::Synced {
+            return;
+        }
+
+        self.chat_controller
+            .lock()
+            .unwrap()
+            .dispatch_mutation(ChatStateMutation::SetBotId(None));
+    }
+
+    /// Restores bot selection from Store's persistent state when controller is empty.
+    ///
+    /// This typically happens after:
+    /// - Initial app load (Store loads before bots are fetched)
+    /// - Provider re-enabled (bot was cleared, now should be restored)
+    fn restore_bot_from_store(&mut self, store: &Store, controller_bots: &[Bot]) {
+        // Early return if bots haven't loaded yet (prevents spam during async load)
+        if controller_bots.is_empty() {
+            return;
+        }
+
+        // Read stored bot from Store (persistent state)
+        let Some(stored_bot_id) = store
+            .chats
+            .get_chat_by_id(self.chat_id)
+            .and_then(|chat| chat.borrow().associated_bot.clone())
+        else {
+            return;
+        };
+
+        // Only restore if the stored bot is currently available
+        if !self.is_bot_available(&Some(stored_bot_id.clone()), store) {
+            return;
+        }
+
+        self.chat_controller
+            .lock()
+            .unwrap()
+            .dispatch_mutation(ChatStateMutation::SetBotId(Some(stored_bot_id)));
+    }
+
+    /// Updates prompt input enabled/disabled state based on current bot availability.
+    ///
+    /// The prompt is disabled when:
+    /// - No bot is selected
+    /// - Selected bot is unavailable (disabled or provider disabled)
+    /// - Provider syncing is in progress
+    /// - Exception: Always enabled during streaming (to allow stopping)
+    fn update_prompt_input_state(
+        &mut self,
+        controller_bot_id: &Option<BotId>,
+        controller_bot_available: bool,
+        is_streaming: bool,
+        store: &Store,
+    ) {
         let mut prompt_input = self.prompt_input(ids!(chat.prompt));
 
-        // CLEARING: Use controller_bot_id for availability check
-        // If the controller's bot is not available and we know it won't be available soon, clear it
-        if !controller_bot_available
-            && controller_bot_id.is_some()
-            && store.provider_syncing_status == ProviderSyncingStatus::Synced
-        {
-            // Temporarily clear controller state while provider is disabled
-            // (Store's associated_bot persists for restoration)
-            self.chat_controller
-                .lock()
-                .unwrap()
-                .dispatch_mutation(ChatStateMutation::SetBotId(None));
-        }
-        // RESTORATION: Use Store's persistent state when controller is None
-        else if controller_bot_id.is_none() {
-            // Skip restoration if bots haven't loaded yet (prevents spam during async load)
-            let controller_bots = self.chat_controller.lock().unwrap().state().bots.clone();
-            if controller_bots.is_empty() {
-                // Bots not loaded yet, will retry on next event after load completes
-                return;
-            }
-
-            // Read stored bot from Store (persistent state)
-            if let Some(stored_bot_id) = store
-                .chats
-                .get_chat_by_id(self.chat_id)
-                .and_then(|chat| chat.borrow().associated_bot.clone())
-            {
-                // Check if stored bot is available
-                let stored_bot_available = store
-                    .chats
-                    .get_all_bots(true)
-                    .iter()
-                    .any(|bot| bot.id == stored_bot_id);
-
-                if stored_bot_available {
-                    self.chat_controller
-                        .lock()
-                        .unwrap()
-                        .dispatch_mutation(ChatStateMutation::SetBotId(Some(stored_bot_id)));
-                }
-            }
+        // Always enable during streaming (allows user to stop)
+        if is_streaming {
+            prompt_input.write().enable();
+            return;
         }
 
-        // If there is no selected bot, disable the prompt input
-        let is_streaming = self.chat_controller.lock().unwrap().state().is_streaming;
-        if !is_streaming
-            && (controller_bot_id.is_none()
-                || !controller_bot_available
-                || store.provider_syncing_status != ProviderSyncingStatus::Synced)
-        {
+        // Disable if no bot selected, bot unavailable, or still syncing
+        let should_disable = controller_bot_id.is_none()
+            || !controller_bot_available
+            || store.provider_syncing_status != ProviderSyncingStatus::Synced;
+
+        if should_disable {
             prompt_input.write().disable();
         } else {
             prompt_input.write().enable();
