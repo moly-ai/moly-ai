@@ -1,6 +1,7 @@
 //! Utilities to deal with stuff that is highly specific to Makepad.
 
 pub mod events;
+pub mod hits;
 pub mod portal_list;
 pub mod ui_runner;
 
