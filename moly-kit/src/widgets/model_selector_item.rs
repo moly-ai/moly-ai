@@ -113,7 +113,7 @@ impl Widget for ModelSelectorItem {
                         cx.widget_action(
                             self.widget_uid(),
                             &scope.path,
-                            ModelSelectorItemAction::BotSelected(bot.id.clone())
+                            ModelSelectorItemAction::BotSelected(bot.id.clone()),
                         );
                     }
                 }

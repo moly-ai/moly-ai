@@ -148,7 +148,7 @@ impl WidgetMatchEvent for ModelSelectorList {
                 cx.widget_action(
                     self.widget_uid(),
                     &scope.path,
-                    ModelSelectorItemAction::BotSelected(bot_id)
+                    ModelSelectorItemAction::BotSelected(bot_id),
                 );
             }
         }
