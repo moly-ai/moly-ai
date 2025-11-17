@@ -243,7 +243,18 @@ impl WidgetMatchEvent for ModelSelector {
         }
 
         // Handle bot selection from list items
+        // Only process actions from our own list widget to avoid handling global actions
+        let list_widget = self.widget(ids!(options.list_container.list));
         for action in actions {
+            // Filter to only handle widget actions from our own list
+            let Some(action) = action.as_widget_action() else {
+                continue;
+            };
+
+            if action.widget_uid != list_widget.widget_uid() {
+                continue; // Skip actions from other ModelSelector instances
+            }
+
             match action.cast() {
                 ModelSelectorItemAction::BotSelected(bot_id) => {
                     // Dispatch mutation to controller

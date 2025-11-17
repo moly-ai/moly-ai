@@ -1,4 +1,4 @@
-use super::model_selector_item::ModelSelectorItemWidgetRefExt;
+use super::model_selector_item::{ModelSelectorItemAction, ModelSelectorItemWidgetRefExt};
 use crate::{
     BotGroup, GroupingFn,
     controllers::chat::ChatController,
@@ -110,9 +110,12 @@ pub struct ModelSelectorList {
 
 impl Widget for ModelSelectorList {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+        // Forward events to child items
         for (_, item) in self.items.iter_mut() {
             item.handle_event(cx, event, scope);
         }
+
+        self.widget_match_event(cx, event, scope);
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, _scope: &mut Scope, walk: Walk) -> DrawStep {
@@ -129,6 +132,26 @@ impl Widget for ModelSelectorList {
 
         cx.end_turtle_with_area(&mut self.area);
         DrawStep::done()
+    }
+}
+
+impl WidgetMatchEvent for ModelSelectorList {
+    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
+        // Catch widget actions from child items and re-fire with our widget_uid
+        // This bubbles the action up to the parent ModelSelector
+        for action in actions {
+            let Some(widget_action) = action.as_widget_action() else {
+                continue;
+            };
+
+            if let ModelSelectorItemAction::BotSelected(bot_id) = widget_action.cast() {
+                cx.widget_action(
+                    self.widget_uid(),
+                    &scope.path,
+                    ModelSelectorItemAction::BotSelected(bot_id)
+                );
+            }
+        }
     }
 }
 

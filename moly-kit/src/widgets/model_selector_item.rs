@@ -110,7 +110,11 @@ impl Widget for ModelSelectorItem {
                 self.animator_play(cx, ids!(hover.off));
                 if fe.was_tap() {
                     if let Some(bot) = &self.bot {
-                        cx.action(ModelSelectorItemAction::BotSelected(bot.id.clone()));
+                        cx.widget_action(
+                            self.widget_uid(),
+                            &scope.path,
+                            ModelSelectorItemAction::BotSelected(bot.id.clone())
+                        );
                     }
                 }
             }
