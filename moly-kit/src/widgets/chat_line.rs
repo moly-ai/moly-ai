@@ -36,12 +36,18 @@ live_design! {
         width: Fit
         height: Fit
         padding: { top: 12, right: 12, bottom: 12, left: 12}
+        margin: 0
         align: {x: 0.0, y: 0.5}
 
         draw_bg: {
             fn pixel(self) -> vec4 {
-                let opacity = mix(0.0, 0.1, self.hover);
-                return vec4(0.0, 0.0, 0.0, opacity);
+                let sdf = Sdf2d::viewport(self.pos * self.rect_size)
+                let color = mix(#F2F4F700, #EAECEF88, self.hover);
+
+                sdf.box(0.0, 0.0, self.rect_size.x, self.rect_size.y, 2.5);
+                sdf.fill_keep(color);
+
+                return sdf.result;
             }
         }
 
@@ -105,10 +111,25 @@ live_design! {
         }
     }
 
-    pub ChatLine = {{ChatLine}} <RoundedView> {
+    pub ChatLine = {{ChatLine}} <View> {
         flow: Down,
         height: Fit,
-        margin: {left: 10, right: 10}
+        padding: 10,
+        show_bg: true,
+        draw_bg: {
+            instance hover: 0.0
+
+            fn pixel(self) -> vec4 {
+                let sdf = Sdf2d::viewport(self.pos * self.rect_size)
+                let color = mix(#F2F4F700, #EAECEF88, self.hover);
+
+                sdf.box(0.0, 0.0, self.rect_size.x, self.rect_size.y, 2.5);
+                sdf.fill_keep(color);
+
+                return sdf.result;
+            }
+        }
+
         message_section = <RoundedView> {
             flow: Down,
             height: Fit,
@@ -123,7 +144,7 @@ live_design! {
         actions_section = <View> {
             flow: Overlay,
             height: Fit,
-            margin: {left: 32, bottom: 10},
+            margin: {left: 32},
             edit_actions = <EditActions> { visible: false }
             actions_modal = <MolyModal> {
                 content: <RoundedView> {
@@ -177,13 +198,13 @@ live_design! {
                 off = {
                     from: {all: Forward {duration: 0.15}}
                     apply: {
-                        draw_bg: {color: #F2F4F700}
+                        draw_bg: {hover: 0.0}
                     }
                 }
                 on = {
                     from: {all: Snap}
                     apply: {
-                        draw_bg: {color: #EAECEF88}
+                        draw_bg: {hover: 1.0}
                     }
                 }
             }
