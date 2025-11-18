@@ -68,6 +68,7 @@ live_design! {
     }
 
     EditActions = <View> {
+        height: Fit,
         align: {y: 0.5},
         spacing: 5
         save = <EditActionButton> { text: "save" }
@@ -119,8 +120,8 @@ live_design! {
         }
         actions_section = <View> {
             flow: Overlay,
-            margin: {left: 32, top: 2, bottom: 5},
-            height: 22,
+            height: Fit,
+            margin: {left: 32},
             edit_actions = <EditActions> { visible: false }
             actions_modal = <MolyModal> {
                 content: <RoundedView> {
