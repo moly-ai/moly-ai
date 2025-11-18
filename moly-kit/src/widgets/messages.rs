@@ -5,14 +5,11 @@ use std::{
 };
 
 use crate::{
-    MolyModalWidgetExt, MolyModalWidgetRefExt,
     controllers::chat::ChatController,
     protocol::*,
-    utils::makepad::{
-        events::EventExt, hits::HitExt, portal_list::ItemsRangeIter, ui_runner::DeferRedraw,
-    },
+    utils::makepad::{events::EventExt, portal_list::ItemsRangeIter, ui_runner::DeferRedraw},
     widgets::{
-        avatar::AvatarWidgetRefExt, hook_view::HookViewWidgetRefExt,
+        avatar::AvatarWidgetRefExt, chat_line::ChatLineAction,
         message_loading::MessageLoadingWidgetRefExt,
     },
 };
@@ -30,7 +27,7 @@ live_design! {
     use link::moly_kit_theme::*;
     use link::shaders::*;
 
-    use crate::widgets::chat_lines::*;
+    use crate::widgets::chat_line::*;
     use crate::clients::deep_inquire::widgets::deep_inquire_content::*;
 
     pub Messages = {{Messages}} {
@@ -510,14 +507,6 @@ impl Messages {
                 }
             };
 
-            if let Some(mut hook_view) = item.as_hook_view().borrow_mut() {
-                hook_view.on_after_event(move |hook, cx, event, _scope| {
-                    if let Some(pos) = event.hits(cx, hook.area()).secondary_pointer_action_pos() {
-                        hook.moly_modal(ids!(actions_modal)).open_as_popup(cx, pos);
-                    }
-                });
-            }
-
             item.draw_all(cx, &mut Scope::empty());
 
             if let Some(second_last_message_index) = second_last_message_index
@@ -653,72 +642,63 @@ impl Messages {
 
         // Handle item actions
         for (index, item) in ItemsRangeIter::new(list, range) {
-            let actions = event.actions();
-
-            if item.button(ids!(copy)).clicked(actions) {
-                item.moly_modal(ids!(actions_modal)).close(cx);
-                cx.widget_action(self.widget_uid(), &scope.path, MessagesAction::Copy(index));
-            }
-
-            if item.button(ids!(delete)).clicked(actions) {
-                item.moly_modal(ids!(actions_modal)).close(cx);
-                cx.widget_action(
-                    self.widget_uid(),
-                    &scope.path,
-                    MessagesAction::Delete(index),
-                );
-            }
-
-            if item.button(ids!(edit)).clicked(actions) {
-                item.moly_modal(ids!(actions_modal)).close(cx);
-                self.set_message_editor_visibility(index, true);
-                self.redraw(cx);
-            }
-
-            if item.button(ids!(edit_actions.cancel)).clicked(actions) {
-                self.set_message_editor_visibility(index, false);
-                self.redraw(cx);
-            }
-
-            // Being more explicit because makepad query may actually check for
-            // other save button somewhere else (like in the image viewer modal).
-            if item.button(ids!(edit_actions.save)).clicked(actions) {
-                cx.widget_action(
-                    self.widget_uid(),
-                    &scope.path,
-                    MessagesAction::EditSave(index),
-                );
-            }
-
-            if item
-                .button(ids!(edit_actions.save_and_regenerate))
-                .clicked(actions)
-            {
-                cx.widget_action(
-                    self.widget_uid(),
-                    &scope.path,
-                    MessagesAction::EditRegenerate(index),
-                );
-            }
-
-            if item.button(ids!(tool_actions.approve)).clicked(actions) {
-                cx.widget_action(
-                    self.widget_uid(),
-                    &scope.path,
-                    MessagesAction::ToolApprove(index),
-                );
-            }
-
-            if item.button(ids!(tool_actions.deny)).clicked(actions) {
-                cx.widget_action(
-                    self.widget_uid(),
-                    &scope.path,
-                    MessagesAction::ToolDeny(index),
-                );
-            }
-
-            if let Some(change) = item.text_input(ids!(input)).changed(actions) {
-                self.current_editor.as_mut().unwrap().buffer = change;
+            for action in item.filter_actions(event.actions()) {
+                match action.cast() {
+                    ChatLineAction::Copy => {
+                        cx.widget_action(
+                            self.widget_uid(),
+                            &scope.path,
+                            MessagesAction::Copy(index),
+                        );
+                    }
+                    ChatLineAction::Delete => {
+                        cx.widget_action(
+                            self.widget_uid(),
+                            &scope.path,
+                            MessagesAction::Delete(index),
+                        );
+                    }
+                    ChatLineAction::Edit => {
+                        self.set_message_editor_visibility(index, true);
+                        self.redraw(cx);
+                    }
+                    ChatLineAction::EditCancel => {
+                        self.set_message_editor_visibility(index, false);
+                        self.redraw(cx);
+                    }
+                    ChatLineAction::Save => {
+                        cx.widget_action(
+                            self.widget_uid(),
+                            &scope.path,
+                            MessagesAction::EditSave(index),
+                        );
+                    }
+                    ChatLineAction::SaveAndRegenerate => {
+                        cx.widget_action(
+                            self.widget_uid(),
+                            &scope.path,
+                            MessagesAction::EditRegenerate(index),
+                        );
+                    }
+                    ChatLineAction::ToolApprove => {
+                        cx.widget_action(
+                            self.widget_uid(),
+                            &scope.path,
+                            MessagesAction::ToolApprove(index),
+                        );
+                    }
+                    ChatLineAction::ToolDeny => {
+                        cx.widget_action(
+                            self.widget_uid(),
+                            &scope.path,
+                            MessagesAction::ToolDeny(index),
+                        );
+                    }
+                    ChatLineAction::EditorChange(change) => {
+                        self.current_editor.as_mut().unwrap().buffer = change;
+                    }
+                    ChatLineAction::None => {}
+                }
             }
         }
 

@@ -1,5 +1,10 @@
 use makepad_widgets::*;
 
+use crate::{
+    MolyModalWidgetExt,
+    utils::makepad::{events::EventExt, hits::HitExt},
+};
+
 live_design! {
     use link::theme::*;
     use link::widgets::*;
@@ -10,7 +15,6 @@ live_design! {
     use crate::widgets::message_loading::*;
     use crate::widgets::avatar::*;
     use crate::widgets::slot::*;
-    use crate::widgets::hook_view::*;
     use crate::widgets::moly_modal::*;
 
     Sender = <View> {
@@ -53,26 +57,6 @@ live_design! {
             }
         }
     }
-
-    // Actions = <View> {
-    //     align: {y: 0.5},
-    //     spacing: 6,
-    //     copy = <ActionButton> {
-    //         draw_icon: {
-    //             svg_file: dep("crate://self/resources/copy.svg")
-    //         }
-    //     }
-    //     edit = <ActionButton> {
-    //         draw_icon: {
-    //             svg_file: dep("crate://self/resources/edit.svg")
-    //         }
-    //     }
-    //     delete = <ActionButton> {
-    //         draw_icon: {
-    //             svg_file: dep("crate://self/resources/delete.svg")
-    //         }
-    //     }
-    // }
 
     EditActionButton = <Button> {
         padding: {left: 10, right: 10, top: 4, bottom: 4},
@@ -118,7 +102,7 @@ live_design! {
         }
     }
 
-    pub ChatLine = <HookView> {
+    pub ChatLine = {{ChatLine}} <RoundedView> {
         flow: Down,
         height: Fit,
         margin: {left: 10, right: 10}
@@ -327,6 +311,92 @@ live_design! {
                     grapheme = {draw_bg: {color: #1a5b9c}}
                 }
             }
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, DefaultNone)]
+pub enum ChatLineAction {
+    Copy,
+    Edit,
+    Delete,
+    Save,
+    SaveAndRegenerate,
+    EditCancel,
+    ToolApprove,
+    ToolDeny,
+    EditorChange(String),
+    None,
+}
+
+#[derive(Live, Widget, LiveHook)]
+pub struct ChatLine {
+    #[deref]
+    deref: View,
+}
+
+impl Widget for ChatLine {
+    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
+        self.deref.draw_walk(cx, scope, walk)
+    }
+
+    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+        self.deref.handle_event(cx, event, scope);
+        let actions = event.actions();
+
+        if self.button(ids!(copy)).clicked(actions) {
+            self.moly_modal(ids!(actions_modal)).close(cx);
+            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Copy);
+        }
+
+        if self.button(ids!(edit)).clicked(actions) {
+            self.moly_modal(ids!(actions_modal)).close(cx);
+            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Edit);
+        }
+
+        if self.button(ids!(delete)).clicked(actions) {
+            self.moly_modal(ids!(actions_modal)).close(cx);
+            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Delete);
+        }
+
+        if self.button(ids!(edit_actions.save)).clicked(actions) {
+            println!("Save clicked");
+            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Save);
+        }
+
+        if self
+            .button(ids!(edit_actions.save_and_regenerate))
+            .clicked(actions)
+        {
+            cx.widget_action(
+                self.widget_uid(),
+                &scope.path,
+                ChatLineAction::SaveAndRegenerate,
+            );
+        }
+
+        if self.button(ids!(edit_actions.cancel)).clicked(actions) {
+            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::EditCancel);
+        }
+
+        if self.button(ids!(approve)).clicked(actions) {
+            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::ToolApprove);
+        }
+
+        if self.button(ids!(deny)).clicked(actions) {
+            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::ToolDeny);
+        }
+
+        if let Some(change) = self.text_input(ids!(input)).changed(actions) {
+            cx.widget_action(
+                self.widget_uid(),
+                &scope.path,
+                ChatLineAction::EditorChange(change),
+            );
+        }
+
+        if let Some(pos) = event.hits(cx, self.area()).secondary_pointer_action_pos() {
+            self.moly_modal(ids!(actions_modal)).open_as_popup(cx, pos);
         }
     }
 }

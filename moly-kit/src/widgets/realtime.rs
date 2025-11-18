@@ -14,7 +14,7 @@ live_design! {
     use link::shaders::*;
     use link::widgets::*;
 
-    use crate::widgets::chat_lines::*;
+    use crate::widgets::chat_line::*;
     use crate::widgets::standard_message_content::*;
 
     AIAnimation = <RoundedView> {

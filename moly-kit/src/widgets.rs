@@ -8,11 +8,9 @@ mod attachment_list;
 mod attachment_view;
 mod attachment_viewer_modal;
 mod avatar;
-mod chat_lines;
+mod chat_line;
 mod citation;
 pub(crate) mod citation_list;
-mod hook;
-mod hook_view;
 mod image_view;
 mod message_loading;
 mod message_markdown;
@@ -46,7 +44,6 @@ pub fn live_design(cx: &mut makepad_widgets::Cx) {
     // Currently we only have a light theme which we use as default.
     cx.link(live_id!(moly_kit_theme), live_id!(theme_moly_kit_light));
 
-    hook_view::live_design(cx);
     image_view::live_design(cx);
     attachment_view::live_design(cx);
     moly_modal::live_design(cx);
@@ -60,7 +57,7 @@ pub fn live_design(cx: &mut makepad_widgets::Cx) {
     avatar::live_design(cx);
     slot::live_design(cx);
     standard_message_content::live_design(cx);
-    chat_lines::live_design(cx);
+    chat_line::live_design(cx);
     crate::deep_inquire::widgets::live_design(cx);
     messages::live_design(cx);
     prompt_input::live_design(cx);
