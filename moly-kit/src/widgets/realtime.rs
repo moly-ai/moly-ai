@@ -1,4 +1,5 @@
 use crate::controllers::chat::ChatController;
+use crate::widgets::chat_line::{ChatLineAction, ChatLineWidgetExt};
 use crate::widgets::{
     avatar::AvatarWidgetRefExt, slot::SlotWidgetRefExt,
     standard_message_content::StandardMessageContentWidgetRefExt,
@@ -792,20 +793,20 @@ impl WidgetMatchEvent for Realtime {
         }
 
         // Handle tool permission buttons from ToolRequestLine
-        if self
-            .view(ids!(tool_permission_line))
-            .button(ids!(message_section.content_section.tool_actions.approve))
-            .clicked(actions)
+        for chat_line_action in self
+            .chat_line(ids!(tool_permission_line))
+            .filter_actions(actions)
+            .map(|wa| wa.cast::<ChatLineAction>())
         {
-            self.approve_tool_call(cx);
-        }
-
-        if self
-            .view(ids!(tool_permission_line))
-            .button(ids!(message_section.content_section.tool_actions.deny))
-            .clicked(actions)
-        {
-            self.deny_tool_call(cx);
+            match chat_line_action {
+                ChatLineAction::ToolApprove => {
+                    self.approve_tool_call(cx);
+                }
+                ChatLineAction::ToolDeny => {
+                    self.deny_tool_call(cx);
+                }
+                _ => {}
+            }
         }
 
         let speaker_dropdown = self.drop_down(ids!(speaker_selector.device_selector));
@@ -997,7 +998,8 @@ impl Realtime {
         self.label(ids!(status_label)).set_text(cx, status_message);
 
         // Hide tool permission UI and clear pending tool call
-        self.view(ids!(tool_permission_line)).set_visible(cx, false);
+        self.chat_line(ids!(tool_permission_line))
+            .set_visible(cx, false);
         self.pending_tool_call = None;
 
         // Show voice selector again
@@ -1281,7 +1283,7 @@ impl Realtime {
 
         self.pending_tool_call = Some((name.clone(), call_id, arguments));
 
-        let tool_line = self.view(ids!(tool_permission_line));
+        let tool_line = self.chat_line(ids!(tool_permission_line));
         tool_line.set_visible(cx, true);
 
         // Configure the tool line
@@ -1407,7 +1409,8 @@ impl Realtime {
     fn approve_tool_call(&mut self, cx: &mut Cx) {
         if let Some((name, call_id, arguments)) = self.pending_tool_call.take() {
             // Hide permission UI
-            self.view(ids!(tool_permission_line)).set_visible(cx, false);
+            self.chat_line(ids!(tool_permission_line))
+                .set_visible(cx, false);
 
             // Update status
             use crate::mcp::mcp_manager::display_name_from_namespaced;
@@ -1430,7 +1433,8 @@ impl Realtime {
     fn deny_tool_call(&mut self, cx: &mut Cx) {
         if let Some((name, call_id, _arguments)) = self.pending_tool_call.take() {
             // Hide permission UI
-            self.view(ids!(tool_permission_line)).set_visible(cx, false);
+            self.chat_line(ids!(tool_permission_line))
+                .set_visible(cx, false);
 
             // Send denial response
             if let Some(channel) = &self.realtime_channel {
