@@ -39,8 +39,10 @@ live_design! {
         align: {x: 0.0, y: 0.5}
 
         draw_bg: {
-            border_size: 0,
-            border_radius: 0
+            fn pixel(self) -> vec4 {
+                let opacity = mix(0.0, 0.1, self.hover);
+                return vec4(0.0, 0.0, 0.0, opacity);
+            }
         }
 
         icon_walk: {width: 12, height: 12}
@@ -165,6 +167,42 @@ live_design! {
                                 return #B42318;
                             }
                         }
+                    }
+                }
+            }
+        }
+        animator: {
+            hover = {
+                default: off
+                off = {
+                    from: {all: Forward {duration: 0.15}}
+                    apply: {
+                        draw_bg: {color: #F2F4F700}
+                    }
+                }
+                on = {
+                    from: {all: Snap}
+                    apply: {
+                        draw_bg: {color: #EAECEF88}
+                    }
+                }
+            }
+            down = {
+                default: off
+                off = {
+                    from: {all: Forward {duration: 0.5}}
+                    ease: OutExp
+                    apply: {
+                        draw_bg: {down: 0.0}
+                    }
+                }
+                on = {
+                    ease: OutExp
+                    from: {
+                        all: Forward {duration: 0.2}
+                    }
+                    apply: {
+                        draw_bg: {down: 1.0}
                     }
                 }
             }
@@ -398,6 +436,11 @@ impl Widget for ChatLine {
 
         if let Some(pos) = event.hits(cx, self.area()).secondary_pointer_action_pos() {
             self.moly_modal(ids!(actions_modal)).open_as_popup(cx, pos);
+        }
+
+        // Manually dismiss hover state as animator will not handle this.
+        if self.moly_modal(ids!(actions_modal)).dismissed(actions) {
+            self.animator_play(cx, ids!(hover.off));
         }
     }
 }
