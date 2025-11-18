@@ -121,7 +121,7 @@ live_design! {
         actions_section = <View> {
             flow: Overlay,
             height: Fit,
-            margin: {left: 32},
+            margin: {left: 32, bottom: 10},
             edit_actions = <EditActions> { visible: false }
             actions_modal = <MolyModal> {
                 content: <RoundedView> {
