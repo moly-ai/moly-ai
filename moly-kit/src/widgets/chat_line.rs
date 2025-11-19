@@ -407,19 +407,16 @@ impl Widget for ChatLine {
         let actions = event.actions();
 
         if self.copy_ref().clicked(actions) {
-            self.dismiss_all_hovers(cx);
             self.actions_modal_ref().close(cx);
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Copy);
         }
 
         if self.edit_ref().clicked(actions) {
-            self.dismiss_all_hovers(cx);
             self.actions_modal_ref().close(cx);
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Edit);
         }
 
         if self.delete_ref().clicked(actions) {
-            self.dismiss_all_hovers(cx);
             self.actions_modal_ref().close(cx);
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Delete);
         }
@@ -457,11 +454,8 @@ impl Widget for ChatLine {
         }
 
         if let Some(pos) = event.hits(cx, self.area()).secondary_pointer_action_pos() {
-            self.actions_modal_ref().open_as_popup(cx, pos);
-        }
-
-        if self.actions_modal_ref().dismissed(actions) {
             self.dismiss_all_hovers(cx);
+            self.actions_modal_ref().open_as_popup(cx, pos);
         }
     }
 }
@@ -508,8 +502,11 @@ impl ChatLine {
     }
 
     fn dismiss_all_hovers(&mut self, cx: &mut Cx) {
-        // TODO: `animator_play` and `animator_cut` do nothing in Android here?
+        // NOTE: On MacOS, only `self.animator_cut(cx, ids!(hover.off))` is needed.
+        // But on Android, `self.animator_cut(cx, ids!(down.off))` is also needed.
+        // Weird platform dependant behavior. Probably a bug in one or the other.
         self.animator_cut(cx, ids!(hover.off));
+        self.animator_cut(cx, ids!(down.off));
         self.copy_ref().reset_hover(cx);
         self.edit_ref().reset_hover(cx);
         self.delete_ref().reset_hover(cx);
