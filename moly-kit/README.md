@@ -16,7 +16,7 @@ framework.
 - 🌎 Web support.
 
 To learn how to use and integrate Moly Kit into your own Makepad app, read the
-[documentation](https://moxin-org.github.io/moly).
+[documentation](https://moly-ai.github.io/moly-ai).
 
 ## License
 

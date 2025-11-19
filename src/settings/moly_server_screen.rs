@@ -94,7 +94,7 @@ live_design! {
                     text_style: {font_size: 12}
                     color: #000
                 }
-                text: "MolyServer is a local HTTP server that powers the Moly app by providing capabilities for searching, downloading, and running local LLMs).\nYou can install MolyServer by following the instructions in https://github.com/moxin-org/moly-server."
+                text: "MolyServer is a local HTTP server that powers the Moly app by providing capabilities for searching, downloading, and running local LLMs).\nYou can install MolyServer by following the instructions in https://github.com/moly-ai/moly-local."
             }
         }
 

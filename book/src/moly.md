@@ -1,7 +1,7 @@
 # Moly
 
 **Moly** is a Makepad app to interact with local and remote LLMs. You can know more about
-it on [GitHub](https://github.com/moxin-org/moly).
+it on [GitHub](https://github.com/moly-ai/moly-ai).
 
 **Moly Kit** is a Rust crate with widgets and utilities for [Makepad](https://github.com/makepad/makepad)
 to streamline the development of artificial intelligence applications. It is used

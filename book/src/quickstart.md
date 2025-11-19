@@ -9,7 +9,7 @@ bare-bones app ready to start integrating Moly Kit while following this guide.
 Add Moly Kit to your `Cargo.toml` dependencies:
 
 ```toml
-moly-kit = { git = "https://github.com/moxin-org/moly.git", features = ["full"], branch = "main" }
+moly-kit = { git = "https://github.com/moly-ai/moly-ai.git", features = ["full"], branch = "main" }
 ```
 
 ```admonish tip

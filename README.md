@@ -4,13 +4,13 @@
 
 Moly is an AI LLM client written in Rust, that demonstrates the power of the [Makepad UI toolkit](https://github.com/makepad/makepad) and [Project Robius](https://github.com/project-robius), a framework for multi-platform application development in Rust.
 
-> ⚠️ Moly is in early development. Please [file an issue](https://github.com/moxin-org/moly/issues/new) if you encounter bugs or unexpected results.
+> ⚠️ Moly is in early development. Please [file an issue](https://github.com/moly-ai/moly-ai/issues/new) if you encounter bugs or unexpected results.
 
 https://github.com/user-attachments/assets/bc50f75d-c82a-49c4-8faa-363afff198a1
 
 ### Download Pre-built Releases
 
-Want to try Moly without building it from source? You can download the latest stable [pre-built releases of Moly](https://github.com/moxin-org/moly/releases).
+Want to try Moly without building it from source? You can download the latest stable [pre-built releases of Moly](https://github.com/moly-ai/moly-ai/releases).
 
 The following table shows which host systems can currently be used to build Moly for which target platforms.
 
@@ -22,7 +22,7 @@ The following table shows which host systems can currently be used to build Moly
 | Windows | Windows (10+)   | ✅       | ✅     | [`.exe` (NSIS)]                              |
 | Any     | Web             | ✅       | ✅     | N/A                                          |
 | Any     | Android         | ✅       | ✅     | [`.apk`]                                     |
-| macOS   | iOS             | ✅       | ✅     | TODO                                          |
+| macOS   | iOS             | ✅       | ✅     | Beta testing via TestFlight                  |
 
 <!-- prettier-ignore-end -->
 
@@ -35,27 +35,27 @@ The following table shows which host systems can currently be used to build Moly
 The Moly app supports different types of AI providers:
 
 1. **OpenAI-compatible AI providers**: configured through the Providers Dashboard.
-   - Support for other clients will be added to MolyKit. To create your own custom clients, checkout the [MolyKit documentation](https://moxin-org.github.io/moly/).
+   - Support for other clients will be added to MolyKit. To create your own custom clients, checkout the [MolyKit documentation](https://moly-ai.github.io/moly-ai/).
    - If you want to contribute providers, or extend the list of supported models for a given provider, see [instructions here](#contributing)
-2. **Moly Server**: a local LLM backend that allows exploring, downloading and running OSS LLMs locally. For usage and installation see [instructions here](#running-moly-with-moly-server)
+2. **Moly Server**: a local LLM backend that allows exploring, downloading and running OSS LLMs locally. For usage and installation see [instructions here](#running-moly-with-moly-local)
 3. **MoFa Servers**: MoFa is a framework for building AI agents. Using MoFa, AI agents can be constructed via templates, and then exposed via a Dora server that is OpenAI-compatible. MoFa servers can be added to the application through the Providers Dashboard. See [instructions here](#running-moly-with-mofa).
 
 ### Local LLMS via Moly Server
 
-[Moly Server](https://github.com/moxin-org/moly-server) is a local HTTP server which provides capabilities for searching, downloading, and running local LLMs over an OpenAI-compatible API.
+[Moly Server](https://github.com/moly-ai/moly-local) is a local HTTP server which provides capabilities for searching, downloading, and running local LLMs over an OpenAI-compatible API.
 While not required in order to use Moly, it can be run alongside the main Moly application for an integrated, local experience.
 
 ![Screenshot 2025-05-14 at 11 40 43 AM](https://github.com/user-attachments/assets/1235cc98-a175-4a8f-89a9-4789d4716189)
 
 ![Screenshot 2025-05-14 at 11 41 21 AM](https://github.com/user-attachments/assets/22570566-6726-488d-8b92-2282e6be78e8)
 
-To get started, simply download and extract the latest version for your platform from the [server releases page](https://github.com/moxin-org/moly-server/releases) and run the executable in a command line from inside the directory.
+To get started, simply download and extract the latest version for your platform from the [server releases page](https://github.com/moly-ai/moly-local/releases) and run the executable in a command line from inside the directory.
 
-Alternatively, to compile it from source, follow the [setup guide](https://github.com/moxin-org/moly-server?tab=readme-ov-file#building-and-running) and then run:
+Alternatively, to compile it from source, follow the [setup guide](https://github.com/moly-ai/moly-local?tab=readme-ov-file#building-and-running) and then run:
 
 ```bash
-cd moly-server/
-cargo run -p moly-server
+cd moly-local/
+cargo run -p moly-local
 ```
 
 ## Building and Running (native)
@@ -65,7 +65,7 @@ cargo run -p moly-server
 2. Obtain the source code for this repository:
 
 ```sh
-git clone https://github.com/moxin-org/moly.git
+git clone https://github.com/moly-ai/moly-ai.git
 ```
 
 3. Run
@@ -100,7 +100,7 @@ cargo run --release
 2. Obtain the source code for this repository:
 
 ```sh
-git clone https://github.com/moxin-org/moly.git
+git clone https://github.com/moly-ai/moly-ai.git
 ```
 
 3. Run and serve the Moly app:
@@ -119,7 +119,7 @@ cargo makepad wasm --bindgen run -p moly --release
 
 ### Packaging Moly for Distribution
 
-> Note: we already have [pre-built releases of Moly](https://github.com/moxin-org/moly/releases) available for download.
+> Note: we already have [pre-built releases of Moly](https://github.com/moly-ai/moly-ai/releases) available for download.
 
 Install `cargo-packager`:
 
@@ -221,18 +221,18 @@ You can immediately double-click the `Moly.app` bundle to run it, or you can dou
 
 If you'd like to modify the .dmg background, here is the [Google Drawings file used to generate the MacOS .dmg background image](https://docs.google.com/drawings/d/1Uq13nAsCKFrl4s16HeLqpVfQ-vbF7v2Z8HFyqgeyrbE/edit?usp=sharing).
 
-[`.dmg`]: https://github.com/moxin-org/moly/releases/download/v0.2.2/Moly-0.2.2-macos-arm64.dmg
-[`.deb` (Debian dpkg)]: https://github.com/moxin-org/moly/releases/download/v0.2.2/Moly-0.2.2-ubuntu-22.04-amd64.deb
-[AppImage]: https://github.com/moxin-org/moly/releases/download/v0.2.2/Moly-0.2.1-linux-x86_64.AppImage
+[`.dmg`]: https://github.com/moly-ai/moly-ai/releases/download/v0.2.2/Moly-0.2.2-macos-arm64.dmg
+[`.deb` (Debian dpkg)]: https://github.com/moly-ai/moly-ai/releases/download/v0.2.2/Moly-0.2.2-ubuntu-22.04-amd64.deb
+[AppImage]: https://github.com/moly-ai/moly-ai/releases/download/v0.2.2/Moly-0.2.1-linux-x86_64.AppImage
 [pacman]: https://pacman.archlinux.page/pacman.8.html
-[`.exe` (NSIS)]: https://github.com/moxin-org/moly/releases/download/v0.2.2/Moly-0.2.2-windows-x64.exe
-[`.apk`]: https://github.com/moxin-org/moly/releases/download/v0.2.2/Moly-0.2.2-android.apk
+[`.exe` (NSIS)]: https://github.com/moly-ai/moly-ai/releases/download/v0.2.2/Moly-0.2.2-windows-x64.exe
+[`.apk`]: https://github.com/moly-ai/moly-ai/releases/download/v0.2.2/Moly-0.2.2-android.apk
 
 ---
 
 ## Running Moly with MoFa
 
-[MoFa](https://github.com/moxin-org/mofa) is a software framework for building AI agents. Moly supports connecting to MoFa servers to interact with AI agents in the same way it does with local or remote LLMs.
+[MoFa](https://github.com/moly-ai/mofa) is a software framework for building AI agents. Moly supports connecting to MoFa servers to interact with AI agents in the same way it does with local or remote LLMs.
 
 To run Moly with a local MoFa server, you can follow these steps:
 
@@ -245,7 +245,7 @@ https://github.com/dora-rs/dora?tab=readme-ov-file#installation
 Requires python ^3.10
 
 ```bash
-git clone https://github.com/moxin-org/mofa.git
+git clone https://github.com/moly-ai/mofa.git
 ```
 
 Install the required Python libraries, and mainly,

@@ -9,7 +9,7 @@ use directories::ProjectDirs;
 use futures::StreamExt;
 
 const APP_QUALIFIER: &str = "com";
-const APP_ORGANIZATION: &str = "moxin-org";
+const APP_ORGANIZATION: &str = "moly-ai";
 const APP_NAME: &str = "moly";
 
 fn project_dirs() -> &'static ProjectDirs {

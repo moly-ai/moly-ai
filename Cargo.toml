@@ -21,7 +21,7 @@ path = "src/main.rs"
 
 
 [dependencies]
-moly-protocol = { git = "https://github.com/moxin-org/moly-server", package = "moly-protocol" }
+moly-protocol = { git = "https://github.com/moly-ai/moly-local", package = "moly-protocol" }
 moly-kit = { path = "./moly-kit", features = ["full"] }
 moly-sync = { path = "./moly-sync"}
 makepad-widgets = { git = "https://github.com/wyeworks/makepad", rev = "d21c05d30" }
@@ -75,13 +75,13 @@ features = [
 ## Configuration for `cargo packager`
 [package.metadata.packager]
 product_name = "Moly"
-identifier = "com.moxin-org.moly"
+identifier = "org.moxin.moly"
 category = "Utility"
-authors = ["Moxin Organization <moxin-org@github.com>"]
-publisher = "moxin-org"
+authors = ["Moly AI <moly-ai@github.com>"]
+publisher = "moly-ai"
 license_file = "LICENSE"
-copyright = "Copyright 2023-2024, Project Robius, Moxin Organization"
-homepage = "https://github.com/moxin-org"
+copyright = "Copyright 2023-2024, Project Robius, Moly AI"
+homepage = "https://github.com/moly-ai"
 ### Note: there is an 80-character max for each line of the `long_description`.
 long_description = """
 Moly is a desktop app that lets you browse AI Large Language Models (LLMs),
