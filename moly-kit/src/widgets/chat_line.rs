@@ -480,6 +480,7 @@ impl Widget for ChatLine {
 
 impl ChatLine {
     fn dismiss_all_hovers(&mut self, cx: &mut Cx) {
+        // TODO: This `animator_play` does nothing in Android here?
         self.animator_play(cx, ids!(hover.off));
         self.button(ids!(copy)).reset_hover(cx);
         self.button(ids!(edit)).reset_hover(cx);
