@@ -694,8 +694,9 @@ impl Messages {
                             MessagesAction::ToolDeny(index),
                         );
                     }
-                    ChatLineAction::EditorChange(change) => {
-                        self.current_editor.as_mut().unwrap().buffer = change;
+                    ChatLineAction::EditorChanged => {
+                        let text = item.text_input(ids!(input)).text();
+                        self.current_editor.as_mut().unwrap().buffer = text;
                     }
                     ChatLineAction::None => {}
                 }

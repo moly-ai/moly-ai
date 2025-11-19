@@ -375,7 +375,7 @@ live_design! {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, DefaultNone)]
+#[derive(Debug, Clone, Copy, PartialEq, DefaultNone)]
 pub enum ChatLineAction {
     Copy,
     Edit,
@@ -385,7 +385,7 @@ pub enum ChatLineAction {
     EditCancel,
     ToolApprove,
     ToolDeny,
-    EditorChange(String),
+    EditorChanged,
     None,
 }
 
@@ -447,11 +447,11 @@ impl Widget for ChatLine {
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::ToolDeny);
         }
 
-        if let Some(change) = self.text_input(ids!(input)).changed(actions) {
+        if self.text_input(ids!(input)).changed(actions).is_some() {
             cx.widget_action(
                 self.widget_uid(),
                 &scope.path,
-                ChatLineAction::EditorChange(change),
+                ChatLineAction::EditorChanged,
             );
         }
 
