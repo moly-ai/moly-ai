@@ -1,7 +1,7 @@
 use makepad_widgets::*;
 
 use crate::{
-    MolyModalWidgetExt,
+    MolyModalRef, MolyModalWidgetExt,
     utils::makepad::{events::EventExt, hits::HitExt},
 };
 
@@ -406,40 +406,29 @@ impl Widget for ChatLine {
         self.deref.handle_event(cx, event, scope);
         let actions = event.actions();
 
-        let copy = self.button(ids!(copy));
-        let edit = self.button(ids!(edit));
-        let delete = self.button(ids!(delete));
-        let approve = self.button(ids!(approve));
-        let deny = self.button(ids!(deny));
-        let input = self.text_input(ids!(input));
-        let save = self.button(ids!(edit_actions.save));
-        let save_and_regenerate = self.button(ids!(edit_actions.save_and_regenerate));
-        let cancel = self.button(ids!(edit_actions.cancel));
-        let actions_modal = self.moly_modal(ids!(actions_modal));
-
-        if copy.clicked(actions) {
+        if self.copy_ref().clicked(actions) {
             self.dismiss_all_hovers(cx);
-            actions_modal.close(cx);
+            self.actions_modal_ref().close(cx);
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Copy);
         }
 
-        if edit.clicked(actions) {
+        if self.edit_ref().clicked(actions) {
             self.dismiss_all_hovers(cx);
-            actions_modal.close(cx);
+            self.actions_modal_ref().close(cx);
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Edit);
         }
 
-        if delete.clicked(actions) {
+        if self.delete_ref().clicked(actions) {
             self.dismiss_all_hovers(cx);
-            actions_modal.close(cx);
+            self.actions_modal_ref().close(cx);
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Delete);
         }
 
-        if save.clicked(actions) {
+        if self.save_ref().clicked(actions) {
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Save);
         }
 
-        if save_and_regenerate.clicked(actions) {
+        if self.save_and_regenerate_ref().clicked(actions) {
             cx.widget_action(
                 self.widget_uid(),
                 &scope.path,
@@ -447,19 +436,19 @@ impl Widget for ChatLine {
             );
         }
 
-        if cancel.clicked(actions) {
+        if self.cancel_ref().clicked(actions) {
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::EditCancel);
         }
 
-        if approve.clicked(actions) {
+        if self.approve_ref().clicked(actions) {
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::ToolApprove);
         }
 
-        if deny.clicked(actions) {
+        if self.deny_ref().clicked(actions) {
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::ToolDeny);
         }
 
-        if input.changed(actions).is_some() {
+        if self.input_ref().changed(actions).is_some() {
             cx.widget_action(
                 self.widget_uid(),
                 &scope.path,
@@ -468,22 +457,62 @@ impl Widget for ChatLine {
         }
 
         if let Some(pos) = event.hits(cx, self.area()).secondary_pointer_action_pos() {
-            actions_modal.open_as_popup(cx, pos);
+            self.actions_modal_ref().open_as_popup(cx, pos);
         }
 
         // Manually dismiss hover state as animator will not handle this.
-        if actions_modal.dismissed(actions) {
+        if self.actions_modal_ref().dismissed(actions) {
             self.dismiss_all_hovers(cx);
         }
     }
 }
 
 impl ChatLine {
+    fn copy_ref(&self) -> ButtonRef {
+        self.button(ids!(copy))
+    }
+
+    fn edit_ref(&self) -> ButtonRef {
+        self.button(ids!(edit))
+    }
+
+    fn delete_ref(&self) -> ButtonRef {
+        self.button(ids!(delete))
+    }
+
+    fn approve_ref(&self) -> ButtonRef {
+        self.button(ids!(approve))
+    }
+
+    fn deny_ref(&self) -> ButtonRef {
+        self.button(ids!(deny))
+    }
+
+    fn input_ref(&self) -> TextInputRef {
+        self.text_input(ids!(input))
+    }
+
+    fn save_ref(&self) -> ButtonRef {
+        self.button(ids!(edit_actions.save))
+    }
+
+    fn save_and_regenerate_ref(&self) -> ButtonRef {
+        self.button(ids!(edit_actions.save_and_regenerate))
+    }
+
+    fn cancel_ref(&self) -> ButtonRef {
+        self.button(ids!(edit_actions.cancel))
+    }
+
+    fn actions_modal_ref(&self) -> MolyModalRef {
+        self.moly_modal(ids!(actions_modal))
+    }
+
     fn dismiss_all_hovers(&mut self, cx: &mut Cx) {
         // TODO: This `animator_play` does nothing in Android here?
         self.animator_play(cx, ids!(hover.off));
-        self.button(ids!(copy)).reset_hover(cx);
-        self.button(ids!(edit)).reset_hover(cx);
-        self.button(ids!(delete)).reset_hover(cx);
+        self.copy_ref().reset_hover(cx);
+        self.edit_ref().reset_hover(cx);
+        self.delete_ref().reset_hover(cx);
     }
 }
