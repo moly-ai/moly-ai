@@ -547,7 +547,7 @@ impl ChatControllerPlugin for Plugin {
                     realtime.set_realtime_channel(channel.clone());
 
                     let modal = me.moly_modal(ids!(audio_modal));
-                    modal.open(cx);
+                    modal.open_as_dialog(cx);
                 });
                 None
             }
