@@ -38,11 +38,11 @@ live_design! {
         padding: { top: 12, right: 12, bottom: 12, left: 12}
         margin: 0
         align: {x: 0.0, y: 0.5}
-
         draw_bg: {
             fn pixel(self) -> vec4 {
                 let sdf = Sdf2d::viewport(self.pos * self.rect_size)
                 let color = mix(#F2F4F700, #EAECEF88, self.hover);
+                let color = mix(color, #EAECEFFF, self.down);
 
                 sdf.box(0.0, 0.0, self.rect_size.x, self.rect_size.y, 2.5);
                 sdf.fill_keep(color);
@@ -118,10 +118,12 @@ live_design! {
         show_bg: true,
         draw_bg: {
             instance hover: 0.0
+            instance down: 0.0
 
             fn pixel(self) -> vec4 {
                 let sdf = Sdf2d::viewport(self.pos * self.rect_size)
                 let color = mix(#F2F4F700, #EAECEF88, self.hover);
+                let color = mix(color, #EAECEFFF, self.down);
 
                 sdf.box(0.0, 0.0, self.rect_size.x, self.rect_size.y, 2.5);
                 sdf.fill_keep(color);
