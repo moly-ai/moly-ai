@@ -1,3 +1,5 @@
+//! Extensions to Makepad's `Hit` type. Useful place to detect common UX patterns.
+
 use makepad_widgets::*;
 
 pub trait HitExt {
