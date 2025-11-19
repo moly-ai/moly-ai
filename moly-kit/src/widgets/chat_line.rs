@@ -460,7 +460,6 @@ impl Widget for ChatLine {
             self.actions_modal_ref().open_as_popup(cx, pos);
         }
 
-        // Manually dismiss hover state as animator will not handle this.
         if self.actions_modal_ref().dismissed(actions) {
             self.dismiss_all_hovers(cx);
         }
@@ -509,8 +508,8 @@ impl ChatLine {
     }
 
     fn dismiss_all_hovers(&mut self, cx: &mut Cx) {
-        // TODO: This `animator_play` does nothing in Android here?
-        self.animator_play(cx, ids!(hover.off));
+        // TODO: `animator_play` and `animator_cut` do nothing in Android here?
+        self.animator_cut(cx, ids!(hover.off));
         self.copy_ref().reset_hover(cx);
         self.edit_ref().reset_hover(cx);
         self.delete_ref().reset_hover(cx);
