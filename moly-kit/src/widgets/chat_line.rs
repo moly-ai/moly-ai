@@ -406,30 +406,40 @@ impl Widget for ChatLine {
         self.deref.handle_event(cx, event, scope);
         let actions = event.actions();
 
-        if self.button(ids!(copy)).clicked(actions) {
-            self.moly_modal(ids!(actions_modal)).close(cx);
+        let copy = self.button(ids!(copy));
+        let edit = self.button(ids!(edit));
+        let delete = self.button(ids!(delete));
+        let approve = self.button(ids!(approve));
+        let deny = self.button(ids!(deny));
+        let input = self.text_input(ids!(input));
+        let save = self.button(ids!(edit_actions.save));
+        let save_and_regenerate = self.button(ids!(edit_actions.save_and_regenerate));
+        let cancel = self.button(ids!(edit_actions.cancel));
+        let actions_modal = self.moly_modal(ids!(actions_modal));
+
+        if copy.clicked(actions) {
+            self.dismiss_all_hovers(cx);
+            actions_modal.close(cx);
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Copy);
         }
 
-        if self.button(ids!(edit)).clicked(actions) {
-            self.moly_modal(ids!(actions_modal)).close(cx);
+        if edit.clicked(actions) {
+            self.dismiss_all_hovers(cx);
+            actions_modal.close(cx);
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Edit);
         }
 
-        if self.button(ids!(delete)).clicked(actions) {
-            self.moly_modal(ids!(actions_modal)).close(cx);
+        if delete.clicked(actions) {
+            self.dismiss_all_hovers(cx);
+            actions_modal.close(cx);
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Delete);
         }
 
-        if self.button(ids!(edit_actions.save)).clicked(actions) {
-            println!("Save clicked");
+        if save.clicked(actions) {
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Save);
         }
 
-        if self
-            .button(ids!(edit_actions.save_and_regenerate))
-            .clicked(actions)
-        {
+        if save_and_regenerate.clicked(actions) {
             cx.widget_action(
                 self.widget_uid(),
                 &scope.path,
@@ -437,19 +447,19 @@ impl Widget for ChatLine {
             );
         }
 
-        if self.button(ids!(edit_actions.cancel)).clicked(actions) {
+        if cancel.clicked(actions) {
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::EditCancel);
         }
 
-        if self.button(ids!(approve)).clicked(actions) {
+        if approve.clicked(actions) {
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::ToolApprove);
         }
 
-        if self.button(ids!(deny)).clicked(actions) {
+        if deny.clicked(actions) {
             cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::ToolDeny);
         }
 
-        if self.text_input(ids!(input)).changed(actions).is_some() {
+        if input.changed(actions).is_some() {
             cx.widget_action(
                 self.widget_uid(),
                 &scope.path,
@@ -458,12 +468,21 @@ impl Widget for ChatLine {
         }
 
         if let Some(pos) = event.hits(cx, self.area()).secondary_pointer_action_pos() {
-            self.moly_modal(ids!(actions_modal)).open_as_popup(cx, pos);
+            actions_modal.open_as_popup(cx, pos);
         }
 
         // Manually dismiss hover state as animator will not handle this.
-        if self.moly_modal(ids!(actions_modal)).dismissed(actions) {
-            self.animator_play(cx, ids!(hover.off));
+        if actions_modal.dismissed(actions) {
+            self.dismiss_all_hovers(cx);
         }
+    }
+}
+
+impl ChatLine {
+    fn dismiss_all_hovers(&mut self, cx: &mut Cx) {
+        self.animator_play(cx, ids!(hover.off));
+        self.button(ids!(copy)).reset_hover(cx);
+        self.button(ids!(edit)).reset_hover(cx);
+        self.button(ids!(delete)).reset_hover(cx);
     }
 }

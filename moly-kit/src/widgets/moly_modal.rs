@@ -199,6 +199,10 @@ impl MolyModal {
         )
     }
 
+    pub fn is_open(&self) -> bool {
+        self.opened
+    }
+
     fn correct_popup_position(&mut self, cx: &mut Cx, pos: DVec2) {
         let content_size = self.content.area().rect(cx).size;
         let screen_size = cx.display_context.screen_size;
@@ -261,5 +265,9 @@ impl MolyModalRef {
         } else {
             false
         }
+    }
+
+    pub fn is_open(&self) -> bool {
+        self.borrow().map_or(false, |inner| inner.is_open())
     }
 }
