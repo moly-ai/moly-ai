@@ -3,10 +3,12 @@ use moly_kit::protocol::Picture;
 use moly_kit::utils::asynchronous::spawn;
 use moly_kit::*;
 
+use std::collections::HashMap;
+
 use crate::data::bot_fetcher::should_include_model;
-use crate::data::providers::ProviderType;
+use crate::data::providers::{Provider, ProviderBot, ProviderID, ProviderType};
 use crate::data::store::Store;
-use crate::data::supported_providers;
+use crate::data::supported_providers::{self, SupportedProvider};
 use crate::settings::provider_view::ProviderViewWidgetExt;
 use crate::settings::providers::ConnectionSettingsAction;
 use crate::shared::actions::ChatAction;
@@ -144,240 +146,46 @@ impl ChatScreen {
             let mut multi_client = MultiClient::new();
             let supported_providers_list = supported_providers::load_supported_providers();
 
-            // Clone store data for use in MapClient closures to check enabled status
             let available_bots = store.chats.available_bots.clone();
             let providers = store.chats.providers.clone();
 
-            for (_key, provider) in store.chats.providers.iter() {
-                match provider.provider_type {
-                    ProviderType::OpenAI | ProviderType::MolyServer => {
-                        if provider.enabled
-                            && (provider.api_key.is_some()
-                                || provider.url.starts_with("http://localhost"))
-                        {
-                            let mut client = OpenAIClient::new(provider.url.clone());
-                            if let Some(key) = provider.api_key.as_ref() {
-                                let _ = client.set_key(&key);
-                            }
-                            client.set_tools_enabled(provider.tools_enabled);
-
-                            let mut client = MapClient::from(client);
-
-                            // Clone supported models for this provider (if any)
-                            let supported_models = supported_providers_list
-                                .iter()
-                                .find(|sp| sp.id == provider.id)
-                                .and_then(|sp| sp.supported_models.clone());
-
-                            let icon_opt = store.get_provider_icon(&provider.name);
-                            let available_bots_clone = available_bots.clone();
-                            let providers_clone = providers.clone();
-                            client.set_map_bots(move |mut bots| {
-                                // Filter by provider enabled status only
-                                // Keep all bots (including disabled ones) so historical messages can display bot names
-                                if !available_bots_clone.is_empty() {
-                                    bots.retain(|bot| {
-                                        if let Some(provider_bot) =
-                                            available_bots_clone.get(&bot.id)
-                                        {
-                                            providers_clone
-                                                .get(&provider_bot.provider_id)
-                                                .map_or(false, |p| p.enabled)
-                                        } else {
-                                            // Bot not in available_bots yet, let it through
-                                            true
-                                        }
-                                    });
-                                }
-
-                                // Apply basic filter (non-chat models)
-                                bots.retain(|bot| should_include_model(&bot.name));
-
-                                // Apply supported models whitelist if available
-                                if let Some(ref models) = supported_models {
-                                    bots.retain(|bot| models.contains(&bot.name));
-                                }
-
-                                // Set icon if available
-                                if let Some(ref icon) = icon_opt {
-                                    for bot in bots.iter_mut() {
-                                        bot.avatar = Picture::Dependency(icon.clone());
-                                    }
-                                }
-                                bots
-                            });
-
-                            multi_client.add_client(Box::new(client));
-                        }
+            // Filter enabled providers upfront and check credentials
+            for (_key, provider) in store
+                .chats
+                .providers
+                .iter()
+                .filter(|(_, p)| p.enabled && has_valid_credentials(p))
+            {
+                let client: Option<Box<dyn BotClient>> = match provider.provider_type {
+                    ProviderType::OpenAI | ProviderType::MolyServer | ProviderType::MoFa => {
+                        create_openai_client(
+                            provider,
+                            &supported_providers_list,
+                            &available_bots,
+                            &providers,
+                            &store,
+                            ClientFilter::ChatModels,
+                        )
                     }
-                    ProviderType::OpenAIImage => {
-                        if provider.enabled {
-                            let client_url = provider.url.trim_start_matches('#').to_string();
-                            let mut client = OpenAIImageClient::new(client_url);
-                            if let Some(key) = provider.api_key.as_ref() {
-                                let _ = client.set_key(&key);
-                            }
+                    ProviderType::OpenAIImage => create_openai_image_client(
+                        provider,
+                        &supported_providers_list,
+                        &available_bots,
+                        &providers,
+                        &store,
+                    ),
+                    ProviderType::OpenAIRealtime => create_openai_realtime_client(provider),
+                    ProviderType::DeepInquire => create_deep_inquire_client(
+                        provider,
+                        &supported_providers_list,
+                        &available_bots,
+                        &providers,
+                        &store,
+                    ),
+                };
 
-                            let mut client = MapClient::from(client);
-
-                            let icon_opt = store.get_provider_icon(&provider.name);
-                            let available_bots_clone = available_bots.clone();
-                            let providers_clone = providers.clone();
-                            client.set_map_bots(move |mut bots| {
-                                // Filter by enabled status only if bot exists in available_bots
-                                // If available_bots is empty (initial load), let bots through
-                                if !available_bots_clone.is_empty() {
-                                    bots.retain(|bot| {
-                                        if let Some(provider_bot) = available_bots_clone.get(&bot.id) {
-                                            provider_bot.enabled
-                                                && providers_clone
-                                                    .get(&provider_bot.provider_id)
-                                                    .map_or(false, |p| p.enabled)
-                                        } else {
-                                            // Bot not in available_bots yet, let it through
-                                            true
-                                        }
-                                    });
-                                }
-
-                                // Set icon if available
-                                if let Some(ref icon) = icon_opt {
-                                    for bot in bots.iter_mut() {
-                                        bot.avatar = Picture::Dependency(icon.clone());
-                                    }
-                                }
-                                bots
-                            });
-
-                            multi_client.add_client(Box::new(client));
-                        }
-                    }
-                    ProviderType::OpenAIRealtime => {
-                        let is_local = provider.url.contains("127.0.0.1")
-                            || provider.url.contains("localhost");
-                        if provider.enabled && (is_local || provider.api_key.is_some()) {
-                            let client_url = provider.url.trim_start_matches('#').to_string();
-                            let mut client = OpenAIRealtimeClient::new(client_url);
-                            if let Some(key) = provider.api_key.as_ref() {
-                                let _ = client.set_key(&key);
-                            }
-                            if let Some(prompt) = provider.system_prompt.as_ref() {
-                                let _ = client.set_system_prompt(&prompt);
-                            }
-                            client.set_tools_enabled(provider.tools_enabled);
-
-                            multi_client.add_client(Box::new(client));
-                        }
-                    }
-                    ProviderType::MoFa => {
-                        // For MoFa we don't require an API key
-                        if provider.enabled {
-                            let mut client = OpenAIClient::new(provider.url.clone());
-                            if let Some(key) = provider.api_key.as_ref() {
-                                let _ = client.set_key(&key);
-                            }
-                            client.set_tools_enabled(provider.tools_enabled);
-
-                            let mut client = MapClient::from(client);
-
-                            // Clone supported models for this provider (if any)
-                            let supported_models = supported_providers_list
-                                .iter()
-                                .find(|sp| sp.id == provider.id)
-                                .and_then(|sp| sp.supported_models.clone());
-
-                            let icon_opt = store.get_provider_icon(&provider.name);
-                            let available_bots_clone = available_bots.clone();
-                            let providers_clone = providers.clone();
-                            client.set_map_bots(move |mut bots| {
-                                // Filter by provider enabled status only
-                                // Keep all bots (including disabled ones) so historical messages can display bot names
-                                if !available_bots_clone.is_empty() {
-                                    bots.retain(|bot| {
-                                        if let Some(provider_bot) =
-                                            available_bots_clone.get(&bot.id)
-                                        {
-                                            providers_clone
-                                                .get(&provider_bot.provider_id)
-                                                .map_or(false, |p| p.enabled)
-                                        } else {
-                                            // Bot not in available_bots yet, let it through
-                                            true
-                                        }
-                                    });
-                                }
-
-                                // Apply basic filter (non-chat models)
-                                bots.retain(|bot| should_include_model(&bot.name));
-
-                                // Apply supported models whitelist if available
-                                if let Some(ref models) = supported_models {
-                                    bots.retain(|bot| models.contains(&bot.name));
-                                }
-
-                                // Set icon if available
-                                if let Some(ref icon) = icon_opt {
-                                    for bot in bots.iter_mut() {
-                                        bot.avatar = Picture::Dependency(icon.clone());
-                                    }
-                                }
-                                bots
-                            });
-
-                            multi_client.add_client(Box::new(client));
-                        }
-                    }
-                    ProviderType::DeepInquire => {
-                        if provider.enabled {
-                            let mut client = DeepInquireClient::new(provider.url.clone());
-                            if let Some(key) = provider.api_key.as_ref() {
-                                let _ = client.set_key(&key);
-                            }
-
-                            let mut client = MapClient::from(client);
-
-                            // Clone supported models for this provider (if any)
-                            let supported_models = supported_providers_list
-                                .iter()
-                                .find(|sp| sp.id == provider.id)
-                                .and_then(|sp| sp.supported_models.clone());
-
-                            let icon_opt = store.get_provider_icon(&provider.name);
-                            let available_bots_clone = available_bots.clone();
-                            let providers_clone = providers.clone();
-                            client.set_map_bots(move |mut bots| {
-                                // Filter by provider enabled status only
-                                // Keep all bots (including disabled ones) so historical messages can display bot names
-                                if !available_bots_clone.is_empty() {
-                                    bots.retain(|bot| {
-                                        if let Some(provider_bot) = available_bots_clone.get(&bot.id) {
-                                            providers_clone
-                                                .get(&provider_bot.provider_id)
-                                                .map_or(false, |p| p.enabled)
-                                        } else {
-                                            // Bot not in available_bots yet, let it through
-                                            true
-                                        }
-                                    });
-                                }
-
-                                // No basic filter for DeepInquire, just apply supported models whitelist
-                                if let Some(ref models) = supported_models {
-                                    bots.retain(|bot| models.contains(&bot.name));
-                                }
-
-                                // Set icon if available
-                                if let Some(ref icon) = icon_opt {
-                                    for bot in bots.iter_mut() {
-                                        bot.avatar = Picture::Dependency(icon.clone());
-                                    }
-                                }
-                                bots
-                            });
-
-                            multi_client.add_client(Box::new(client));
-                        }
-                    }
+                if let Some(client) = client {
+                    multi_client.add_client(client);
                 }
             }
 
@@ -402,4 +210,225 @@ impl ChatScreen {
             });
         });
     }
+}
+
+type ProviderMap = HashMap<ProviderID, Provider>;
+type BotMap = HashMap<BotId, ProviderBot>;
+
+// Helper types and functions for client creation
+
+#[derive(Clone)]
+enum ClientFilter {
+    // Apply should_include_model filter
+    ChatModels,
+    // Check bot.enabled in available_bots
+    BotEnabled,
+    // No extra filtering beyond provider enabled
+    None,
+}
+
+fn is_localhost(url: &str) -> bool {
+    url.contains("localhost") || url.contains("127.0.0.1")
+}
+
+fn has_valid_credentials(provider: &Provider) -> bool {
+    match provider.provider_type {
+        ProviderType::OpenAI | ProviderType::MolyServer | ProviderType::OpenAIRealtime => {
+            provider.api_key.is_some() || is_localhost(&provider.url)
+        }
+        ProviderType::MoFa | ProviderType::OpenAIImage | ProviderType::DeepInquire => true,
+    }
+}
+
+fn apply_icon(bots: &mut Vec<Bot>, icon_opt: &Option<LiveDependency>) {
+    if let Some(icon) = icon_opt {
+        for bot in bots.iter_mut() {
+            bot.avatar = Picture::Dependency(icon.clone());
+        }
+    }
+}
+
+fn apply_bot_filters(
+    bots: &mut Vec<Bot>,
+    available_bots: &BotMap,
+    providers: &ProviderMap,
+    filter: &ClientFilter,
+    supported_models: &Option<Vec<String>>,
+) {
+    // Filter by provider/bot enabled status
+    if !available_bots.is_empty() {
+        bots.retain(|bot| {
+            if let Some(provider_bot) = available_bots.get(&bot.id) {
+                let provider_enabled = providers
+                    .get(&provider_bot.provider_id)
+                    .map_or(false, |p| p.enabled);
+
+                match filter {
+                    ClientFilter::BotEnabled => provider_bot.enabled && provider_enabled,
+                    _ => provider_enabled,
+                }
+            } else {
+                // Bot not in available_bots yet, let it through
+                true
+            }
+        });
+    }
+
+    // Apply filter type
+    if matches!(filter, ClientFilter::ChatModels) {
+        bots.retain(|bot| should_include_model(&bot.name));
+    }
+
+    // Apply supported models whitelist
+    if let Some(models) = supported_models {
+        bots.retain(|bot| models.contains(&bot.name));
+    }
+}
+
+fn setup_map_client<C: BotClient + 'static>(
+    map_client: &mut MapClient<C>,
+    provider: &Provider,
+    supported_providers_list: &[SupportedProvider],
+    available_bots: &BotMap,
+    providers: &ProviderMap,
+    store: &Store,
+    filter: ClientFilter,
+) {
+    let supported_models = supported_providers_list
+        .iter()
+        .find(|sp| sp.id == provider.id)
+        .and_then(|sp| sp.supported_models.clone());
+
+    let icon_opt = store.get_provider_icon(&provider.name);
+    let available_bots = available_bots.clone();
+    let providers = providers.clone();
+
+    map_client.set_map_bots(move |mut bots| {
+        apply_bot_filters(
+            &mut bots,
+            &available_bots,
+            &providers,
+            &filter,
+            &supported_models,
+        );
+        apply_icon(&mut bots, &icon_opt);
+        bots
+    });
+}
+
+fn create_openai_client(
+    provider: &Provider,
+    supported_providers_list: &[SupportedProvider],
+    available_bots: &BotMap,
+    providers: &ProviderMap,
+    store: &Store,
+    filter: ClientFilter,
+) -> Option<Box<dyn BotClient>> {
+    let mut client = OpenAIClient::new(provider.url.clone());
+
+    if let Some(key) = provider.api_key.as_ref() {
+        if let Err(e) = client.set_key(key) {
+            eprintln!("Failed to set API key for {}: {}", provider.name, e);
+            return None;
+        }
+    }
+    client.set_tools_enabled(provider.tools_enabled);
+
+    let mut map_client = MapClient::from(client);
+
+    setup_map_client(
+        &mut map_client,
+        provider,
+        supported_providers_list,
+        available_bots,
+        providers,
+        store,
+        filter,
+    );
+
+    Some(Box::new(map_client))
+}
+
+fn create_openai_image_client(
+    provider: &Provider,
+    supported_providers_list: &[SupportedProvider],
+    available_bots: &BotMap,
+    providers: &ProviderMap,
+    store: &Store,
+) -> Option<Box<dyn BotClient>> {
+    let client_url = provider.url.trim_start_matches('#').to_string();
+    let mut client = OpenAIImageClient::new(client_url);
+
+    if let Some(key) = provider.api_key.as_ref() {
+        if let Err(e) = client.set_key(key) {
+            eprintln!("Failed to set API key for {}: {}", provider.name, e);
+            return None;
+        }
+    }
+
+    let mut map_client = MapClient::from(client);
+
+    setup_map_client(
+        &mut map_client,
+        provider,
+        supported_providers_list,
+        available_bots,
+        providers,
+        store,
+        ClientFilter::BotEnabled,
+    );
+
+    Some(Box::new(map_client))
+}
+
+fn create_openai_realtime_client(provider: &Provider) -> Option<Box<dyn BotClient>> {
+    let client_url = provider.url.trim_start_matches('#').to_string();
+    let mut client = OpenAIRealtimeClient::new(client_url);
+
+    if let Some(key) = provider.api_key.as_ref() {
+        if let Err(e) = client.set_key(key) {
+            eprintln!("Failed to set API key for {}: {}", provider.name, e);
+            return None;
+        }
+    }
+    if let Some(prompt) = provider.system_prompt.as_ref() {
+        if let Err(e) = client.set_system_prompt(prompt) {
+            eprintln!("Failed to set system prompt for {}: {}", provider.name, e);
+            return None;
+        }
+    }
+    client.set_tools_enabled(provider.tools_enabled);
+
+    Some(Box::new(client))
+}
+
+fn create_deep_inquire_client(
+    provider: &Provider,
+    supported_providers_list: &[SupportedProvider],
+    available_bots: &BotMap,
+    providers: &ProviderMap,
+    store: &Store,
+) -> Option<Box<dyn BotClient>> {
+    let mut client = DeepInquireClient::new(provider.url.clone());
+
+    if let Some(key) = provider.api_key.as_ref() {
+        if let Err(e) = client.set_key(key) {
+            eprintln!("Failed to set API key for {}: {}", provider.name, e);
+            return None;
+        }
+    }
+
+    let mut map_client = MapClient::from(client);
+
+    setup_map_client(
+        &mut map_client,
+        provider,
+        supported_providers_list,
+        available_bots,
+        providers,
+        store,
+        ClientFilter::None,
+    );
+
+    Some(Box::new(map_client))
 }
