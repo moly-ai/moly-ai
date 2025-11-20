@@ -1,9 +1,10 @@
 use crate::{
     data::{chats::chat::ChatID, store::Store},
-    shared::{actions::ChatAction, modal::ModalWidgetExt, utils::human_readable_name},
+    shared::{actions::ChatAction, utils::human_readable_name},
 };
 
 use makepad_widgets::*;
+use moly_kit::MolyModalWidgetExt;
 
 use super::delete_chat_modal::DeleteChatModalWidgetExt;
 use super::{
@@ -18,9 +19,10 @@ live_design! {
 
     use crate::shared::styles::*;
     use crate::shared::widgets::*;
-    use crate::shared::modal::*;
     use crate::chat::chat_history_card_options::ChatHistoryCardOptions;
     use crate::chat::delete_chat_modal::DeleteChatModal;
+
+    use moly_kit::widgets::moly_modal::*;
 
     ICON_DELETE = dep("crate://self/resources/icons/delete.svg")
 
@@ -253,7 +255,7 @@ live_design! {
             }
         }
 
-        chat_history_card_options_modal = <Modal> {
+        chat_history_card_options_modal = <MolyModal> {
             align: {x: 0.0, y: 0.0}
             bg_view: {
                 visible: false
@@ -263,7 +265,7 @@ live_design! {
             }
         }
 
-        delete_chat_modal = <Modal> {
+        delete_chat_modal = <MolyModal> {
             content: {
                 delete_chat_modal_inner = <DeleteChatModal> {}
             }
@@ -366,14 +368,8 @@ impl WidgetMatchEvent for ChatHistoryCard {
             self.chat_history_card_options(ids!(chat_history_card_options))
                 .selected(cx, self.chat_id);
 
-            let modal = self.modal(ids!(chat_history_card_options_modal));
-            modal.apply_over(
-                cx,
-                live! {
-                    content: { margin: { left: (coords.x), top: (coords.y) } }
-                },
-            );
-            modal.open(cx);
+            let modal = self.moly_modal(ids!(chat_history_card_options_modal));
+            modal.open_as_popup(cx, coords);
             return;
         }
 
@@ -399,7 +395,7 @@ impl WidgetMatchEvent for ChatHistoryCard {
                     | DeleteChatModalAction::CloseButtonClicked
                     | DeleteChatModalAction::ChatDeleted
             ) {
-                self.modal(ids!(delete_chat_modal)).close(cx);
+                self.moly_modal(ids!(delete_chat_modal)).close(cx);
             }
         }
     }
@@ -467,7 +463,8 @@ impl ChatHistoryCard {
                 ChatHistoryCardAction::MenuClosed(chat_id) => {
                     if chat_id == self.chat_id {
                         self.button(ids!(chat_options)).reset_hover(cx);
-                        self.modal(ids!(chat_history_card_options_modal)).close(cx);
+                        self.moly_modal(ids!(chat_history_card_options_modal))
+                            .close(cx);
                     }
                 }
                 ChatHistoryCardAction::ActivateTitleEdition(chat_id) => {
@@ -481,7 +478,7 @@ impl ChatHistoryCard {
                             self.delete_chat_modal(ids!(delete_chat_modal_inner));
                         delete_modal_inner.set_chat_id(self.chat_id);
 
-                        self.modal(ids!(delete_chat_modal)).open(cx);
+                        self.moly_modal(ids!(delete_chat_modal)).open_as_dialog(cx);
                     }
                 }
                 _ => {}
@@ -490,7 +487,7 @@ impl ChatHistoryCard {
             // If the modal is dissmised (such as, clicking outside) we need to reset the hover state
             // of the open chat options button.
             if self
-                .modal(ids!(chat_history_card_options_modal))
+                .moly_modal(ids!(chat_history_card_options_modal))
                 .dismissed(actions)
             {
                 self.button(ids!(chat_options)).reset_hover(cx);

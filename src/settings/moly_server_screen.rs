@@ -9,7 +9,6 @@ live_design! {
 
     use crate::shared::styles::*;
     use crate::shared::widgets::*;
-    use crate::shared::modal::*;
 
     use crate::landing::landing_screen::LandingScreen;
     use crate::my_models::my_models_screen::MyModelsScreen;

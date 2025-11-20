@@ -1,9 +1,9 @@
 use super::{delete_model_modal::DeleteModelModalAction, model_info_modal::ModelInfoModalAction};
 use crate::data::store::Store;
-use crate::shared::modal::ModalWidgetExt;
 use crate::shared::utils::format_model_size;
 use crate::shared::{actions::ChatAction, utils::human_readable_name};
 use makepad_widgets::*;
+use moly_kit::MolyModalWidgetExt;
 use moly_protocol::data::{DownloadedFile, FileID};
 
 live_design! {
@@ -13,9 +13,10 @@ live_design! {
 
     use crate::shared::styles::*;
     use crate::shared::widgets::*;
-    use crate::shared::modal::*;
     use crate::my_models::model_info_modal::ModelInfoModal;
     use crate::my_models::delete_model_modal::DeleteModelModal;
+
+    use moly_kit::widgets::moly_modal::*;
 
     ICON_START_CHAT = dep("crate://self/resources/icons/start_chat.svg")
     ICON_INFO = dep("crate://self/resources/icons/info.svg")
@@ -167,13 +168,13 @@ live_design! {
             }
         }
 
-        info_modal = <Modal> {
+        info_modal = <MolyModal> {
             content: {
                 <ModelInfoModal> {}
             }
         }
 
-        delete_modal = <Modal> {
+        delete_modal = <MolyModal> {
             content: {
                 <DeleteModelModal> {}
             }
@@ -258,23 +259,23 @@ impl WidgetMatchEvent for DownloadedFilesRow {
         }
 
         if self.button(ids!(row_actions.info_button)).clicked(actions) {
-            self.modal(ids!(info_modal)).open(cx);
+            self.moly_modal(ids!(info_modal)).open_as_dialog(cx);
         }
 
         if self
             .button(ids!(row_actions.delete_button))
             .clicked(actions)
         {
-            self.modal(ids!(delete_modal)).open(cx);
+            self.moly_modal(ids!(delete_modal)).open_as_dialog(cx);
         }
 
         for action in actions {
             if let DeleteModelModalAction::ModalDismissed = action.cast() {
-                self.modal(ids!(delete_modal)).close(cx);
+                self.moly_modal(ids!(delete_modal)).close(cx);
             }
 
             if let ModelInfoModalAction::ModalDismissed = action.cast() {
-                self.modal(ids!(info_modal)).close(cx);
+                self.moly_modal(ids!(info_modal)).close(cx);
             }
         }
     }

@@ -7,7 +7,6 @@ live_design! {
 
     use crate::shared::styles::*;
     use crate::shared::widgets::*;
-    use crate::shared::modal::*;
 
     use crate::mcp::mcp_servers::McpServers;
 

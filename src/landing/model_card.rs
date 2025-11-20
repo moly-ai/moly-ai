@@ -1,9 +1,9 @@
 use crate::data::store::ModelWithDownloadInfo;
 use crate::shared::external_link::ExternalLinkWidgetExt;
-use crate::shared::modal::ModalWidgetExt;
 use crate::shared::utils::hugging_face_model_url;
 use chrono::Utc;
 use makepad_widgets::*;
+use moly_kit::MolyModalWidgetExt;
 use unicode_segmentation::UnicodeSegmentation;
 
 live_design! {
@@ -17,7 +17,8 @@ live_design! {
     use crate::landing::shared::*;
     use crate::landing::model_files::ModelFiles;
     use crate::shared::external_link::*;
-    use crate::shared::modal::*;
+
+    use moly_kit::widgets::moly_modal::*;
 
     ICON_DOWNLOADS = dep("crate://self/resources/icons/downloads.svg")
     ICON_FAVORITE = dep("crate://self/resources/icons/favorite.svg")
@@ -321,7 +322,7 @@ live_design! {
             <ModelFiles> {}
         }
 
-        modal = <Modal> {
+        modal = <MolyModal> {
             content: {
                 <ModelCardViewAllModal> {}
             }
@@ -414,13 +415,13 @@ impl Widget for ModelCard {
 impl WidgetMatchEvent for ModelCard {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
         if self.link_label(ids!(view_all_button.link)).clicked(actions) {
-            self.modal(ids!(modal)).open(cx);
+            self.moly_modal(ids!(modal)).open(cx);
             self.redraw(cx);
         }
 
         for action in actions {
             if let ModelCardViewAllModalAction::CloseButtonClicked = action.cast() {
-                self.modal(ids!(modal)).close(cx);
+                self.moly_modal(ids!(modal)).close(cx);
                 self.redraw(cx);
             }
         }

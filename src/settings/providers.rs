@@ -1,4 +1,3 @@
-use crate::shared::modal::ModalWidgetExt;
 use crate::{
     data::{
         providers::{Provider, ProviderConnectionStatus},
@@ -7,6 +6,7 @@ use crate::{
     settings::sync_modal::{SyncModalAction, SyncModalWidgetExt},
 };
 use makepad_widgets::*;
+use moly_kit::MolyModalWidgetExt;
 
 use super::{add_provider_modal::AddProviderModalAction, provider_view::ProviderViewAction};
 
@@ -19,7 +19,8 @@ live_design! {
     use crate::shared::styles::*;
     use crate::settings::add_provider_modal::*;
     use crate::settings::sync_modal::SyncModal;
-    use crate::shared::modal::*;
+
+    use moly_kit::widgets::moly_modal::*;
 
     ICON_EDIT = dep("crate://self/resources/icons/edit.svg")
     ICON_TRASH = dep("crate://self/resources/images/trash_icon.png")
@@ -222,13 +223,13 @@ live_design! {
             width: Fill, height: Fit
             flow: Overlay
 
-            add_provider_modal = <Modal> {
+            add_provider_modal = <MolyModal> {
                 content: {
                     add_provider_modal_inner = <AddProviderModal> {}
                 }
             }
 
-            sync_modal = <Modal> {
+            sync_modal = <MolyModal> {
                 content: {
                     sync_modal_inner = <SyncModal> {}
                 }
@@ -336,8 +337,8 @@ impl WidgetMatchEvent for Providers {
             .finger_up(actions)
             .is_some()
         {
-            let modal = self.modal(ids!(add_provider_modal));
-            modal.open(cx);
+            let modal = self.moly_modal(ids!(add_provider_modal));
+            modal.open_as_dialog(cx);
         }
 
         if self
@@ -345,8 +346,8 @@ impl WidgetMatchEvent for Providers {
             .finger_up(actions)
             .is_some()
         {
-            let modal = self.modal(ids!(sync_modal));
-            modal.open(cx);
+            let modal = self.moly_modal(ids!(sync_modal));
+            modal.open_as_dialog(cx);
         }
 
         for action in actions {
@@ -357,19 +358,19 @@ impl WidgetMatchEvent for Providers {
 
             // Handle modal actions
             if let AddProviderModalAction::ModalDismissed = action.cast() {
-                self.modal(ids!(add_provider_modal)).close(cx);
+                self.moly_modal(ids!(add_provider_modal)).close(cx);
                 self.redraw(cx);
             }
 
             if let SyncModalAction::ModalDismissed = action.cast() {
-                self.modal(ids!(sync_modal)).close(cx);
+                self.moly_modal(ids!(sync_modal)).close(cx);
                 self.redraw(cx);
             }
 
             // Handle the case where the modal is dismissed by the user clicking outside the modal
             // This is a hacky way to reset the modal state because the inner content never gets to
             // hear if it was dismissed from outside.
-            if self.modal(ids!(sync_modal)).dismissed(actions) {
+            if self.moly_modal(ids!(sync_modal)).dismissed(actions) {
                 self.sync_modal(ids!(sync_modal_inner)).reset_state(cx);
             }
 

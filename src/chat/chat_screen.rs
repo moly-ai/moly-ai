@@ -20,7 +20,6 @@ live_design! {
     use link::widgets::*;
 
     use crate::shared::styles::*;
-    use crate::shared::modal::*;
     use crate::shared::widgets::*;
     use crate::chat::chat_history_panel::ChatHistoryPanel;
     use crate::chat::chat_screen_mobile::ChatScreenMobile;

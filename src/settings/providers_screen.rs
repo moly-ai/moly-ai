@@ -12,7 +12,6 @@ live_design! {
 
     use crate::shared::styles::*;
     use crate::shared::widgets::*;
-    use crate::shared::modal::*;
     use crate::settings::configure_connection_modal::ConfigureConnectionModal;
     use crate::settings::provider_view::ProviderView;
     use crate::settings::providers::Providers;

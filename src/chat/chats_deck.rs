@@ -18,7 +18,6 @@ live_design! {
     use link::widgets::*;
 
     use crate::shared::styles::*;
-    use crate::shared::modal::*;
     use crate::shared::widgets::*;
     use crate::chat::chat_view::ChatView;
 
