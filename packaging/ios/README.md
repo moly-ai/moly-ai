@@ -14,7 +14,7 @@ You need an Apple Distribution certificate installed in your Keychain:
 
 Required provisioning profile:
 - Type: App Store Distribution
-- Bundle ID: `org.moxin.moly`
+- Bundle ID: `com.moxin-org.moly`
 - Location: `~/Library/MobileDevice/Provisioning Profiles/`
 - Get the UUID: `security cms -D -i /path/to/profile.mobileprovision | grep UUID -A 1`
 

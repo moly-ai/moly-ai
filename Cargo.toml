@@ -75,7 +75,7 @@ features = [
 ## Configuration for `cargo packager`
 [package.metadata.packager]
 product_name = "Moly"
-identifier = "org.moxin.moly"
+identifier = "com.moxin-org.moly"
 category = "Utility"
 authors = ["Moly AI <moly-ai@github.com>"]
 publisher = "moly-ai"

@@ -109,6 +109,28 @@ jobs:
           cargo packager --release --verbose
           ls dist/
 
+      - name: Notarize macOS DMG (ARM only)
+        if: matrix.os == 'macos-14'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cd dist/
+          DMG_FILE=$(ls Moly_*.dmg)
+          echo "Notarizing $DMG_FILE..."
+
+          # Submit for notarization
+          xcrun notarytool submit "$DMG_FILE" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+
+          # Staple the notarization ticket
+          xcrun stapler staple "$DMG_FILE"
+          echo "✅ Notarization complete"
+
       - name: Upload Dist
         env:
           GITHUB_TOKEN: ${{ secrets.MOLY_RELEASE }}
@@ -252,7 +274,7 @@ jobs:
       - name: Build for iOS
         run: |
           cargo makepad apple ios \
-            --org=org.moxin \
+            --org=com.moxin-org \
             --app=moly \
             --profile=$PROFILE_PATH \
             --cert=$CERT_FINGERPRINT \
