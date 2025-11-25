@@ -123,12 +123,19 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
+          # Extract certificate identity name for cargo-packager
+          CERT_IDENTITY=$(security find-identity -v -p codesigning $KEYCHAIN_PATH | grep "Developer ID Application" | head -n 1 | sed -n 's/.*"\(.*\)"/\1/p')
+          echo "MACOS_SIGNING_IDENTITY=$CERT_IDENTITY" >> $GITHUB_ENV
+          echo "Found certificate: $CERT_IDENTITY"
+
       - name: Build and notarize
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CARGO_PACKAGER_MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
         run: |
+          echo "Using signing identity: $CARGO_PACKAGER_MACOS_SIGNING_IDENTITY"
           cargo packager --release --verbose
           ls dist/
 
