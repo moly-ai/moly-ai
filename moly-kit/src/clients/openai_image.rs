@@ -87,9 +87,6 @@ impl OpenAIImageClient {
             "prompt": prompt,
             // "auto" is supported by `gpt-image` but not for `dall-e`.
             "size": "1024x1024",
-            // `gpt-image` always returns base64, but `dall-e` supports
-            // and defaults to `url` response format.
-            "response_format": "b64_json"
         });
 
         let request = inner
@@ -131,27 +128,62 @@ impl OpenAIImageClient {
             )
         })?;
 
-        let image_data = response_json
-            .get("data")
-            .and_then(|data| data.get(0))
-            .and_then(|item| item.get("b64_json"))
-            .and_then(|b64| b64.as_str())
+        enum ImageData<'a> {
+            Base64(&'a str),
+            Url(&'a str),
+        }
+
+        let image_data = response_json["data"][0]["b64_json"]
+            .as_str()
+            .map(|s| ImageData::Base64(s))
+            .or_else(|| {
+                response_json["data"][0]["url"]
+                    .as_str()
+                    .map(|s| ImageData::Url(s))
+            })
             .ok_or_else(|| {
                 ClientError::new(
                     ClientErrorKind::Format,
-                    "Response does not contain expected 'b64_json' field".to_string(),
+                    "Response JSON does not contain image data".to_string(),
                 )
             })?;
 
-        let attachment =
-            Attachment::from_base64("image.png".into(), Some("image/png".into()), image_data)
-                .map_err(|e| {
-                    ClientError::new_with_source(
-                        ClientErrorKind::Format,
-                        "Failed to create attachment from base64 data".to_string(),
-                        Some(e),
-                    )
-                })?;
+        let attachment = match image_data {
+            ImageData::Base64(b64) => {
+                Attachment::from_base64("image.png".into(), Some("image/png".into()), &b64)
+                    .map_err(|e| {
+                        ClientError::new_with_source(
+                            ClientErrorKind::Format,
+                            "Failed to create attachment from base64 data".to_string(),
+                            Some(e),
+                        )
+                    })?
+            }
+            ImageData::Url(url) => {
+                let bytes = inner
+                    .client
+                    .get(url)
+                    .send()
+                    .await
+                    .map_err(|e| {
+                        ClientError::new_with_source(
+                            ClientErrorKind::Network,
+                            format!("Failed to fetch image from URL: {}", url),
+                            Some(e),
+                        )
+                    })?
+                    .bytes()
+                    .await
+                    .map_err(|e| {
+                        ClientError::new_with_source(
+                            ClientErrorKind::Network,
+                            format!("Failed to read image bytes from URL: {}", url),
+                            Some(e),
+                        )
+                    })?;
+                Attachment::from_bytes("image.png".into(), Some("image/png".into()), &bytes)
+            }
+        };
 
         let content = MessageContent {
             text: String::new(),
