@@ -86,7 +86,7 @@ jobs:
     if: ${{ github.event.inputs.build_macos == 'true' }}
     strategy:
       matrix:
-        os: [macos-14, macos-13]
+        os: [macos-14, macos-15]
         rust: [1.89]
 
     steps:
@@ -274,7 +274,7 @@ jobs:
       - name: Build for iOS
         run: |
           cargo makepad apple ios \
-            --org=com.moxin-org \
+            --org=org.moxin \
             --app=moly \
             --profile=$PROFILE_PATH \
             --cert=$CERT_FINGERPRINT \
