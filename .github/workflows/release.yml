@@ -125,17 +125,18 @@ jobs:
 
           # Extract certificate identity name for cargo-packager
           CERT_IDENTITY=$(security find-identity -v -p codesigning $KEYCHAIN_PATH | grep "Developer ID Application" | head -n 1 | sed -n 's/.*"\(.*\)"/\1/p')
-          echo "MACOS_SIGNING_IDENTITY=$CERT_IDENTITY" >> $GITHUB_ENV
           echo "Found certificate: $CERT_IDENTITY"
+
+          # Add signing identity to Cargo.toml
+          sed -i '' "s|# signing_identity is set via environment variable in CI|signing_identity = \"$CERT_IDENTITY\"|" Cargo.toml
+          echo "Updated Cargo.toml with signing identity"
 
       - name: Build and notarize
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          CARGO_PACKAGER_MACOS_SIGNING_IDENTITY: ${{ env.MACOS_SIGNING_IDENTITY }}
         run: |
-          echo "Using signing identity: $CARGO_PACKAGER_MACOS_SIGNING_IDENTITY"
           cargo packager --release --verbose
           ls dist/
 
