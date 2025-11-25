@@ -619,40 +619,58 @@ impl Glue {
     fn mark_attachments(&mut self, mutation: &VecMutation<Message>, state: &ChatState) {
         self.marked_attachments.clear();
 
+        let mut maybe_persist: Vec<Attachment> = Vec::new();
+        let mut maybe_delete: Vec<Attachment> = Vec::new();
+
         for effect in mutation.effects(&state.messages) {
             match effect {
                 VecEffect::Insert(_, messages) => {
-                    // Dev note: To make this reusable outside of Moly, attachment inserts
-                    // should be treated in the same way as deletes, re-scanning to
-                    // verify an actual insert happened.
-
-                    for message in messages {
-                        for attachment in &message.content.attachments {
-                            if !attachment.has_persistence_key()
-                                && !self
-                                    .persisting_attachments
-                                    .lock()
-                                    .unwrap()
-                                    .contains(attachment)
-                            {
-                                self.persist_attachment(attachment.clone());
-                            }
-                        }
-                    }
+                    maybe_persist.extend(
+                        messages
+                            .iter()
+                            .flat_map(|message| message.content.attachments.iter())
+                            .cloned(),
+                    );
                 }
                 VecEffect::Remove(_start, _end, removed) => {
-                    for messages in removed {
-                        for attachment in &messages.content.attachments {
-                            if attachment.has_persistence_key() {
-                                self.marked_attachments.insert(attachment.clone());
-                            }
-                        }
-                    }
+                    maybe_delete.extend(
+                        removed
+                            .iter()
+                            .flat_map(|message| message.content.attachments.iter())
+                            .cloned(),
+                    );
                 }
-                VecEffect::Update(_index, _from, _to) => {
-                    // Dev note: To make this reusable outside of Moly, attachment updates
-                    // should be analyzed as well.
+                VecEffect::Update(_index, from, to) => {
+                    let from_attachments: HashSet<Attachment> =
+                        from.content.attachments.iter().cloned().collect();
+
+                    let to_attachments: HashSet<Attachment> =
+                        to.content.attachments.iter().cloned().collect();
+
+                    maybe_delete.extend(from_attachments.difference(&to_attachments).cloned());
+                    maybe_persist.extend(to_attachments.difference(&from_attachments).cloned());
                 }
+            }
+        }
+
+        // Dev note: To make this reusable outside of Moly, attachment inserts
+        // should be treated in the same way as deletes, re-scanning to
+        // verify an actual insert happened.
+        for attachment in maybe_persist {
+            if !attachment.has_persistence_key()
+                && !self
+                    .persisting_attachments
+                    .lock()
+                    .unwrap()
+                    .contains(&attachment)
+            {
+                self.persist_attachment(attachment);
+            }
+        }
+
+        for attachment in maybe_delete {
+            if attachment.has_persistence_key() {
+                self.marked_attachments.insert(attachment);
             }
         }
     }
