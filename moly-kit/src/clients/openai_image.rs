@@ -9,6 +9,11 @@ use std::{
     sync::{Arc, RwLock},
 };
 
+enum ImageData<'a> {
+    Base64(&'a str),
+    Url(&'a str),
+}
+
 #[derive(Debug, Clone)]
 struct OpenAIImageClientInner {
     url: String,
@@ -128,62 +133,14 @@ impl OpenAIImageClient {
             )
         })?;
 
-        enum ImageData<'a> {
-            Base64(&'a str),
-            Url(&'a str),
-        }
+        let image_data = image_data_from_json(&response_json).ok_or_else(|| {
+            ClientError::new(
+                ClientErrorKind::Format,
+                format!("Response from {url} does not contain image data in a recognized format."),
+            )
+        })?;
 
-        let image_data = response_json["data"][0]["b64_json"]
-            .as_str()
-            .map(|s| ImageData::Base64(s))
-            .or_else(|| {
-                response_json["data"][0]["url"]
-                    .as_str()
-                    .map(|s| ImageData::Url(s))
-            })
-            .ok_or_else(|| {
-                ClientError::new(
-                    ClientErrorKind::Format,
-                    "Response JSON does not contain image data".to_string(),
-                )
-            })?;
-
-        let attachment = match image_data {
-            ImageData::Base64(b64) => {
-                Attachment::from_base64("image.png".into(), Some("image/png".into()), &b64)
-                    .map_err(|e| {
-                        ClientError::new_with_source(
-                            ClientErrorKind::Format,
-                            "Failed to create attachment from base64 data".to_string(),
-                            Some(e),
-                        )
-                    })?
-            }
-            ImageData::Url(url) => {
-                let bytes = inner
-                    .client
-                    .get(url)
-                    .send()
-                    .await
-                    .map_err(|e| {
-                        ClientError::new_with_source(
-                            ClientErrorKind::Network,
-                            format!("Failed to fetch image from URL: {}", url),
-                            Some(e),
-                        )
-                    })?
-                    .bytes()
-                    .await
-                    .map_err(|e| {
-                        ClientError::new_with_source(
-                            ClientErrorKind::Network,
-                            format!("Failed to read image bytes from URL: {}", url),
-                            Some(e),
-                        )
-                    })?;
-                Attachment::from_bytes("image.png".into(), Some("image/png".into()), &bytes)
-            }
-        };
+        let attachment = attachment_from_image_data(image_data, &inner.client).await?;
 
         let content = MessageContent {
             text: String::new(),
@@ -193,6 +150,64 @@ impl OpenAIImageClient {
 
         Ok(content)
     }
+}
+
+fn image_data_from_json(response_json: &serde_json::Value) -> Option<ImageData<'_>> {
+    response_json["data"][0]["b64_json"]
+        .as_str()
+        .map(|s| ImageData::Base64(s))
+        .or_else(|| {
+            response_json["data"][0]["url"]
+                .as_str()
+                .map(|s| ImageData::Url(s))
+        })
+}
+
+async fn attachment_from_image_data(
+    image_data: ImageData<'_>,
+    client: &reqwest::Client,
+) -> Result<Attachment, ClientError> {
+    match image_data {
+        ImageData::Base64(b64) => attachment_from_base64(b64),
+        ImageData::Url(url) => attachment_from_url(url, client).await,
+    }
+}
+
+fn attachment_from_base64(b64: &str) -> Result<Attachment, ClientError> {
+    Attachment::from_base64("image.png".into(), Some("image/png".into()), &b64).map_err(|e| {
+        ClientError::new_with_source(
+            ClientErrorKind::Format,
+            "Failed to create attachment from base64 data".to_string(),
+            Some(e),
+        )
+    })
+}
+
+async fn attachment_from_url(
+    url: &str,
+    client: &reqwest::Client,
+) -> Result<Attachment, ClientError> {
+    client
+        .get(url)
+        .send()
+        .await
+        .map_err(|e| {
+            ClientError::new_with_source(
+                ClientErrorKind::Network,
+                format!("Failed to fetch image from URL: {}", url),
+                Some(e),
+            )
+        })?
+        .bytes()
+        .await
+        .map_err(|e| {
+            ClientError::new_with_source(
+                ClientErrorKind::Network,
+                format!("Failed to read image bytes from URL: {}", url),
+                Some(e),
+            )
+        })
+        .map(|bytes| Attachment::from_bytes("image.png".into(), Some("image/png".into()), &bytes))
 }
 
 impl BotClient for OpenAIImageClient {
