@@ -1,6 +1,6 @@
 # Based on https://github.com/rust-lang/mdBook/wiki/Automated-Deployment%3A-GitHub-Actions
 
-name: Deploy
+name: Page
 on:
   push:
     branches:
