@@ -86,7 +86,7 @@ jobs:
     if: ${{ github.event.inputs.build_macos == 'true' }}
     strategy:
       matrix:
-        os: [macos-14, macos-13]
+        os: [macos-14, macos-15]
         rust: [1.89]
 
     steps:
@@ -104,7 +104,38 @@ jobs:
         run: |
           cargo +stable install --force --locked cargo-packager
 
-      - name: Build
+      - name: Install Apple certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # Extract certificate identity name for cargo-packager
+          CERT_IDENTITY=$(security find-identity -v -p codesigning $KEYCHAIN_PATH | grep "Developer ID Application" | head -n 1 | sed -n 's/.*"\(.*\)"/\1/p')
+          echo "Found certificate: $CERT_IDENTITY"
+
+          # Add signing identity to Cargo.toml
+          sed -i '' "s|# signing_identity is set via environment variable in CI|signing_identity = \"$CERT_IDENTITY\"|" Cargo.toml
+          echo "Updated Cargo.toml with signing identity"
+
+      - name: Build and notarize
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           cargo packager --release --verbose
           ls dist/
