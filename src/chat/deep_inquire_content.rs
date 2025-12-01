@@ -6,11 +6,12 @@ use moly_kit::protocol::*;
 live_design! {
     use link::theme::*;
     use link::widgets::*;
-    use link::moly_kit_theme::*;
     use link::shaders::*;
 
-    use crate::clients::deep_inquire::widgets::deep_inquire_stages::*;
-    use crate::widgets::message_markdown::*;
+    use moly_kit::widgets::message_markdown::*;
+
+    use crate::shared::styles::*;
+    use crate::chat::deep_inquire_stages::*;
 
     pub DeepInquireContent = {{DeepInquireContent}} {
         flow: Down, spacing: 10

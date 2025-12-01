@@ -26,6 +26,7 @@ live_design! {
     use crate::chat::chat_panel::ChatPanel;
     use crate::chat::chat_history::ChatHistory;
     use crate::chat::chat_params::ChatParams;
+    use crate::chat::deep_inquire_content::DeepInquireContent;
     use moly_kit::widgets::chat::Chat;
     use moly_kit::widgets::prompt_input::PromptInput;
 
@@ -105,6 +106,8 @@ live_design! {
         flow: Down
         spacing: 0
 
+        deep_inquire_content: <DeepInquireContent> {}
+
         chat = <Chat> {
             messages = { padding: {left: 10, right: 10} }
             prompt = <PromptInputWithShadow> {}
@@ -120,6 +123,9 @@ live_design! {
 pub struct ChatView {
     #[deref]
     view: View,
+
+    #[live]
+    deep_inquire_content: LivePtr,
 
     #[rust]
     chat_id: ChatID,
@@ -156,6 +162,10 @@ pub struct ChatView {
 
 impl LiveHook for ChatView {
     fn after_new_from_doc(&mut self, cx: &mut Cx) {
+        self.messages(ids!(chat.messages))
+            .write()
+            .templates
+            .insert(live_id!(DeepInquireContent), self.deep_inquire_content);
         self.prompt_input(ids!(chat.prompt)).write().disable();
         let plugin_id = self
             .chat_controller

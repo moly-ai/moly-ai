@@ -8,12 +8,14 @@ use moly_kit::widgets::citation_list::CitationListWidgetExt;
 live_design! {
     use link::theme::*;
     use link::widgets::*;
-    use link::moly_kit_theme::*;
     use link::shaders::*;
 
+    use crate::shared::styles::*;
+
     use makepad_code_editor::code_view::CodeView;
-    use crate::widgets::citation_list::*;
-    use crate::widgets::message_markdown::*;
+
+    use moly_kit::widgets::citation_list::*;
+    use moly_kit::widgets::message_markdown::*;
 
     // A workaround for RoundedShadowView having the border_size defined as a uniform,
     // which breaks whenever updated through apply_over. This custom version replaces the properties with `instance` fields instead.

@@ -12,12 +12,14 @@ mod chat_line;
 mod citation;
 mod image_view;
 mod message_loading;
-mod message_markdown;
 mod message_thinking_block;
 mod model_selector_item;
 mod slot;
 mod standard_message_content;
 mod theme_moly_kit_light;
+
+pub mod message_markdown;
+pub use message_markdown::*;
 
 pub mod citation_list;
 pub use citation_list::*;
