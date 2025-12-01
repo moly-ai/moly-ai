@@ -6,6 +6,7 @@ use moly_kit::*;
 use std::collections::HashMap;
 
 use crate::data::bot_fetcher::should_include_model;
+use crate::data::deep_inquire_client::DeepInquireClient;
 use crate::data::providers::{Provider, ProviderBot, ProviderID, ProviderType};
 use crate::data::store::Store;
 use crate::data::supported_providers::{self, SupportedProvider};

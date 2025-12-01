@@ -125,7 +125,7 @@ impl FromStr for StageType {
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct Data {
-    stages: Vec<Stage>,
+    pub stages: Vec<Stage>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]

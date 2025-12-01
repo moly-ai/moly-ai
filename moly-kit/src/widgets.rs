@@ -10,7 +10,6 @@ mod attachment_viewer_modal;
 mod avatar;
 mod chat_line;
 mod citation;
-pub(crate) mod citation_list;
 mod image_view;
 mod message_loading;
 mod message_markdown;
@@ -19,6 +18,9 @@ mod model_selector_item;
 mod slot;
 mod standard_message_content;
 mod theme_moly_kit_light;
+
+pub mod citation_list;
+pub use citation_list::*;
 
 pub mod model_selector_list;
 pub use model_selector_list::{BotFilter, ModelSelectorList};

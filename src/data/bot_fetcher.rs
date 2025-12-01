@@ -78,7 +78,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
             fetch_models_with_client(
                 provider_id.clone(),
                 move || {
-                    let mut client = moly_kit::clients::DeepInquireClient::new(url);
+                    let mut client = crate::data::deep_inquire_client::DeepInquireClient::new(url);
                     if let Some(key) = api_key {
                         let _ = client.set_key(&key);
                     }

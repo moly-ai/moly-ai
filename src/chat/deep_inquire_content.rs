@@ -1,7 +1,7 @@
 use super::deep_inquire_stages::StagesWidgetExt;
-use crate::deep_inquire::{Data, StageType};
-use crate::protocol::*;
+use crate::data::deep_inquire_client::{Data, StageType};
 use makepad_widgets::*;
+use moly_kit::protocol::*;
 
 live_design! {
     use link::theme::*;

@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use makepad_widgets::*;
 
-use crate::citation_list::CitationListWidgetExt;
-use crate::deep_inquire::{Stage, StageType, SubStage};
+use crate::data::deep_inquire_client::{Stage, StageType, SubStage};
+use moly_kit::widgets::citation_list::CitationListWidgetExt;
 
 live_design! {
     use link::theme::*;
