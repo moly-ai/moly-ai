@@ -314,7 +314,7 @@ impl BotClient for DeepInquireClient {
                 let response: DeepInquireResponse = match serde_json::from_str(&event) {
                     Ok(c) => c,
                     Err(error) => {
-                        ::log::error!("Could not parse the SSE message from {url} as JSON or its structure does not match the expected format. {}", error);
+                        ::log::error!("Could not parse the SSE message from {url} as JSON or its structure does not match the expected format. {}\nEvent content: {}", error, event);
                         yield ClientError::new_with_source(
                             ClientErrorKind::Format,
                             format!("Could not parse the SSE message from {url} as JSON or its structure does not match the expected format."),
