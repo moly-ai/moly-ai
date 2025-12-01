@@ -7,6 +7,8 @@ pub mod chat_screen;
 pub mod chat_screen_mobile;
 pub mod chat_view;
 pub mod chats_deck;
+pub mod deep_inquire_content;
+pub mod deep_inquire_stages;
 pub mod delete_chat_modal;
 pub mod entity_button;
 pub mod model_info;
@@ -16,6 +18,8 @@ pub mod shared;
 use makepad_widgets::Cx;
 
 pub fn live_design(cx: &mut Cx) {
+    deep_inquire_stages::live_design(cx);
+    deep_inquire_content::live_design(cx);
     entity_button::live_design(cx);
     chat_history_card::live_design(cx);
     chat_history::live_design(cx);

@@ -65,7 +65,6 @@ pub fn live_design(cx: &mut makepad_widgets::Cx) {
     slot::live_design(cx);
     standard_message_content::live_design(cx);
     chat_line::live_design(cx);
-    crate::deep_inquire::widgets::live_design(cx);
     messages::live_design(cx);
     prompt_input::live_design(cx);
     model_selector_item::live_design(cx);

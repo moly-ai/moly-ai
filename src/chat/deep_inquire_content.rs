@@ -1,4 +1,4 @@
-use super::stages::StagesWidgetExt;
+use super::deep_inquire_stages::StagesWidgetExt;
 use crate::deep_inquire::{Data, StageType};
 use crate::protocol::*;
 use makepad_widgets::*;
@@ -9,7 +9,7 @@ live_design! {
     use link::moly_kit_theme::*;
     use link::shaders::*;
 
-    use crate::clients::deep_inquire::widgets::stages::*;
+    use crate::clients::deep_inquire::widgets::deep_inquire_stages::*;
     use crate::widgets::message_markdown::*;
 
     pub DeepInquireContent = {{DeepInquireContent}} {

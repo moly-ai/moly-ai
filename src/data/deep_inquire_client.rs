@@ -1,10 +1,9 @@
-use crate::protocol::Tool;
-use crate::utils::asynchronous::{BoxPlatformSendFuture, BoxPlatformSendStream, sleep};
-use crate::utils::errors::enrich_http_error;
-use crate::{protocol::*, utils::sse::parse_sse};
 use async_stream::stream;
 use makepad_widgets::*;
 use makepad_widgets::{Cx, LiveNew, WidgetRef};
+use moly_kit::utils::asynchronous::{BoxPlatformSendFuture, BoxPlatformSendStream, sleep};
+use moly_kit::utils::errors::enrich_http_error;
+use moly_kit::{protocol::*, utils::sse::parse_sse};
 use reqwest::header::{HeaderMap, HeaderName};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -12,9 +11,8 @@ use std::{
     str::FromStr,
     sync::{Arc, RwLock},
 };
-use widgets::deep_inquire_content::DeepInquireContentWidgetRefExt;
 
-pub(crate) mod widgets;
+use crate::chat::deep_inquire_content::DeepInquireContentWidgetRefExt;
 
 /// Article reference in a DeepInquire response
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]

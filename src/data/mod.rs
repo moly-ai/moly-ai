@@ -1,6 +1,7 @@
 pub mod bot_fetcher;
 pub mod capture;
 pub mod chats;
+pub mod deep_inquire_client;
 pub mod downloads;
 pub mod mcp_servers;
 pub mod moly_client;

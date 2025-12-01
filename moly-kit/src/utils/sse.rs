@@ -29,7 +29,7 @@ pub(crate) fn rsplit_once_terminator(buffer: &[u8]) -> Option<(&[u8], &[u8])> {
 }
 
 /// Convert a stream of bytes into a stream of SSE messages.
-pub(crate) fn parse_sse<S, B, E>(s: S) -> impl Stream<Item = Result<String, E>>
+pub fn parse_sse<S, B, E>(s: S) -> impl Stream<Item = Result<String, E>>
 where
     S: Stream<Item = Result<B, E>>,
     B: AsRef<[u8]>,
