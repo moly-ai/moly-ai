@@ -120,4 +120,18 @@ impl<C: BotClient + 'static> BotClient for MapClient<C> {
 
         Box::pin(stream)
     }
+
+    fn content_widget(
+        &mut self,
+        cx: &mut makepad_widgets::Cx,
+        previous_widget: makepad_widgets::WidgetRef,
+        templates: &std::collections::HashMap<makepad_widgets::LiveId, makepad_widgets::LivePtr>,
+        content: &MessageContent,
+    ) -> Option<makepad_widgets::WidgetRef> {
+        self.inner
+            .lock()
+            .unwrap()
+            .client
+            .content_widget(cx, previous_widget, templates, content)
+    }
 }
