@@ -139,8 +139,9 @@ impl DemoChat {
                     .chain(siliconflow_whitelist.iter())
                     .any(|s| *s == b.name.as_str());
 
-                let is_local_bot =
-                    b.id.provider() == "tester" || b.id.provider().contains("://localhost");
+                let is_local_bot = b.id.provider() == "tester"
+                    || b.name == "DeepInquire"
+                    || b.id.provider().contains("://localhost");
 
                 is_whitelisted_bot || is_local_bot
             })
@@ -232,6 +233,8 @@ impl DemoChat {
 
             let tester = TesterClient;
             client.add_client(Box::new(tester));
+
+            client.add_client(Box::new(DeepInquireClient::new("".to_string())));
 
             let ollama = OpenAIClient::new("http://localhost:11434/v1".into());
             client.add_client(Box::new(ollama));
