@@ -251,7 +251,7 @@ impl BotClient for DeepInquireClient {
         let bot = Bot {
             id: BotId::new("DeepInquire", &inner.url),
             name: "DeepInquire".to_string(),
-            avatar: Picture::Grapheme("D".into()),
+            avatar: Picture::Text("D".into()),
             capabilities: BotCapabilities::new().with_capability(BotCapability::Attachments),
         };
 

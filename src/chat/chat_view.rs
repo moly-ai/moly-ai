@@ -454,7 +454,7 @@ impl ChatView {
                 if let Some(provider) = store.chats.providers.get(&provider_bot.provider_id) {
                     let icon = store
                         .get_provider_icon(&provider.name)
-                        .map(|dep| moly_kit::protocol::Picture::Dependency(dep));
+                        .map(|dep| moly_kit::protocol::Picture::Image(dep.as_str().to_string()));
                     bot_groups.insert(
                         bot_id.clone(),
                         moly_kit::BotGroup {

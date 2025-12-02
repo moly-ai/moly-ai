@@ -2840,6 +2840,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tokio-tungstenite",
+ "unicode-segmentation",
  "url",
  "wasm-bindgen-futures",
  "web-sys",

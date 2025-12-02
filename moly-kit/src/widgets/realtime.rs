@@ -1293,7 +1293,7 @@ impl Realtime {
             .avatar(ids!(message_section.sender.avatar))
             .borrow_mut()
             .unwrap()
-            .avatar = Some(crate::protocol::Picture::Grapheme("T".into()));
+            .avatar = Some(crate::protocol::Picture::Text("T".into()));
         tool_line
             .label(ids!(message_section.sender.name))
             .set_text(cx, "Permission Request");

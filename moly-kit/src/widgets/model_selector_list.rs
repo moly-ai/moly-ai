@@ -221,44 +221,34 @@ impl ModelSelectorList {
 
             section_label.label(ids!(label)).set_text(cx, &group_label);
 
-            // Display icon if available, otherwise show fallback (first letter)
-            if let Some(icon) = &group_icon {
-                match icon {
-                    Picture::Dependency(dep) => {
-                        section_label
-                            .view(ids!(icon_fallback_view))
-                            .set_visible(cx, false);
-                        section_label.view(ids!(icon_view)).set_visible(cx, true);
-                        let _ = section_label
-                            .image(ids!(icon_image))
-                            .load_image_dep_by_path(cx, dep.as_str());
-                    }
-                    _ => {
-                        // For other Picture types (Image, Grapheme), show fallback
-                        section_label.view(ids!(icon_view)).set_visible(cx, false);
-                        section_label
-                            .view(ids!(icon_fallback_view))
-                            .set_visible(cx, true);
-                        section_label.label(ids!(icon_fallback_label)).set_text(
-                            cx,
-                            &group_label
-                                .chars()
-                                .next()
-                                .unwrap_or('?')
-                                .to_string()
-                                .to_uppercase(),
-                        );
-                    }
+            match group_icon
+                .or_else(|| Picture::from_first_grapheme(&group_label.to_uppercase()))
+                .unwrap_or_else(|| Picture::Text("?".into()))
+            {
+                Picture::Image(image) => {
+                    section_label
+                        .view(ids!(icon_fallback_view))
+                        .set_visible(cx, false);
+                    section_label.view(ids!(icon_view)).set_visible(cx, true);
+                    let _ = section_label
+                        .image(ids!(icon_image))
+                        .load_image_dep_by_path(cx, image.as_str())
+                        .or_else(|_| {
+                            section_label
+                                .image(ids!(icon_image))
+                                .load_image_file_by_path(cx, image.as_ref())
+                        });
                 }
-            } else {
-                // No icon provided, show fallback
-                section_label.view(ids!(icon_view)).set_visible(cx, false);
-                section_label
-                    .view(ids!(icon_fallback_view))
-                    .set_visible(cx, true);
-                section_label
-                    .label(ids!(icon_fallback_label))
-                    .set_text(cx, &group_label.chars().next().unwrap_or('?').to_string());
+                Picture::Text(text) => {
+                    // For other Picture types (Image, Grapheme), show fallback
+                    section_label.view(ids!(icon_view)).set_visible(cx, false);
+                    section_label
+                        .view(ids!(icon_fallback_view))
+                        .set_visible(cx, true);
+                    section_label
+                        .label(ids!(icon_fallback_label))
+                        .set_text(cx, &text);
+                }
             }
 
             let _ = section_label.draw_all(cx, &mut Scope::empty());

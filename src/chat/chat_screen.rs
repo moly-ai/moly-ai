@@ -243,7 +243,7 @@ fn has_valid_credentials(provider: &Provider) -> bool {
 fn apply_icon(bots: &mut Vec<Bot>, icon_opt: &Option<LiveDependency>) {
     if let Some(icon) = icon_opt {
         for bot in bots.iter_mut() {
-            bot.avatar = Picture::Dependency(icon.clone());
+            bot.avatar = Picture::Image(icon.as_str().to_string());
         }
     }
 }

@@ -28,6 +28,7 @@ env_logger = "0.11"
 chrono = "0.4.41"
 mime_guess = "2.0.5"
 base64 = { version = "0.22.1", optional = true }
+unicode-segmentation = "1.12.0"
 
 [target.'cfg(any(target_os = "windows", target_os = "macos", target_os = "linux", target_arch = "wasm32"))'.dependencies]
 rfd = { version = "0.15.3", features = ["ashpd", "urlencoding", "xdg-portal"] }

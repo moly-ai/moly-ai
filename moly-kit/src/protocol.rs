@@ -1,4 +1,4 @@
-use makepad_widgets::{Cx, LiveDependency, LiveId, LivePtr, WidgetRef};
+use makepad_widgets::{Cx, LiveId, LivePtr, WidgetRef};
 
 // Re-export relevant, protocol related, async types.
 pub use crate::utils::asynchronous::{BoxPlatformSendFuture, BoxPlatformSendStream};
@@ -141,23 +141,25 @@ pub enum RealtimeCommand {
 }
 
 /// The picture/avatar of an entity that may be represented/encoded in different ways.
-#[derive(Clone, Debug)]
+// TODO: Consider Arc<str> where applicable.
+#[derive(Clone, Debug, PartialEq)]
 pub enum Picture {
-    // TODO: could be reduced to avoid allocation
-    Grapheme(String),
+    /// Normally, one or two graphemes representing the entity.
+    Text(String),
+    /// An image located at the given path/URL.
     Image(String),
-    // TODO: could be downed to a more concrete type
-    Dependency(LiveDependency),
 }
 
-impl PartialEq for Picture {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Picture::Grapheme(a), Picture::Grapheme(b)) => a == b,
-            (Picture::Image(a), Picture::Image(b)) => a == b,
-            (Picture::Dependency(a), Picture::Dependency(b)) => a.as_str() == b.as_str(),
-            _ => false,
-        }
+impl Picture {
+    /// Utility to construct a [`Picture::Text`] from a single grapheme.
+    ///
+    /// Extracted using unicode segmentation.
+    pub fn from_first_grapheme(text: &str) -> Option<Self> {
+        use unicode_segmentation::UnicodeSegmentation;
+        text.graphemes(true)
+            .next()
+            .map(|g| g.to_string())
+            .map(Picture::Text)
     }
 }
 

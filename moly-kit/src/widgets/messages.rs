@@ -289,7 +289,7 @@ impl Messages {
                     };
 
                     item.avatar(ids!(avatar)).borrow_mut().unwrap().avatar =
-                        Some(Picture::Grapheme("S".into()));
+                        Some(Picture::Text("S".into()));
                     item.label(ids!(name)).set_text(cx, "System");
 
                     if !message.metadata.is_writing() {
@@ -315,7 +315,7 @@ impl Messages {
                     };
 
                     item.avatar(ids!(avatar)).borrow_mut().unwrap().avatar =
-                        Some(Picture::Grapheme("T".into()));
+                        Some(Picture::Text("T".into()));
                     item.label(ids!(name)).set_text(cx, "Tool");
 
                     if !message.metadata.is_writing() {
@@ -380,7 +380,7 @@ impl Messages {
 
                         let item = list.item(cx, index, live_id!(ErrorLine));
                         item.avatar(ids!(avatar)).borrow_mut().unwrap().avatar =
-                            Some(Picture::Grapheme("X".into()));
+                            Some(Picture::Text("X".into()));
                         item.label(ids!(name)).set_text(cx, left);
 
                         let error_content = MessageContent {
@@ -398,7 +398,7 @@ impl Messages {
                         // Handle regular app messages
                         let item = list.item(cx, index, live_id!(AppLine));
                         item.avatar(ids!(avatar)).borrow_mut().unwrap().avatar =
-                            Some(Picture::Grapheme("A".into()));
+                            Some(Picture::Text("A".into()));
 
                         item.slot(ids!(content))
                             .current()
@@ -413,7 +413,7 @@ impl Messages {
                     let item = list.item(cx, index, live_id!(UserLine));
 
                     item.avatar(ids!(avatar)).borrow_mut().unwrap().avatar =
-                        Some(Picture::Grapheme("Y".into()));
+                        Some(Picture::Text("Y".into()));
                     item.label(ids!(name)).set_text(cx, "You");
 
                     item.slot(ids!(content))
@@ -434,7 +434,7 @@ impl Messages {
                             // Fallback: extract model name from BotId
                             let model_name = format!("{} (unavailable)", id.id());
                             let first_char = model_name.chars().next().unwrap_or('B');
-                            let avatar = Picture::Grapheme(first_char.to_uppercase().to_string());
+                            let avatar = Picture::Text(first_char.to_uppercase().to_string());
                             (model_name, avatar)
                         });
 
