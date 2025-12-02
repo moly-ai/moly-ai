@@ -114,7 +114,7 @@ struct Editor {
     buffer: String,
 }
 
-pub trait ContentWidget {
+pub trait CustomContent {
     fn content_widget(
         &mut self,
         cx: &mut Cx,
@@ -155,7 +155,7 @@ pub struct Messages {
     needs_extra_draw_pass: bool,
 
     #[rust]
-    content_widgets: Vec<Box<dyn ContentWidget>>,
+    custom_contents: Vec<Box<dyn CustomContent>>,
 }
 
 impl Widget for Messages {
@@ -478,7 +478,7 @@ impl Messages {
 
                     let mut slot = item.slot(ids!(content));
                     if let Some(custom_content) = self
-                        .content_widgets
+                        .custom_contents
                         .iter_mut()
                         .find_map(|cw| cw.content_widget(cx, slot.current(), &message.content))
                     {
@@ -730,8 +730,8 @@ impl Messages {
         }
     }
 
-    pub fn register_content_widget<T: ContentWidget + 'static>(&mut self, widget: T) {
-        self.content_widgets.push(Box::new(widget));
+    pub fn register_custom_content<T: CustomContent + 'static>(&mut self, widget: T) {
+        self.custom_contents.push(Box::new(widget));
     }
 }
 

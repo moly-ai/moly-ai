@@ -1,7 +1,7 @@
 use async_stream::stream;
 use makepad_widgets::*;
 use makepad_widgets::{Cx, LiveNew, WidgetRef};
-use moly_kit::ContentWidget;
+use moly_kit::CustomContent;
 use moly_kit::utils::asynchronous::{BoxPlatformSendFuture, BoxPlatformSendStream, sleep};
 use moly_kit::utils::errors::enrich_http_error;
 use moly_kit::{protocol::*, utils::sse::parse_sse};
@@ -486,17 +486,17 @@ fn default_client() -> reqwest::Client {
     reqwest::Client::new()
 }
 
-pub struct DeepInquireContentWidget {
+pub struct DeepInquireCustomContent {
     template: LivePtr,
 }
 
-impl DeepInquireContentWidget {
+impl DeepInquireCustomContent {
     pub fn new(template: LivePtr) -> Self {
         Self { template }
     }
 }
 
-impl ContentWidget for DeepInquireContentWidget {
+impl CustomContent for DeepInquireCustomContent {
     fn content_widget(
         &mut self,
         cx: &mut Cx,
