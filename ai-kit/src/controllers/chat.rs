@@ -1,7 +1,7 @@
 //! Framework-agnostic state management to implement a `Chat` component/widget/element.
 
 use crate::{
-    McpManagerClient, display_name_from_namespaced,
+    mcp::{McpManagerClient, display_name_from_namespaced},
     protocol::*,
     utils::{
         asynchronous::{AbortOnDropHandle, spawn_abort_on_drop},

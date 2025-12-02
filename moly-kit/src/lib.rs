@@ -16,14 +16,5 @@
 //! To learn how to use and integrate Moly Kit into your own Makepad app, read the
 //! [documentation](https://moly-ai.github.io/moly-ai).
 
-pub mod clients;
-pub mod controllers;
-pub mod mcp;
-pub mod protocol;
 pub mod utils;
 pub mod widgets;
-
-pub use clients::*;
-pub use mcp::*;
-pub use protocol::*;
-pub use widgets::*;
