@@ -1,6 +1,5 @@
 use std::{
     cell::{Ref, RefMut},
-    collections::HashMap,
     sync::{Arc, Mutex},
 };
 
@@ -115,6 +114,15 @@ struct Editor {
     buffer: String,
 }
 
+pub trait ContentWidget {
+    fn content_widget(
+        &mut self,
+        cx: &mut Cx,
+        previous_widget: WidgetRef,
+        content: &MessageContent,
+    ) -> Option<WidgetRef>;
+}
+
 /// View over a conversation with messages.
 ///
 /// This is mostly a dummy widget. Prefer using and adapting [crate::widgets::chat::Chat] instead.
@@ -126,14 +134,6 @@ pub struct Messages {
     #[rust]
     // Note: This should be `pub(crate)` but Makepad macros don't work with it.
     pub chat_controller: Option<Arc<Mutex<ChatController>>>,
-
-    /// Registry of DSL templates used by custom content widgets.
-    ///
-    /// This is exposed as it is for easy manipulation and it's passed to
-    /// [BotClient::content_widget] method allowing it to create widgets with
-    /// [WidgetRef::new_from_ptr].
-    #[rust]
-    pub templates: HashMap<LiveId, LivePtr>,
 
     #[rust]
     current_editor: Option<Editor>,
@@ -153,6 +153,9 @@ pub struct Messages {
 
     #[rust]
     needs_extra_draw_pass: bool,
+
+    #[rust]
+    content_widgets: Vec<Box<dyn ContentWidget>>,
 }
 
 impl Widget for Messages {
@@ -256,8 +259,6 @@ impl Messages {
                 },
                 ..Default::default()
             });
-
-        let mut bot_client = chat_controller.bot_client().map(|bc| bc.clone_box());
 
         let mut list = list_ref.borrow_mut().unwrap();
         list.set_item_range(cx, 0, chat_controller.state().messages.len());
@@ -476,14 +477,11 @@ impl Messages {
                     item.label(ids!(name)).set_text(cx, name.as_str());
 
                     let mut slot = item.slot(ids!(content));
-                    if let Some(custom_content) = bot_client.as_mut().and_then(|bc| {
-                        bc.content_widget(
-                            cx,
-                            slot.current().clone(),
-                            &self.templates,
-                            &message.content,
-                        )
-                    }) {
+                    if let Some(custom_content) = self
+                        .content_widgets
+                        .iter_mut()
+                        .find_map(|cw| cw.content_widget(cx, slot.current(), &message.content))
+                    {
                         slot.replace(custom_content);
                     } else {
                         // Since portal list may reuse widgets, we must restore
@@ -730,6 +728,10 @@ impl Messages {
                 .text_input(ids!(input))
                 .set_text(cx, &self.current_editor.as_ref().unwrap().buffer);
         }
+    }
+
+    pub fn register_content_widget<T: ContentWidget + 'static>(&mut self, widget: T) {
+        self.content_widgets.push(Box::new(widget));
     }
 }
 

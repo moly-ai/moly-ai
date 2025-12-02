@@ -1,12 +1,8 @@
 use crate::protocol::Tool;
-use makepad_widgets::{Cx, LiveId, LivePtr, WidgetRef};
 
 use crate::protocol::*;
 use crate::utils::asynchronous::{BoxPlatformSendFuture, BoxPlatformSendStream};
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 /// A client that can be composed from multiple subclients to interact with all of them as one.
 #[derive(Clone)]
@@ -116,21 +112,5 @@ impl BotClient for MultiClient {
         };
 
         Box::pin(future)
-    }
-
-    fn content_widget(
-        &mut self,
-        cx: &mut Cx,
-        previous_widget: WidgetRef,
-        templates: &HashMap<LiveId, LivePtr>,
-        content: &MessageContent,
-    ) -> Option<WidgetRef> {
-        self.clients_with_bots
-            .lock()
-            .unwrap()
-            .iter_mut()
-            .find_map(|(client, _)| {
-                client.content_widget(cx, previous_widget.clone(), templates, content)
-            })
     }
 }

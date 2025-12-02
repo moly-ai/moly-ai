@@ -8,6 +8,7 @@ use moly_kit::utils::vec::{VecEffect, VecMutation};
 use moly_kit::*;
 
 use crate::data::chats::chat::ChatID;
+use crate::data::deep_inquire_client::DeepInquireContentWidget;
 use crate::data::store::{ProviderSyncingStatus, Store};
 use crate::shared::bot_context::BotContext;
 use crate::shared::utils::attachments::{
@@ -164,8 +165,7 @@ impl LiveHook for ChatView {
     fn after_new_from_doc(&mut self, cx: &mut Cx) {
         self.messages(ids!(chat.messages))
             .write()
-            .templates
-            .insert(live_id!(DeepInquireContent), self.deep_inquire_content);
+            .register_content_widget(DeepInquireContentWidget::new(self.deep_inquire_content));
         self.prompt_input(ids!(chat.prompt)).write().disable();
         let plugin_id = self
             .chat_controller

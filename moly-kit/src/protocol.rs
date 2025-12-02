@@ -1,5 +1,3 @@
-use makepad_widgets::{Cx, LiveId, LivePtr, WidgetRef};
-
 // Re-export relevant, protocol related, async types.
 pub use crate::utils::asynchronous::{BoxPlatformSendFuture, BoxPlatformSendStream};
 
@@ -54,7 +52,7 @@ impl From<Tool> for rmcp::model::Tool {
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     error::Error,
     fmt,
     sync::{Arc, Mutex},
@@ -821,25 +819,6 @@ pub trait BotClient: Send {
 
     /// Make a boxed dynamic clone of this client to pass around.
     fn clone_box(&self) -> Box<dyn BotClient>;
-
-    /// Optionally override how the content of a message is rendered by Makepad.
-    ///
-    /// Not expected to be implemented by most clients, however if this client
-    /// interfaces with a service that gives content in non-standard formats,
-    /// this can be used to extend moly-kit to support it.
-    ///
-    /// Prefer reusing previous widget if matches the expected type instead of
-    /// creating a new one on every call to preserve state and avoid perfomance
-    /// issues.
-    fn content_widget(
-        &mut self,
-        _cx: &mut Cx,
-        _previous_widget: WidgetRef,
-        _templates: &HashMap<LiveId, LivePtr>,
-        _content: &MessageContent,
-    ) -> Option<WidgetRef> {
-        None
-    }
 }
 
 impl Clone for Box<dyn BotClient> {

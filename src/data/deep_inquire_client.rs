@@ -1,12 +1,12 @@
 use async_stream::stream;
 use makepad_widgets::*;
 use makepad_widgets::{Cx, LiveNew, WidgetRef};
+use moly_kit::ContentWidget;
 use moly_kit::utils::asynchronous::{BoxPlatformSendFuture, BoxPlatformSendStream, sleep};
 use moly_kit::utils::errors::enrich_http_error;
 use moly_kit::{protocol::*, utils::sse::parse_sse};
 use reqwest::header::{HeaderMap, HeaderName};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::{
     str::FromStr,
     sync::{Arc, RwLock},
@@ -391,40 +391,6 @@ impl BotClient for DeepInquireClient {
 
         Box::pin(stream)
     }
-
-    fn content_widget(
-        &mut self,
-        cx: &mut Cx,
-        previous_widget: WidgetRef,
-        templates: &HashMap<LiveId, LivePtr>,
-        content: &MessageContent,
-    ) -> Option<WidgetRef> {
-        let Some(template) = templates.get(&live_id!(DeepInquireContent)).copied() else {
-            return None;
-        };
-
-        let Some(data) = content.data.as_deref() else {
-            return None;
-        };
-
-        let Ok(_) = serde_json::from_str::<Data>(data) else {
-            return None;
-        };
-
-        let widget = if previous_widget.as_deep_inquire_content().borrow().is_some() {
-            previous_widget
-        } else {
-            WidgetRef::new_from_ptr(cx, Some(template))
-        };
-
-        widget
-            .as_deep_inquire_content()
-            .borrow_mut()
-            .unwrap()
-            .set_content(cx, content);
-
-        Some(widget)
-    }
 }
 
 fn apply_response_to_content(response: DeepInquireResponse, content: &mut MessageContent) {
@@ -518,4 +484,45 @@ fn default_client() -> reqwest::Client {
     // On web, reqwest timeouts are not configurable, but it uses the browser's
     // fetch API under the hood, which handles connection issues properly.
     reqwest::Client::new()
+}
+
+pub struct DeepInquireContentWidget {
+    template: LivePtr,
+}
+
+impl DeepInquireContentWidget {
+    pub fn new(template: LivePtr) -> Self {
+        Self { template }
+    }
+}
+
+impl ContentWidget for DeepInquireContentWidget {
+    fn content_widget(
+        &mut self,
+        cx: &mut Cx,
+        previous_widget: WidgetRef,
+        content: &MessageContent,
+    ) -> Option<WidgetRef> {
+        let Some(data) = content.data.as_deref() else {
+            return None;
+        };
+
+        let Ok(_) = serde_json::from_str::<Data>(data) else {
+            return None;
+        };
+
+        let widget = if previous_widget.as_deep_inquire_content().borrow().is_some() {
+            previous_widget
+        } else {
+            WidgetRef::new_from_ptr(cx, Some(self.template))
+        };
+
+        widget
+            .as_deep_inquire_content()
+            .borrow_mut()
+            .unwrap()
+            .set_content(cx, content);
+
+        Some(widget)
+    }
 }
