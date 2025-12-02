@@ -11,11 +11,17 @@ use crate::shared::download_notification_popup::{
     DownloadNotificationPopupWidgetRefExt, DownloadResult,
 };
 use crate::shared::moly_server_popup::MolyServerPopupAction;
+use crate::shared::update_notification_popup::{
+    UpdateNotificationPopupAction, UpdateNotificationPopupWidgetRefExt,
+};
 use crate::shared::popup_notification::PopupNotificationWidgetRefExt;
+use crate::updater;
 use moly_protocol::data::{File, FileID};
 
 use makepad_widgets::*;
 use markdown::MarkdownAction;
+#[cfg(not(target_arch = "wasm32"))]
+use crate::updater::UpdaterAction;
 
 live_design! {
     use link::theme::*;
@@ -27,6 +33,7 @@ live_design! {
     use crate::shared::popup_notification::*;
     use crate::shared::widgets::SidebarMenuButton;
     use crate::shared::download_notification_popup::DownloadNotificationPopup;
+    use crate::shared::update_notification_popup::UpdateNotificationPopup;
     use crate::shared::moly_server_popup::MolyServerPopup;
     use crate::shared::desktop_buttons::MolyDesktopButton;
 
@@ -197,6 +204,12 @@ live_design! {
                     }
                 }
 
+                update_popup = <PopupNotification> {
+                    content: {
+                        popup_update_notification = <UpdateNotificationPopup> {}
+                    }
+                }
+
                 moly_server_popup = <PopupNotification> {
                     content: {
                         popup_moly_server = <MolyServerPopup> {}
@@ -265,6 +278,14 @@ impl AppMain for App {
             }
 
             Store::load_into_app();
+
+            // Start the update check in the background on native platforms
+            #[cfg(not(target_arch = "wasm32"))]
+            moly_kit::utils::asynchronous::spawn(async {
+                if let Err(err) = updater::check_moly_update().await {
+                    log!("Update check failed: {err}");
+                }
+            });
         }
 
         // If the store is not loaded, do not continue with store-dependent logic
@@ -352,6 +373,27 @@ impl MatchEvent for App {
 
             self.store.as_mut().unwrap().handle_action(action);
 
+            #[cfg(not(target_arch = "wasm32"))]
+            if let Some(update_action) = action.downcast_ref::<UpdaterAction>() {
+                match update_action {
+                    UpdaterAction::UpdateAvailable(version) => {
+                        log!("Update available: {version}");
+                        let mut popup = self
+                            .ui
+                            .update_notification_popup(ids!(popup_update_notification));
+                        popup.set_version(cx, version);
+                        self.ui.popup_notification(ids!(update_popup)).open(cx);
+                    }
+                    UpdaterAction::NoUpdate => {
+                        log!("No update available");
+                    }
+                    UpdaterAction::Failed(err) => {
+                        log!("Update check failed: {err}");
+                    }
+                    UpdaterAction::None => {}
+                }
+            }
+
             if let Some(_) = action.downcast_ref::<DownloadFileAction>() {
                 self.notify_downloaded_files(cx);
             }
@@ -434,6 +476,22 @@ impl MatchEvent for App {
                 self.ui
                     .popup_notification(ids!(moly_server_popup))
                     .close(cx);
+            }
+
+            if let Some(update_popup_action) = action.downcast_ref::<UpdateNotificationPopupAction>() {
+                match update_popup_action {
+                    UpdateNotificationPopupAction::OpenReleasePage => {
+                        let _ = robius_open::Uri::new(
+                            "https://github.com/tyreseluo/moly/releases/latest",
+                        )
+                        .open();
+                        self.ui.popup_notification(ids!(update_popup)).close(cx);
+                    }
+                    UpdateNotificationPopupAction::CloseButtonClicked => {
+                        self.ui.popup_notification(ids!(update_popup)).close(cx);
+                    }
+                    UpdateNotificationPopupAction::None => {}
+                }
             }
         }
 

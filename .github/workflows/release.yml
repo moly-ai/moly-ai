@@ -67,9 +67,45 @@ jobs:
           cargo +stable install --force --locked cargo-packager
 
       - name: Build
+        env:
+          CARGO_PACKAGER_SIGN_PRIVATE_KEY: ${{ secrets.CARGO_PACKAGER_SIGNING_KEY }}
+          CARGO_PACKAGER_SIGN_PRIVATE_KEY_PASSWORD: ${{ secrets.CARGO_PACKAGER_SIGNING_PASSWORD }}
         run: |
           cargo packager --release --verbose
           ls dist/
+
+      - name: Generate updater manifest
+        env:
+          RELEASE_TAG: ${{ github.event.inputs.release_tags }}
+        run: |
+          set -euo pipefail
+          VERSION=$(cargo metadata --no-deps --format-version 1 --frozen --manifest-path Cargo.toml | jq -r '.packages[0].version')
+          cd dist
+          ARCH=$(uname -m)
+          # Normalize arch to updater naming
+          if [ "$ARCH" = "x86_64" ]; then
+            ARCH="x86_64"
+          elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+            ARCH="aarch64"
+          fi
+
+          APPIMAGE=$(ls moly_*.AppImage | head -n 1)
+          SIG_FILE="${APPIMAGE}.sig"
+          if [ ! -f "$SIG_FILE" ]; then
+            echo "Missing signature file: $SIG_FILE" >&2
+            exit 1
+          fi
+
+          SIG_JSON=$(jq -Rs . < "$SIG_FILE")
+          ASSET_NAME=$(basename "$APPIMAGE")
+          cat > "latest-linux-${ARCH}.json" <<EOF
+          {
+            "version": "${VERSION}",
+            "url": "https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/${ASSET_NAME}",
+            "signature": ${SIG_JSON},
+            "format": "appimage"
+          }
+          EOF
 
       - name: Upload Dist
         env:
@@ -79,6 +115,8 @@ jobs:
           gh release upload ${{ github.event.inputs.release_tags }} moly_*.deb --clobber
           gh release upload ${{ github.event.inputs.release_tags }} moly_*.tar.gz --clobber
           gh release upload ${{ github.event.inputs.release_tags }} moly_*.AppImage --clobber
+          gh release upload ${{ github.event.inputs.release_tags }} *.sig --clobber
+          gh release upload ${{ github.event.inputs.release_tags }} latest-linux-*.json --clobber
 
   build_macos:
     name: MacOS
@@ -105,9 +143,44 @@ jobs:
           cargo +stable install --force --locked cargo-packager
 
       - name: Build
+        env:
+          CARGO_PACKAGER_SIGN_PRIVATE_KEY: ${{ secrets.CARGO_PACKAGER_SIGNING_KEY }}
+          CARGO_PACKAGER_SIGN_PRIVATE_KEY_PASSWORD: ${{ secrets.CARGO_PACKAGER_SIGNING_PASSWORD }}
         run: |
-          cargo packager --release --verbose
+          cargo packager --release --verbose --formats "app,dmg"
           ls dist/
+
+      - name: Generate updater manifest
+        env:
+          RELEASE_TAG: ${{ github.event.inputs.release_tags }}
+        run: |
+          set -euo pipefail
+          VERSION=$(cargo metadata --no-deps --format-version 1 --frozen --manifest-path Cargo.toml | jq -r '.packages[0].version')
+          cd dist
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "arm64" ]; then
+            ARCH="aarch64"
+          elif [ "$ARCH" = "x86_64" ]; then
+            ARCH="x86_64"
+          fi
+
+          APP_ARCHIVE=$(ls *.app.tar.gz | head -n 1)
+          SIG_FILE="${APP_ARCHIVE}.sig"
+          if [ ! -f "$SIG_FILE" ]; then
+            echo "Missing signature file: $SIG_FILE" >&2
+            exit 1
+          fi
+
+          SIG_JSON=$(jq -Rs . < "$SIG_FILE")
+          ASSET_NAME=$(basename "$APP_ARCHIVE")
+          cat > "latest-macos-${ARCH}.json" <<EOF
+          {
+            "version": "${VERSION}",
+            "url": "https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/${ASSET_NAME}",
+            "signature": ${SIG_JSON},
+            "format": "app"
+          }
+          EOF
 
       - name: Upload Dist
         env:
@@ -115,6 +188,9 @@ jobs:
         run: |
           cd dist/
           gh release upload ${{ github.event.inputs.release_tags }} Moly_*.dmg --clobber
+          gh release upload ${{ github.event.inputs.release_tags }} *.app.tar.gz --clobber
+          gh release upload ${{ github.event.inputs.release_tags }} *.sig --clobber
+          gh release upload ${{ github.event.inputs.release_tags }} latest-macos-*.json --clobber
 
   build_windows:
     name: Windows
@@ -139,9 +215,37 @@ jobs:
           cargo +stable install --force --locked cargo-packager
 
       - name: Build
+        env:
+          CARGO_PACKAGER_SIGN_PRIVATE_KEY: ${{ secrets.CARGO_PACKAGER_SIGNING_KEY }}
+          CARGO_PACKAGER_SIGN_PRIVATE_KEY_PASSWORD: ${{ secrets.CARGO_PACKAGER_SIGNING_PASSWORD }}
         run: |
           cargo packager --release --formats nsis --verbose
           ls dist/
+
+      - name: Generate updater manifest
+        env:
+          RELEASE_TAG: ${{ github.event.inputs.release_tags }}
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $VERSION = (cargo metadata --no-deps --format-version 1 --frozen | ConvertFrom-Json).packages[0].version
+          $Arch = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "aarch64" } else { "x86_64" }
+
+          Set-Location dist
+          $installer = Get-ChildItem -Filter *.exe | Select-Object -First 1
+          if (-not $installer) { throw "No nsis installer found" }
+          $sigPath = "$($installer.Name).sig"
+          if (-not (Test-Path $sigPath)) { throw "Missing signature file: $sigPath" }
+
+          $signature = Get-Content -Raw $sigPath
+          $manifest = [ordered]@{
+            version   = $VERSION
+            url       = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:RELEASE_TAG/$($installer.Name)"
+            signature = $signature
+            format    = "nsis"
+          } | ConvertTo-Json -Compress
+          $manifestPath = "latest-windows-$Arch.json"
+          $manifest | Out-File -FilePath $manifestPath -Encoding utf8
       - name: Upload Dist
         env:
           GITHUB_TOKEN: ${{ secrets.MOLY_RELEASE }}
@@ -149,6 +253,8 @@ jobs:
           cd dist/
           $file=Get-ChildItem -Filter *.exe
           gh release upload ${{ github.event.inputs.release_tags }} $file.name --clobber
+          gh release upload ${{ github.event.inputs.release_tags }} *.sig --clobber
+          gh release upload ${{ github.event.inputs.release_tags }} latest-windows-*.json --clobber
   
   build_android:
     name: Android

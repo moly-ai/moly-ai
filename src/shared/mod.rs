@@ -11,6 +11,7 @@ pub mod moly_server_popup;
 pub mod popup_notification;
 pub mod resource_imports;
 pub mod styles;
+pub mod update_notification_popup;
 pub mod tooltip;
 pub mod utils;
 pub mod widgets;
@@ -24,6 +25,7 @@ pub fn live_design(cx: &mut Cx) {
     popup_notification::live_design(cx);
     external_link::live_design(cx);
     download_notification_popup::live_design(cx);
+    update_notification_popup::live_design(cx);
     tooltip::live_design(cx);
     desktop_buttons::live_design(cx);
     moly_server_popup::live_design(cx);
