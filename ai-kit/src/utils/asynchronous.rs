@@ -86,8 +86,7 @@ fn spawn_impl(fut: impl Future<Output = ()> + 'static + Send) {
     }
 }
 
-#[cfg(feature = "async-web")]
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(feature = "async-rt", target_arch = "wasm32"))]
 fn spawn_impl(fut: impl Future<Output = ()> + 'static) {
     wasm_bindgen_futures::spawn_local(fut);
 }
@@ -99,7 +98,7 @@ pub async fn sleep(duration: std::time::Duration) {
         tokio::time::sleep(duration).await;
     }
 
-    #[cfg(all(feature = "async-web", target_arch = "wasm32"))]
+    #[cfg(all(feature = "async-rt", target_arch = "wasm32"))]
     {
         wasm_bindgen_futures::JsFuture::from(js_sys::Promise::new(&mut |resolve, _| {
             web_sys::window()

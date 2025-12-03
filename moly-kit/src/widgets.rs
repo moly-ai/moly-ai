@@ -35,7 +35,7 @@ pub mod model_selector;
 pub mod realtime;
 
 cfg_if::cfg_if! {
-    if #[cfg(any(feature = "async-rt", feature = "async-web"))] {
+    if #[cfg(feature = "async-rt")] {
         pub mod chat;
     }
 }
