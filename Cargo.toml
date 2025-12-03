@@ -23,7 +23,7 @@ path = "src/main.rs"
 
 [dependencies]
 moly-protocol = { git = "https://github.com/moly-ai/moly-local", package = "moly-protocol" }
-moly-kit = { path = "./moly-kit" }
+moly-kit = { path = "./moly-kit", features = ["full"] }
 moly-sync = { path = "./moly-sync"}
 makepad-widgets = { git = "https://github.com/wyeworks/makepad", rev = "b8b65f4fa" }
 makepad-code-editor = { git = "https://github.com/wyeworks/makepad", rev = "b8b65f4fa" }
