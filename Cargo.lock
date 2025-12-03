@@ -2861,30 +2861,16 @@ name = "moly-kit"
 version = "0.2.3"
 dependencies = [
  "ai-kit",
- "async-stream",
- "base64",
  "cfg-if",
- "chrono",
- "env_logger",
  "futures",
- "js-sys",
  "log",
  "makepad-code-editor",
  "makepad-widgets",
- "mime_guess",
  "reqwest",
- "rfd",
- "rmcp",
  "robius-open 0.2.0 (git+https://github.com/project-robius/robius?rev=a62b82c8)",
  "scraper",
- "serde",
  "serde_json",
- "tokio",
- "tokio-tungstenite",
- "unicode-segmentation",
  "url",
- "wasm-bindgen-futures",
- "web-sys",
 ]
 
 [[package]]

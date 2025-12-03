@@ -4,59 +4,18 @@ version = "0.2.3"
 edition = "2024"
 
 [dependencies]
-reqwest = { version = "0.12.12", features = [
-  "json",
-  "stream",
-  "rustls-tls",
-], default-features = false, optional = true }
-scraper = { version = "0.23.1", optional = true }
-serde = { version = "1.0.217", features = ["derive", "rc"], optional = true }
-serde_json = { version = "1.0.135", optional = true }
+reqwest = { version = "0.12.12", features = ["rustls-tls"], default-features = false }
+scraper = { version = "0.23.1" }
+serde_json = { version = "1.0.135" }
 
 futures = "0.3.31"
 url = "2.4.10"
 robius-open = { git = "https://github.com/project-robius/robius", rev = "a62b82c8" }
-async-stream = "0.3.6"
 ai-kit = { path = "../ai-kit", features = ["full"] }
 
 makepad-widgets = { git = "https://github.com/wyeworks/makepad", rev = "b8b65f4fa" }
 makepad-code-editor = { git = "https://github.com/wyeworks/makepad", rev = "b8b65f4fa" }
 
 cfg-if = "1.0.0"
-
 log = "0.4"
-env_logger = "0.11"
-chrono = "0.4.41"
-mime_guess = "2.0.5"
-base64 = { version = "0.22.1", optional = true }
-unicode-segmentation = "1.12.0"
 
-[target.'cfg(any(target_os = "windows", target_os = "macos", target_os = "linux", target_arch = "wasm32"))'.dependencies]
-rfd = { version = "0.15.3", features = ["ashpd", "urlencoding", "xdg-portal"] }
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1", features = ["rt", "rt-multi-thread"], optional = true }
-tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"], optional = true }
-rmcp = { git = "https://www.github.com/modelcontextprotocol/rust-sdk", rev = "9349f5cb", features = ["transport-sse-client", "transport-sse-client-reqwest", "transport-streamable-http-client", "transport-streamable-http-client-reqwest", "transport-child-process", "client"] }
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen-futures = { version = "0.4.50", optional = true }
-js-sys = "0.3.77"
-web-sys = { version = "0.3.77", features = [
-  "Document",
-  "Element",
-  "HtmlElement",
-  "HtmlAnchorElement",
-  "Window",
-  "Blob",
-] }
-
-[features]
-default = []
-# default = ["full"]
-json = ["dep:serde", "dep:serde_json", "dep:base64", "chrono/serde"]
-http = ["dep:reqwest", "dep:scraper"]
-async-rt = ["dep:tokio"]
-async-web = ["dep:wasm-bindgen-futures"]
-realtime = ["dep:tokio-tungstenite", "dep:tokio"]
-full = ["default", "json", "async-rt", "async-web", "realtime", "http"]
