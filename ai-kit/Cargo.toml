@@ -12,18 +12,16 @@ reqwest = { version = "0.12.12", features = [
 scraper = { version = "0.23.1", optional = true }
 serde = { version = "1.0.217", features = ["derive", "rc"], optional = true }
 serde_json = { version = "1.0.135", optional = true }
+base64 = { version = "0.22.1", optional = true }
 
 futures = "0.3.31"
 url = "2.4.10"
 async-stream = "0.3.6"
-
 cfg-if = "1.0.0"
-
 log = "0.4"
 env_logger = "0.11"
 chrono = "0.4.41"
 mime_guess = "2.0.5"
-base64 = { version = "0.22.1", optional = true }
 unicode-segmentation = "1.12.0"
 
 [target.'cfg(any(target_os = "windows", target_os = "macos", target_os = "linux", target_arch = "wasm32"))'.dependencies]
