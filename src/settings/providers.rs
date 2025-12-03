@@ -6,7 +6,7 @@ use crate::{
     settings::sync_modal::{SyncModalAction, SyncModalWidgetExt},
 };
 use makepad_widgets::*;
-use moly_kit::MolyModalWidgetExt;
+use moly_kit::widgets::moly_modal::MolyModalWidgetExt;
 
 use super::{add_provider_modal::AddProviderModalAction, provider_view::ProviderViewAction};
 

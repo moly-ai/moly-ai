@@ -5,8 +5,7 @@ use std::{
     sync::Arc,
 };
 
-use moly_kit::protocol::*;
-use moly_kit::utils::asynchronous::BoxPlatformSendFuture;
+use moly_kit::ai_kit::protocol::*;
 
 pub fn generate_persistence_key(attachment: &Attachment) -> String {
     // If `filename.a.b` this is `.b`.

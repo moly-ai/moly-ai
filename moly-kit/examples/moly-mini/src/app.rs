@@ -26,7 +26,7 @@ impl AppMain for App {
 impl LiveRegister for App {
     fn live_register(cx: &mut Cx) {
         makepad_widgets::live_design(cx);
-        moly_kit::live_design(cx);
+        moly_kit::widgets::live_design(cx);
         crate::meta::live_design(cx);
         crate::demo_chat::live_design(cx);
         crate::ui::live_design(cx);

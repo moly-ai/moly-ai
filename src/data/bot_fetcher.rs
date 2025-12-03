@@ -1,5 +1,12 @@
 use makepad_widgets::Cx;
-use moly_kit::{protocol::*, utils::asynchronous::spawn};
+use moly_kit::ai_kit::{
+    clients::{
+        openai::OpenAIClient, openai_image::OpenAIImageClient,
+        openai_realtime::OpenAIRealtimeClient,
+    },
+    protocol::*,
+    utils::asynchronous::spawn,
+};
 
 use crate::data::providers::ProviderID;
 
@@ -16,7 +23,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
             fetch_models_with_client(
                 provider_id.clone(),
                 move || {
-                    let mut client = moly_kit::clients::OpenAIClient::new(url);
+                    let mut client = OpenAIClient::new(url);
                     if let Some(key) = api_key {
                         let _ = client.set_key(&key);
                     }
@@ -37,7 +44,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
                 provider_id.clone(),
                 move || {
                     let client_url = url.trim_start_matches('#').to_string();
-                    let mut client = moly_kit::clients::OpenAIImageClient::new(client_url);
+                    let mut client = OpenAIImageClient::new(client_url);
                     if let Some(key) = api_key {
                         let _ = client.set_key(&key);
                     }
@@ -58,7 +65,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
                 provider_id.clone(),
                 move || {
                     let client_url = url.trim_start_matches('#').to_string();
-                    let mut client = moly_kit::clients::OpenAIRealtimeClient::new(client_url);
+                    let mut client = OpenAIRealtimeClient::new(client_url);
                     if let Some(key) = api_key {
                         let _ = client.set_key(&key);
                     }

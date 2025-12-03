@@ -2,6 +2,7 @@
 resolver = "2"
 
 members = ["ai-kit",
+    "ai-kit/examples/*",
     "moly-kit",
     "moly-kit/examples/*",
     "moly-sync",

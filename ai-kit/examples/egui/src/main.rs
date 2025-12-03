@@ -1,10 +1,11 @@
 use std::sync::{Arc, Mutex};
 
-use moly_kit::{
-    BotId, EntityId, Message, OpenAIClient,
+use ai_kit::{
+    clients::openai::OpenAIClient,
     controllers::chat::{
         ChatController, ChatControllerPlugin, ChatState, ChatStateMutation, ChatTask,
     },
+    protocol::*,
     utils::vec::VecMutation,
 };
 

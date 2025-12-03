@@ -1,6 +1,5 @@
 use crate::protocol::Tool;
 use async_stream::stream;
-use makepad_widgets::*;
 use reqwest::header::{HeaderMap, HeaderName};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -214,7 +213,7 @@ async fn to_outgoing_message(message: Message) -> Result<OutgoingMessage, String
 
         for attachment in message.content.attachments {
             if !attachment.is_available() {
-                makepad_widgets::warning!("Skipping unavailable attachment: {}", attachment.name);
+                log::warn!("Skipping unavailable attachment: {}", attachment.name);
                 continue;
             }
 
@@ -609,7 +608,7 @@ impl BotClient for OpenAIClient {
                 match to_outgoing_message(message.clone()).await {
                     Ok(outgoing_message) => outgoing_messages.push(outgoing_message),
                     Err(err) => {
-                        error!("Could not convert message to outgoing format: {}", err);
+                        log::error!("Could not convert message to outgoing format: {}", err);
                         yield ClientError::new(
                             ClientErrorKind::Format,
                             err,
@@ -649,7 +648,7 @@ impl BotClient for OpenAIClient {
                         let original = format!("Request failed with status {}", status_code);
                         let enriched = enrich_http_error(status_code, &original, Some(&body));
 
-                        error!("Error sending request to {}: status {}", url, status_code);
+                        log::error!("Error sending request to {}: status {}", url, status_code);
                         yield ClientError::new(
                             ClientErrorKind::Response,
                             enriched,
@@ -658,7 +657,7 @@ impl BotClient for OpenAIClient {
                     }
                 }
                 Err(error) => {
-                    error!("Error sending request to {}: {:?}", url, error);
+                    log::error!("Error sending request to {}: {:?}", url, error);
                     yield ClientError::new_with_source(
                         ClientErrorKind::Network,
                         format!("Could not send request to {url}. Verify your connection and the server status."),
@@ -679,7 +678,7 @@ impl BotClient for OpenAIClient {
                 let event = match event {
                     Ok(event) => event,
                     Err(error) => {
-                        error!("Response streaming got interrupted while reading from {}: {:?}", url, error);
+                        log::error!("Response streaming got interrupted while reading from {}: {:?}", url, error);
                         yield ClientError::new_with_source(
                             ClientErrorKind::Network,
                             format!("Response streaming got interrupted while reading from {url}. This may be a problem with your connection or the server."),
@@ -692,7 +691,7 @@ impl BotClient for OpenAIClient {
                 let completion: Completion = match serde_json::from_str(&event) {
                     Ok(c) => c,
                     Err(error) => {
-                        error!("Could not parse the SSE message from {url} as JSON or its structure does not match the expected format. {}", error);
+                        log::error!("Could not parse the SSE message from {url} as JSON or its structure does not match the expected format. {}", error);
                         yield ClientError::new_with_source(
                             ClientErrorKind::Format,
                             format!("Could not parse the SSE message from {url} as JSON or its structure does not match the expected format."),

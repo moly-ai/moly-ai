@@ -1,5 +1,5 @@
 use makepad_widgets::{ActionDefaultRef, DefaultNone};
-use moly_kit::BotId;
+use moly_kit::ai_kit::protocol::*;
 use moly_protocol::data::FileID;
 
 use crate::data::chats::chat::ChatID;

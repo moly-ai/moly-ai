@@ -2,9 +2,10 @@ use makepad_widgets::*;
 use std::sync::{Arc, Mutex};
 
 use crate::{
-    Bot, Picture,
-    controllers::chat::{ChatController, ChatStateMutation},
-    protocol::BotId,
+    ai_kit::{
+        controllers::chat::{ChatController, ChatStateMutation},
+        protocol::*,
+    },
     utils::makepad::events::EventExt,
     widgets::{
         model_selector_item::ModelSelectorItemAction, model_selector_list::ModelSelectorList,

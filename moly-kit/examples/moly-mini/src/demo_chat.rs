@@ -1,13 +1,22 @@
 use std::sync::{Arc, Mutex};
 
 use makepad_widgets::*;
-use moly_kit::controllers::chat::{
-    ChatController, ChatControllerPlugin, ChatStateMutation, ChatTask,
+
+use moly_kit::{
+    ai_kit::{
+        clients::{
+            multi::MultiClient, openai::OpenAIClient, openai_image::OpenAIImageClient,
+            openai_realtime::OpenAIRealtimeClient, tester::TesterClient,
+        },
+        controllers::chat::{
+            ChatController, ChatControllerPlugin, ChatState, ChatStateMutation, ChatTask,
+        },
+        mcp::mcp_manager::{McpManagerClient, McpTransport},
+        protocol::*,
+        utils::{asynchronous::spawn, vec::VecMutation},
+    },
+    widgets::chat::ChatWidgetExt,
 };
-use moly_kit::mcp::mcp_manager::{McpManagerClient, McpTransport};
-use moly_kit::utils::asynchronous::spawn;
-use moly_kit::utils::vec::VecMutation;
-use moly_kit::*;
 
 const OPEN_AI_KEY: Option<&str> = option_env!("OPEN_AI_KEY");
 const OPEN_AI_IMAGE_KEY: Option<&str> = option_env!("OPEN_AI_IMAGE_KEY");
@@ -234,8 +243,6 @@ impl DemoChat {
             let tester = TesterClient;
             client.add_client(Box::new(tester));
 
-            client.add_client(Box::new(DeepInquireClient::new("".to_string())));
-
             let ollama = OpenAIClient::new("http://localhost:11434/v1".into());
             client.add_client(Box::new(ollama));
 
@@ -333,17 +340,13 @@ struct Plugin {
 }
 
 impl ChatControllerPlugin for Plugin {
-    fn on_state_ready(
-        &mut self,
-        state: &controllers::chat::ChatState,
-        _mutations: &[controllers::chat::ChatStateMutation],
-    ) {
+    fn on_state_ready(&mut self, state: &ChatState, _mutations: &[ChatStateMutation]) {
         self.init(state);
     }
 }
 
 impl Plugin {
-    fn init(&mut self, state: &controllers::chat::ChatState) {
+    fn init(&mut self, state: &ChatState) {
         if self.initialized {
             return;
         }

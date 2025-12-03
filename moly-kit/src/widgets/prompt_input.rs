@@ -3,8 +3,7 @@ use std::cell::{Ref, RefMut};
 
 #[allow(unused)]
 use crate::{
-    Attachment,
-    protocol::{BotCapabilities, BotCapability},
+    ai_kit::protocol::*,
     utils::makepad::events::EventExt,
     widgets::attachment_list::{AttachmentListRef, AttachmentListWidgetExt},
 };
@@ -374,7 +373,7 @@ impl PromptInput {
     pub fn set_chat_controller(
         &mut self,
         controller: Option<
-            std::sync::Arc<std::sync::Mutex<crate::controllers::chat::ChatController>>,
+            std::sync::Arc<std::sync::Mutex<crate::ai_kit::controllers::chat::ChatController>>,
         >,
     ) {
         if let Some(mut inner) = self

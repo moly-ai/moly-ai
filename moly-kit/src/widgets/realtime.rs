@@ -1,10 +1,18 @@
-use crate::controllers::chat::ChatController;
-use crate::widgets::chat_line::{ChatLineAction, ChatLineWidgetExt};
-use crate::widgets::{
-    avatar::AvatarWidgetRefExt, slot::SlotWidgetRefExt,
-    standard_message_content::StandardMessageContentWidgetRefExt,
+use crate::{
+    ai_kit::{
+        controllers::chat::ChatController,
+        mcp::mcp_manager::{display_name_from_namespaced, parse_tool_arguments},
+        protocol::*,
+        utils::asynchronous::spawn,
+    },
+    utils::makepad::events::EventExt,
+    widgets::{
+        avatar::AvatarWidgetRefExt,
+        chat_line::{ChatLineAction, ChatLineWidgetExt},
+        slot::SlotWidgetRefExt,
+        standard_message_content::StandardMessageContentWidgetRefExt,
+    },
 };
-use crate::{protocol::*, utils::makepad::events::EventExt};
 use makepad_widgets::permission::Permission;
 use makepad_widgets::permission::PermissionStatus;
 use makepad_widgets::{makepad_platform::AudioDeviceType, *};
@@ -1221,7 +1229,6 @@ impl Realtime {
 
                     if dangerous_mode_enabled {
                         // Auto-approve function calls in dangerous mode
-                        use crate::mcp::mcp_manager::display_name_from_namespaced;
                         let display_name = display_name_from_namespaced(&name);
                         self.label(ids!(status_label))
                             .set_text(cx, &format!("🔧 Auto-executing tool: {}", display_name));
@@ -1279,8 +1286,6 @@ impl Realtime {
         call_id: String,
         arguments: String,
     ) {
-        use crate::mcp::mcp_manager::display_name_from_namespaced;
-
         self.pending_tool_call = Some((name.clone(), call_id, arguments));
 
         let tool_line = self.chat_line(ids!(tool_permission_line));
@@ -1293,12 +1298,12 @@ impl Realtime {
             .avatar(ids!(message_section.sender.avatar))
             .borrow_mut()
             .unwrap()
-            .avatar = Some(crate::protocol::Picture::Text("T".into()));
+            .avatar = Some(Picture::Text("T".into()));
         tool_line
             .label(ids!(message_section.sender.name))
             .set_text(cx, "Permission Request");
 
-        let content = crate::protocol::MessageContent {
+        let content = MessageContent {
             text: format!("Tool '{}' is requesting permission to run", display_name),
             ..Default::default()
         };
@@ -1333,7 +1338,7 @@ impl Realtime {
                 })
                 .to_string();
                 let _ = channel.command_sender.unbounded_send(
-                    crate::protocol::RealtimeCommand::SendFunctionCallResult {
+                    RealtimeCommand::SendFunctionCallResult {
                         call_id,
                         output: error_result,
                     },
@@ -1350,7 +1355,7 @@ impl Realtime {
                 })
                 .to_string();
                 let _ = channel.command_sender.unbounded_send(
-                    crate::protocol::RealtimeCommand::SendFunctionCallResult {
+                    RealtimeCommand::SendFunctionCallResult {
                         call_id,
                         output: error_result,
                     },
@@ -1363,7 +1368,7 @@ impl Realtime {
 
         let future = async move {
             // Parse the arguments JSON
-            let arguments_map = match crate::mcp::mcp_manager::parse_tool_arguments(&arguments) {
+            let arguments_map = match parse_tool_arguments(&arguments) {
                 Ok(args) => args,
                 Err(e) => {
                     ::log::error!("Failed to parse function call arguments: {}", e);
@@ -1373,7 +1378,7 @@ impl Realtime {
                         })
                         .to_string();
                         let _ = channel.command_sender.unbounded_send(
-                            crate::protocol::RealtimeCommand::SendFunctionCallResult {
+                            RealtimeCommand::SendFunctionCallResult {
                                 call_id,
                                 output: error_result,
                             },
@@ -1397,13 +1402,13 @@ impl Realtime {
                     result.content
                 };
 
-                let _ = channel.command_sender.unbounded_send(
-                    crate::protocol::RealtimeCommand::SendFunctionCallResult { call_id, output },
-                );
+                let _ = channel
+                    .command_sender
+                    .unbounded_send(RealtimeCommand::SendFunctionCallResult { call_id, output });
             }
         };
 
-        crate::utils::asynchronous::spawn(future);
+        spawn(future);
     }
 
     fn approve_tool_call(&mut self, cx: &mut Cx) {
@@ -1413,7 +1418,6 @@ impl Realtime {
                 .set_visible(cx, false);
 
             // Update status
-            use crate::mcp::mcp_manager::display_name_from_namespaced;
             let display_name = display_name_from_namespaced(&name);
             self.label(ids!(status_label))
                 .set_text(cx, &format!("🔧 Executing tool: {}", display_name));
@@ -1443,7 +1447,7 @@ impl Realtime {
                 })
                 .to_string();
                 let _ = channel.command_sender.unbounded_send(
-                    crate::protocol::RealtimeCommand::SendFunctionCallResult {
+                    RealtimeCommand::SendFunctionCallResult {
                         call_id,
                         output: denial_result,
                     },
@@ -1451,7 +1455,6 @@ impl Realtime {
             }
 
             // Update status
-            use crate::mcp::mcp_manager::display_name_from_namespaced;
             let display_name = display_name_from_namespaced(&name);
             self.label(ids!(status_label))
                 .set_text(cx, &format!("🚫 Tool '{}' denied", display_name));

@@ -230,7 +230,7 @@ pub struct App {
 impl LiveRegister for App {
     fn live_register(cx: &mut Cx) {
         makepad_widgets::live_design(cx);
-        moly_kit::live_design(cx);
+        moly_kit::widgets::live_design(cx);
 
         crate::shared::live_design(cx);
         crate::landing::live_design(cx);

@@ -1,8 +1,7 @@
 use super::model_selector_item::{ModelSelectorItemAction, ModelSelectorItemWidgetRefExt};
 use crate::{
-    BotGroup, GroupingFn,
-    controllers::chat::ChatController,
-    protocol::{Bot, BotId, Picture},
+    ai_kit::{controllers::chat::ChatController, protocol::*},
+    widgets::model_selector::{BotGroup, GroupingFn},
 };
 use makepad_widgets::*;
 use std::collections::HashMap;

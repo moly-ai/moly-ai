@@ -1,6 +1,12 @@
+use ai_kit::{
+    clients::openai::OpenAIClient,
+    controllers::chat::{
+        ChatController, ChatControllerPlugin, ChatState, ChatStateMutation, ChatTask,
+    },
+    protocol::*,
+    utils::vec::VecMutation,
+};
 use crossterm::{QueueableCommand, cursor, terminal};
-use moly_kit::utils::vec::VecMutation;
-use moly_kit::{OpenAIClient, controllers::chat::*, protocol::*};
 use std::io::{Write, stdin, stdout};
 use std::sync::mpsc::{Sender, channel};
 

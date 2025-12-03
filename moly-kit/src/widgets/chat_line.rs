@@ -1,8 +1,8 @@
 use makepad_widgets::*;
 
 use crate::{
-    MolyModalRef, MolyModalWidgetExt,
     utils::makepad::{events::EventExt, hits::HitExt},
+    widgets::moly_modal::{MolyModalRef, MolyModalWidgetExt},
 };
 
 live_design! {

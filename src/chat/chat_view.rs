@@ -1,11 +1,24 @@
 use makepad_widgets::*;
-use moly_kit::controllers::chat::{
-    ChatController, ChatControllerPlugin, ChatControllerPluginRegistrationId, ChatState,
-    ChatStateMutation,
+
+use moly_kit::{
+    ai_kit::{
+        controllers::chat::{
+            ChatController, ChatControllerPlugin, ChatControllerPluginRegistrationId, ChatState,
+            ChatStateMutation,
+        },
+        protocol::*,
+        utils::{
+            asynchronous::spawn,
+            vec::{VecEffect, VecMutation},
+        },
+    },
+    widgets::{
+        chat::ChatWidgetExt,
+        messages::MessagesWidgetExt,
+        model_selector::{BotGroup, ModelSelectorWidgetRefExt},
+        prompt_input::PromptInputWidgetExt,
+    },
 };
-use moly_kit::utils::asynchronous::spawn;
-use moly_kit::utils::vec::{VecEffect, VecMutation};
-use moly_kit::*;
 
 use crate::data::chats::chat::ChatID;
 use crate::data::deep_inquire_client::DeepInquireCustomContent;
@@ -448,16 +461,16 @@ impl ChatView {
             self.prev_available_bots_len = current_bots_len;
 
             // Build lookup table for grouping
-            let mut bot_groups: HashMap<BotId, moly_kit::BotGroup> = HashMap::new();
+            let mut bot_groups: HashMap<BotId, BotGroup> = HashMap::new();
 
             for (bot_id, provider_bot) in &store.chats.available_bots {
                 if let Some(provider) = store.chats.providers.get(&provider_bot.provider_id) {
                     let icon = store
                         .get_provider_icon(&provider.name)
-                        .map(|dep| moly_kit::protocol::Picture::Image(dep.as_str().to_string()));
+                        .map(|dep| Picture::Image(dep.as_str().to_string()));
                     bot_groups.insert(
                         bot_id.clone(),
-                        moly_kit::BotGroup {
+                        BotGroup {
                             id: provider.id.clone(),
                             label: provider.name.clone(),
                             icon,

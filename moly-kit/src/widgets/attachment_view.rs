@@ -1,9 +1,9 @@
 use crate::{
-    protocol::*,
-    utils::{
-        asynchronous::{AbortOnDropHandle, abort_on_drop, spawn},
-        makepad::hex_rgb_color,
+    ai_kit::{
+        protocol::*,
+        utils::asynchronous::{AbortOnDropHandle, abort_on_drop, spawn},
     },
+    utils::makepad::hex_rgb_color,
     widgets::image_view::{ImageViewRef, ImageViewWidgetExt},
 };
 use makepad_widgets::*;

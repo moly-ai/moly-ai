@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use moly_kit::ai_kit::mcp::mcp_manager::McpTransport;
 use serde::{Deserialize, Serialize};
 
 /// Represents an input configuration for MCP servers
@@ -149,7 +150,7 @@ impl McpServer {
 impl McpServer {
     /// Convert this server configuration to a transport for the MCP manager
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_transport(&self) -> Option<moly_kit::mcp::mcp_manager::McpTransport> {
+    pub fn to_transport(&self) -> Option<McpTransport> {
         if let Some(command_str) = &self.command {
             // Stdio transport
             let mut command = tokio::process::Command::new(command_str);
@@ -165,12 +166,12 @@ impl McpServer {
                 command.current_dir(working_dir);
             }
 
-            Some(moly_kit::mcp::mcp_manager::McpTransport::Stdio(command))
+            Some(McpTransport::Stdio(command))
         } else if let Some(url) = &self.url {
             // Network transport - determine if HTTP or SSE
             match self.transport_type.as_deref() {
-                Some("sse") => Some(moly_kit::mcp::mcp_manager::McpTransport::Sse(url.clone())),
-                _ => Some(moly_kit::mcp::mcp_manager::McpTransport::Http(url.clone())),
+                Some("sse") => Some(McpTransport::Sse(url.clone())),
+                _ => Some(McpTransport::Http(url.clone())),
             }
         } else {
             None

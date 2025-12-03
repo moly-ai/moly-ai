@@ -1,6 +1,6 @@
 use crate::data::moly_client::MolyClient;
 use makepad_widgets::Cx;
-use moly_kit::utils::asynchronous::spawn;
+use moly_kit::ai_kit::utils::asynchronous::spawn;
 use moly_protocol::{data::*, protocol::FileDownloadResponse};
 
 #[derive(Debug)]

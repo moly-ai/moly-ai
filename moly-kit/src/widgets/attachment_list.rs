@@ -1,4 +1,4 @@
-use crate::{protocol::*, widgets::attachment_view::AttachmentViewWidgetRefExt};
+use crate::{ai_kit::protocol::*, widgets::attachment_view::AttachmentViewWidgetRefExt};
 use makepad_widgets::*;
 
 live_design! {

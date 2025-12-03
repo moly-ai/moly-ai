@@ -3,7 +3,7 @@ use crate::shared::external_link::ExternalLinkWidgetExt;
 use crate::shared::utils::hugging_face_model_url;
 use chrono::Utc;
 use makepad_widgets::*;
-use moly_kit::MolyModalWidgetExt;
+use moly_kit::widgets::moly_modal::MolyModalWidgetExt;
 use unicode_segmentation::UnicodeSegmentation;
 
 live_design! {

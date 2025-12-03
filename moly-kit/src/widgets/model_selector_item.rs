@@ -1,4 +1,4 @@
-use crate::protocol::{Bot, BotId};
+use crate::ai_kit::protocol::*;
 use makepad_widgets::*;
 
 live_design! {

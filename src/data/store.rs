@@ -14,14 +14,14 @@ use super::supported_providers;
 use super::{chats::Chats, downloads::Downloads, search::Search};
 use chrono::{DateTime, Utc};
 use makepad_widgets::{Action, ActionDefaultRef, DefaultNone};
-use moly_kit::utils::asynchronous::spawn;
+use moly_kit::ai_kit::{
+    mcp::mcp_manager::McpManagerClient, protocol::*, utils::asynchronous::spawn,
+};
 
 use super::providers::{Provider, ProviderConnectionStatus};
-use moly_kit::mcp::mcp_manager::McpManagerClient;
 use moly_protocol::data::{Author, File, FileID, Model, ModelID, PendingDownload};
 
 use makepad_widgets::*;
-use moly_kit::*;
 
 #[allow(dead_code)]
 const DEFAULT_MOFA_ADDRESS: &str = "http://localhost:8000";

@@ -1,6 +1,6 @@
 //! The avatar of a bot in a chat message.
 
-use crate::protocol::*;
+use crate::ai_kit::protocol::*;
 use makepad_widgets::*;
 
 live_design! {

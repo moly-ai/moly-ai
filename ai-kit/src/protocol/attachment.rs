@@ -259,14 +259,15 @@ const SUPPORTED_ALL_EXTENSIONS: &[&str] = &[
 ];
 
 impl Attachment {
-    /// Crate private utility to pick files from the file system.
+    /// Pick files from the file system using a system dialog.
     ///
     /// - On web, async API is required to pick files.
     /// - On macos, sync API is required and must be called from the main UI thread.
     ///   - This is the reason why it takes a closure instead of returning a Future.
     ///     Because on native `spawn` may run in a separate thread. So we can't generalize.
     /// - We follow macos requirements on all native platforms just in case.
-    pub(crate) fn pick_multiple(cb: impl FnOnce(Result<Vec<Attachment>, ()>) + 'static) {
+    // NOTE: This was a private API.
+    pub fn pick_multiple(cb: impl FnOnce(Result<Vec<Attachment>, ()>) + 'static) {
         cfg_if::cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
                 crate::utils::asynchronous::spawn(async move {
@@ -389,7 +390,11 @@ impl Attachment {
     }
 
     /// Crate private utility to save/download the attachment to the file system.
-    pub(crate) fn save(&self) {
+    ///
+    /// - On web, this triggers a download.
+    /// - On native platforms, this opens a "Save As" dialog.
+    // NOTE: This was a private API.
+    pub fn save(&self) {
         ::log::info!("Downloading attachment: {}", self.name);
 
         if self.content.is_none() {

@@ -1,8 +1,10 @@
 use std::collections::{HashMap, VecDeque};
 
 use makepad_widgets::*;
-use moly_kit::utils::vec::VecMutation;
-use moly_kit::*;
+use moly_kit::{
+    ai_kit::utils::vec::VecMutation,
+    widgets::{chat::ChatWidgetRefExt, prompt_input::PromptInputWidgetRefExt},
+};
 
 use super::chat_view::ChatViewRef;
 use crate::chat::chat_view::ChatViewWidgetRefExt;

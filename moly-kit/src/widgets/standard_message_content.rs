@@ -1,11 +1,11 @@
 use crate::{
-    display_name_from_namespaced,
-    protocol::*,
+    ai_kit::{mcp::mcp_manager::display_name_from_namespaced, protocol::*},
     widgets::{
         attachment_list::AttachmentListWidgetExt,
         attachment_viewer_modal::AttachmentViewerModalWidgetExt,
     },
 };
+
 use makepad_widgets::*;
 
 use super::{

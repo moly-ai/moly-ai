@@ -11,7 +11,7 @@ eframe = { version = "0.33", default-features = false, features = [
     "x11",
 ] }
 log = "0.4.27"
-moly-kit = { path = "../..", features = ["full"] }
+ai-kit = { path = "../..", features = ["full"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 env_logger = "0.11.8"
