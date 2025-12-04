@@ -1,7 +1,7 @@
 use async_stream::stream;
 use makepad_widgets::*;
 use makepad_widgets::{Cx, LiveNew, WidgetRef};
-use moly_kit::ai_kit::utils::{asynchronous::sleep, errors::enrich_http_error, sse::parse_sse};
+use moly_kit::ai_kit::utils::{errors::enrich_http_error, sse::parse_sse};
 use moly_kit::prelude::*;
 use reqwest::header::{HeaderMap, HeaderName};
 use serde::{Deserialize, Serialize};
@@ -170,58 +170,6 @@ impl DeepInquireClient {
         .into()
     }
 
-    /// Mock implementation that returns a complete set of stages for testing
-    /// This simulates the streaming behavior without needing the actual server
-    fn send_mock(&mut self) -> BoxPlatformSendStream<'static, ClientResult<MessageContent>> {
-        // Simulated SSE responses representing the complete lifecycle
-        let mock_responses = vec![
-            // Thinking stage - substage 1
-            r#"{"choices":[{"delta":{"content":"Analyzing","articles":[],"metadata":{"stage":"query_analysis"},"type":"thinking","id":"thinking.1"},"index":0,"finish_reason":null}]}"#,
-            r#"{"choices":[{"delta":{"content":" the research question","articles":[],"metadata":{"stage":"query_analysis"},"type":"thinking","id":"thinking.2"},"index":0,"finish_reason":null}]}"#,
-            r#"{"choices":[{"delta":{"content":" to identify key topics...","articles":[],"metadata":{"stage":"query_analysis"},"type":"thinking","id":"thinking.3"},"index":0,"finish_reason":null}]}"#,
-            // Thinking stage - substage 2
-            r#"{"choices":[{"delta":{"content":"Planning search","articles":[],"metadata":{"stage":"search_planning"},"type":"thinking","id":"thinking.4"},"index":0,"finish_reason":null}]}"#,
-            r#"{"choices":[{"delta":{"content":" strategy for multiple sources","articles":[],"metadata":{"stage":"search_planning"},"type":"thinking","id":"thinking.5"},"index":0,"finish_reason":null}]}"#,
-            // Content stage - substage 1 with citations
-            r#"{"choices":[{"delta":{"content":"Based on recent research,","articles":[{"title":"AI Advances in 2025","url":"https://example.com/ai-2025","snippet":"Significant breakthroughs in neural architectures","source":"Tech Journal","relevance":95}],"metadata":{"stage":"main_findings"},"type":"content","id":"content.1"},"index":0,"finish_reason":null}]}"#,
-            r#"{"choices":[{"delta":{"content":" artificial intelligence has","articles":[],"metadata":{"stage":"main_findings"},"type":"content","id":"content.2"},"index":0,"finish_reason":null}]}"#,
-            r#"{"choices":[{"delta":{"content":" made significant progress in","articles":[],"metadata":{"stage":"main_findings"},"type":"content","id":"content.3"},"index":0,"finish_reason":null}]}"#,
-            r#"{"choices":[{"delta":{"content":" natural language understanding.","articles":[{"title":"NLP Breakthroughs","url":"https://example.com/nlp","snippet":"New models achieve human-level comprehension","source":"AI Review","relevance":92}],"metadata":{"stage":"main_findings"},"type":"content","id":"content.4"},"index":0,"finish_reason":null}]}"#,
-            // Content stage - substage 2
-            r#"{"choices":[{"delta":{"content":"Furthermore, the integration","articles":[],"metadata":{"stage":"detailed_analysis"},"type":"content","id":"content.5"},"index":0,"finish_reason":null}]}"#,
-            r#"{"choices":[{"delta":{"content":" of multimodal capabilities","articles":[{"title":"Multimodal AI Systems","url":"https://example.com/multimodal","snippet":"Combining vision, language, and reasoning","source":"Research Weekly","relevance":88}],"metadata":{"stage":"detailed_analysis"},"type":"content","id":"content.6"},"index":0,"finish_reason":null}]}"#,
-            r#"{"choices":[{"delta":{"content":" has opened new possibilities","articles":[],"metadata":{"stage":"detailed_analysis"},"type":"content","id":"content.7"},"index":0,"finish_reason":null}]}"#,
-            r#"{"choices":[{"delta":{"content":" for real-world applications.","articles":[],"metadata":{"stage":"detailed_analysis"},"type":"content","id":"content.8"},"index":0,"finish_reason":null}]}"#,
-            // Completion stage
-            r#"{"choices":[{"delta":{"content":"In summary,","articles":[],"metadata":{"stage":"synthesis"},"type":"completion","id":"completion.1"},"index":0,"finish_reason":null}]}"#,
-            r#"{"choices":[{"delta":{"content":" the field has evolved","articles":[],"metadata":{"stage":"synthesis"},"type":"completion","id":"completion.2"},"index":0,"finish_reason":null}]}"#,
-            r#"{"choices":[{"delta":{"content":" significantly with improved","articles":[],"metadata":{"stage":"synthesis"},"type":"completion","id":"completion.3"},"index":0,"finish_reason":null}]}"#,
-            r#"{"choices":[{"delta":{"content":" architectures and capabilities.","articles":[],"metadata":{"stage":"synthesis"},"type":"completion","id":"completion.4"},"index":0,"finish_reason":null}]}"#,
-        ];
-
-        let stream = stream! {
-            let mut content = MessageContent::default();
-
-            for mock_event in mock_responses {
-                let response: DeepInquireResponse = match serde_json::from_str(&mock_event) {
-                    Ok(r) => r,
-                    Err(e) => {
-                        ::log::error!("Mock parsing error: {}", e);
-                        continue;
-                    }
-                };
-
-                apply_response_to_content(response, &mut content);
-                yield ClientResult::new_ok(content.clone());
-
-                // Simulate streaming delay
-                sleep(std::time::Duration::from_millis(100)).await;
-            }
-        };
-
-        Box::pin(stream)
-    }
-
     pub fn set_header(&mut self, key: &str, value: &str) -> Result<(), &'static str> {
         let header_name = HeaderName::from_str(key).map_err(|_| "Invalid header name")?;
 
@@ -268,8 +216,6 @@ impl BotClient for DeepInquireClient {
         messages: &[Message],
         _tools: &[Tool],
     ) -> BoxPlatformSendStream<'static, ClientResult<MessageContent>> {
-        return self.send_mock();
-
         let inner = self.0.read().unwrap().clone();
 
         let url = format!("{}/chat/completions", inner.url);
