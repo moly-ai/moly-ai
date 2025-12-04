@@ -16,7 +16,7 @@ use {futures::SinkExt, tokio_tungstenite::tungstenite::Message as WsMessage};
 // OpenAI Realtime API message structures
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
-pub enum OpenAIRealtimeMessage {
+pub enum OpenAiRealtimeMessage {
     #[serde(rename = "session.update")]
     SessionUpdate { session: SessionConfig },
     #[serde(rename = "input_audio_buffer.append")]
@@ -130,7 +130,7 @@ pub enum ContentPart {
 // Incoming message types from OpenAI
 #[derive(Deserialize, Debug)]
 #[serde(tag = "type")]
-pub enum OpenAIRealtimeResponse {
+pub enum OpenAiRealtimeResponse {
     #[serde(rename = "error")]
     Error { error: ErrorDetails },
     #[serde(rename = "session.created")]
@@ -345,13 +345,13 @@ impl OpenAiRealtimeClient {
                                 log::debug!("Received WebSocket message: {}", text);
                                 // log::info!("Received WebSocket message: {}", text);
                                 if let Ok(response) =
-                                    serde_json::from_str::<OpenAIRealtimeResponse>(&text)
+                                    serde_json::from_str::<OpenAiRealtimeResponse>(&text)
                                 {
                                     let event = match response {
-                                        OpenAIRealtimeResponse::SessionCreated { .. } => {
+                                        OpenAiRealtimeResponse::SessionCreated { .. } => {
                                             Some(RealtimeEvent::SessionReady)
                                         }
-                                        OpenAIRealtimeResponse::ResponseAudioDelta {
+                                        OpenAiRealtimeResponse::ResponseAudioDelta {
                                             delta,
                                             ..
                                         } => {
@@ -363,27 +363,27 @@ impl OpenAiRealtimeClient {
                                                 None
                                             }
                                         }
-                                        OpenAIRealtimeResponse::ResponseAudioTranscriptDelta {
+                                        OpenAiRealtimeResponse::ResponseAudioTranscriptDelta {
                                             delta,
                                             ..
                                         } => Some(RealtimeEvent::AudioTranscript(delta)),
-                                        OpenAIRealtimeResponse::ResponseAudioTranscriptDone {
+                                        OpenAiRealtimeResponse::ResponseAudioTranscriptDone {
                                             transcript,
                                             item_id,
                                             ..
                                         } => Some(RealtimeEvent::AudioTranscriptCompleted(transcript, item_id)),
-                                        OpenAIRealtimeResponse::ConversationItemInputAudioTranscriptionCompleted {
+                                        OpenAiRealtimeResponse::ConversationItemInputAudioTranscriptionCompleted {
                                             transcript,
                                             item_id,
                                             ..
                                         } => Some(RealtimeEvent::UserTranscriptCompleted(transcript, item_id)),
-                                        OpenAIRealtimeResponse::InputAudioBufferSpeechStarted {
+                                        OpenAiRealtimeResponse::InputAudioBufferSpeechStarted {
                                             ..
                                         } => Some(RealtimeEvent::SpeechStarted),
-                                        OpenAIRealtimeResponse::InputAudioBufferSpeechStopped {
+                                        OpenAiRealtimeResponse::InputAudioBufferSpeechStopped {
                                             ..
                                         } => Some(RealtimeEvent::SpeechStopped),
-                                        OpenAIRealtimeResponse::ResponseDone { response } => {
+                                        OpenAiRealtimeResponse::ResponseDone { response } => {
                                             // Check if the response contains function calls
                                             let mut function_call_event = None;
                                             for output_item in &response.output {
@@ -404,10 +404,10 @@ impl OpenAiRealtimeClient {
                                             }
                                             function_call_event.or(Some(RealtimeEvent::ResponseCompleted))
                                         }
-                                        OpenAIRealtimeResponse::Error { error } => {
+                                        OpenAiRealtimeResponse::Error { error } => {
                                             Some(RealtimeEvent::Error(error.message))
                                         }
-                                        OpenAIRealtimeResponse::ResponseFunctionCallArgumentsDone { item_id: _, output_index: _, sequence_number: _, call_id, name, arguments } => {
+                                        OpenAiRealtimeResponse::ResponseFunctionCallArgumentsDone { item_id: _, output_index: _, sequence_number: _, call_id, name, arguments } => {
                                             Some(RealtimeEvent::FunctionCallRequest {
                                                 name,
                                                 call_id: call_id,
@@ -549,7 +549,7 @@ impl OpenAiRealtimeClient {
                                     max_response_output_tokens: Some(4096),
                                 };
 
-                                let session_message = OpenAIRealtimeMessage::SessionUpdate {
+                                let session_message = OpenAiRealtimeMessage::SessionUpdate {
                                     session: session_config,
                                 };
 
@@ -580,7 +580,7 @@ impl OpenAiRealtimeClient {
                                     max_output_tokens: Some(4096),
                                 };
 
-                                let message = OpenAIRealtimeMessage::ResponseCreate {
+                                let message = OpenAiRealtimeMessage::ResponseCreate {
                                     response: response_config,
                                 };
 
@@ -591,7 +591,7 @@ impl OpenAiRealtimeClient {
                             }
                             RealtimeCommand::SendAudio(audio_data) => {
                                 let base64_audio = general_purpose::STANDARD.encode(&audio_data);
-                                let message = OpenAIRealtimeMessage::InputAudioBufferAppend {
+                                let message = OpenAiRealtimeMessage::InputAudioBufferAppend {
                                     audio: base64_audio,
                                 };
                                 if let Ok(json) = serde_json::to_string(&message) {
@@ -607,7 +607,7 @@ impl OpenAiRealtimeClient {
                                     role: Some("user".to_string()),
                                     content: Some(vec![ContentPart::InputText { text }]),
                                 };
-                                let message = OpenAIRealtimeMessage::ConversationItemCreate {
+                                let message = OpenAiRealtimeMessage::ConversationItemCreate {
                                     item: serde_json::to_value(item).unwrap(),
                                 };
                                 if let Ok(json) = serde_json::to_string(&message) {
@@ -617,7 +617,7 @@ impl OpenAiRealtimeClient {
                             }
                             RealtimeCommand::Interrupt => {
                                 // Send truncate message to interrupt current response
-                                let message = OpenAIRealtimeMessage::InputAudioBufferCommit;
+                                let message = OpenAiRealtimeMessage::InputAudioBufferCommit;
                                 if let Ok(json) = serde_json::to_string(&message) {
                                     log::debug!("Sending interrupt message: {}", json);
                                     send_message!(json);
@@ -629,7 +629,7 @@ impl OpenAiRealtimeClient {
                                     call_id,
                                     output,
                                 };
-                                let message = OpenAIRealtimeMessage::ConversationItemCreate {
+                                let message = OpenAiRealtimeMessage::ConversationItemCreate {
                                     item: serde_json::to_value(item).unwrap(),
                                 };
                                 if let Ok(json) = serde_json::to_string(&message) {
@@ -649,7 +649,7 @@ impl OpenAiRealtimeClient {
                                     max_output_tokens: Some(4096),
                                 };
 
-                                let response_message = OpenAIRealtimeMessage::ResponseCreate {
+                                let response_message = OpenAiRealtimeMessage::ResponseCreate {
                                     response: response_config,
                                 };
 
