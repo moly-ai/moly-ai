@@ -1,8 +1,8 @@
 use async_stream::stream;
 use makepad_widgets::*;
 use makepad_widgets::{Cx, LiveNew, WidgetRef};
-use moly_kit::prelude::*;
 use moly_kit::ai_kit::utils::{asynchronous::sleep, errors::enrich_http_error, sse::parse_sse};
+use moly_kit::prelude::*;
 use reqwest::header::{HeaderMap, HeaderName};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -249,7 +249,7 @@ impl BotClient for DeepInquireClient {
         let bot = Bot {
             id: BotId::new("DeepInquire", &inner.url),
             name: "DeepInquire".to_string(),
-            avatar: Picture::Text("D".into()),
+            avatar: EntityAvatar::Text("D".into()),
             capabilities: BotCapabilities::new().with_capability(BotCapability::Attachments),
         };
 

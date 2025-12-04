@@ -197,7 +197,8 @@ impl ModelSelectorList {
             .collect();
 
         // Group bots by their group ID
-        let mut groups: HashMap<String, ((String, Option<Picture>), Vec<&Bot>)> = HashMap::new();
+        let mut groups: HashMap<String, ((String, Option<EntityAvatar>), Vec<&Bot>)> =
+            HashMap::new();
         for bot in filtered_bots {
             let group = grouping_fn(bot);
             groups
@@ -221,10 +222,10 @@ impl ModelSelectorList {
             section_label.label(ids!(label)).set_text(cx, &group_label);
 
             match group_icon
-                .or_else(|| Picture::from_first_grapheme(&group_label.to_uppercase()))
-                .unwrap_or_else(|| Picture::Text("?".into()))
+                .or_else(|| EntityAvatar::from_first_grapheme(&group_label.to_uppercase()))
+                .unwrap_or_else(|| EntityAvatar::Text("?".into()))
             {
-                Picture::Image(image) => {
+                EntityAvatar::Image(image) => {
                     section_label
                         .view(ids!(icon_fallback_view))
                         .set_visible(cx, false);
@@ -238,7 +239,7 @@ impl ModelSelectorList {
                                 .load_image_file_by_path(cx, image.as_ref())
                         });
                 }
-                Picture::Text(text) => {
+                EntityAvatar::Text(text) => {
                     // For other Picture types (Image, Grapheme), show fallback
                     section_label.view(ids!(icon_view)).set_visible(cx, false);
                     section_label

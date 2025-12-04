@@ -58,19 +58,19 @@ pub struct Avatar {
     deref: View,
 
     #[rust]
-    pub avatar: Option<Picture>,
+    pub avatar: Option<EntityAvatar>,
 }
 
 impl Widget for Avatar {
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         if let Some(avatar) = &self.avatar {
             match avatar {
-                Picture::Text(grapheme) => {
+                EntityAvatar::Text(grapheme) => {
                     self.view(ids!(grapheme)).set_visible(cx, true);
                     self.view(ids!(dependency)).set_visible(cx, false);
                     self.label(ids!(label)).set_text(cx, &grapheme);
                 }
-                Picture::Image(path) => {
+                EntityAvatar::Image(path) => {
                     self.view(ids!(dependency)).set_visible(cx, true);
                     self.view(ids!(grapheme)).set_visible(cx, false);
                     let _ = self

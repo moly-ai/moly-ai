@@ -26,7 +26,7 @@ impl BotClient for TesterClient {
         let future = futures::future::ready(ClientResult::new_ok(vec![Bot {
             id: BotId::new("tester", "tester"),
             name: "tester".to_string(),
-            avatar: Picture::Text("T".into()),
+            avatar: EntityAvatar::Text("T".into()),
             capabilities: BotCapabilities::new(),
         }]));
 

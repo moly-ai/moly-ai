@@ -401,7 +401,7 @@ pub struct BotGroup {
     /// Display name shown in the group header
     pub label: String,
     /// Optional icon displayed next to the group label
-    pub icon: Option<Picture>,
+    pub icon: Option<EntityAvatar>,
 }
 
 /// Callback function that determines how bots are grouped in the model selector.

@@ -1298,7 +1298,7 @@ impl Realtime {
             .avatar(ids!(message_section.sender.avatar))
             .borrow_mut()
             .unwrap()
-            .avatar = Some(Picture::Text("T".into()));
+            .avatar = Some(EntityAvatar::Text("T".into()));
         tool_line
             .label(ids!(message_section.sender.name))
             .set_text(cx, "Permission Request");

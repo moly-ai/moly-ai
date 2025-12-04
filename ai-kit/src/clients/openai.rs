@@ -556,8 +556,8 @@ impl BotClient for OpenAiClient {
                 .map(|m| Bot {
                     id: BotId::new(&m.id, &inner.url),
                     name: m.id.clone(),
-                    avatar: Picture::from_first_grapheme(&m.id.to_uppercase())
-                        .unwrap_or_else(|| Picture::Text("?".into())),
+                    avatar: EntityAvatar::from_first_grapheme(&m.id.to_uppercase())
+                        .unwrap_or_else(|| EntityAvatar::Text("?".into())),
                     // TODO: base this on the provider + model combo
                     // E.g. gpt-4o might support attachments directly, but not through an aggregator like OpenRouter.
                     capabilities: BotCapabilities::new()

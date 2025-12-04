@@ -450,7 +450,7 @@ impl ChatView {
                 if let Some(provider) = store.chats.providers.get(&provider_bot.provider_id) {
                     let icon = store
                         .get_provider_icon(&provider.name)
-                        .map(|dep| Picture::Image(dep.as_str().to_string()));
+                        .map(|dep| EntityAvatar::Image(dep.as_str().to_string()));
                     bot_groups.insert(
                         bot_id.clone(),
                         BotGroup {

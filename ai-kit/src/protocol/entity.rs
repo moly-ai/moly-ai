@@ -8,14 +8,14 @@ use serde::{Deserialize, Serialize};
 /// The picture/avatar of an entity that may be represented/encoded in different ways.
 // TODO: Consider Arc<str> where applicable.
 #[derive(Clone, Debug, PartialEq)]
-pub enum Picture {
+pub enum EntityAvatar {
     /// Normally, one or two graphemes representing the entity.
     Text(String),
     /// An image located at the given path/URL.
     Image(String),
 }
 
-impl Picture {
+impl EntityAvatar {
     /// Utility to construct a [`Picture::Text`] from a single grapheme.
     ///
     /// Extracted using unicode segmentation.
@@ -24,7 +24,7 @@ impl Picture {
         text.graphemes(true)
             .next()
             .map(|g| g.to_string())
-            .map(Picture::Text)
+            .map(EntityAvatar::Text)
     }
 }
 
@@ -115,7 +115,7 @@ pub struct Bot {
     /// Unique internal identifier for the bot across all providers
     pub id: BotId,
     pub name: String,
-    pub avatar: Picture,
+    pub avatar: EntityAvatar,
     pub capabilities: BotCapabilities,
 }
 

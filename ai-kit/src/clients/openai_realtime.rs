@@ -1119,7 +1119,7 @@ impl BotClient for OpenAiRealtimeClient {
                 .map(|id| Bot {
                     id: BotId::new(id, &address),
                     name: id.to_string(),
-                    avatar: Picture::Text("🎤".into()),
+                    avatar: EntityAvatar::Text("🎤".into()),
                     capabilities: BotCapabilities::new().with_capability(BotCapability::Realtime),
                 })
                 .collect();
