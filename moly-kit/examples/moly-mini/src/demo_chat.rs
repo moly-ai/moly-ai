@@ -2,9 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use makepad_widgets::*;
 
-use moly_kit::ai_kit::clients::{
-    openai_image::OpenAIImageClient, openai_realtime::OpenAIRealtimeClient, tester::TesterClient,
-};
+use moly_kit::ai_kit::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
 
 const OPEN_AI_KEY: Option<&str> = option_env!("OPEN_AI_KEY");

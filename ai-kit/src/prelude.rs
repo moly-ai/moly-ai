@@ -6,6 +6,12 @@ pub use crate::protocol::*;
 // These are the clients that are most commonly used.
 pub use crate::clients::{multi::MultiClient, openai::OpenAIClient};
 
+// These other clients are less commonly used.
+pub use crate::clients::{
+    map::MapClient, openai_image::OpenAIImageClient, openai_realtime::OpenAIRealtimeClient,
+    tester::TesterClient,
+};
+
 // If we re-export clients, then we may also re-export tools.
 pub use crate::mcp::mcp_manager::{McpManagerClient, McpTransport};
 
