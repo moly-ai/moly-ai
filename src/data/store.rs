@@ -18,7 +18,7 @@ use moly_kit::ai_kit::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
 
 use super::providers::{Provider, ProviderConnectionStatus};
-use moly_protocol::data::{Author, File, FileID, Model, ModelID, PendingDownload};
+use moly_protocol::data::{Author, File, FileId, Model, ModelId, PendingDownload};
 
 use makepad_widgets::*;
 
@@ -41,7 +41,7 @@ pub struct FileWithDownloadInfo {
 
 #[derive(Clone, Debug)]
 pub struct ModelWithDownloadInfo {
-    pub model_id: ModelID,
+    pub model_id: ModelId,
     pub name: String,
     pub summary: String,
     pub size: String,
@@ -208,7 +208,7 @@ impl Store {
         }
     }
 
-    pub fn delete_file(&mut self, file_id: FileID) {
+    pub fn delete_file(&mut self, file_id: FileId) {
         let moly_client = self.moly_client.clone();
         spawn(async move {
             let Ok(()) = moly_client.eject_model().await else {

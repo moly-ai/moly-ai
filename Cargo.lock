@@ -2892,7 +2892,7 @@ dependencies = [
 [[package]]
 name = "moly-protocol"
 version = "0.2.0"
-source = "git+https://github.com/moly-ai/moly-local#c9c6eca5e36b4c688ebee292c79a06f097b57500"
+source = "git+https://github.com/moly-ai/moly-local?rev=788cac14d#788cac14d70047c7ea0e1d05d6b8da4bac1e802e"
 dependencies = [
  "anyhow",
  "chrono",

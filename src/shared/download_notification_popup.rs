@@ -1,5 +1,5 @@
 use makepad_widgets::*;
-use moly_protocol::data::{File, FileID};
+use moly_protocol::data::{File, FileId};
 
 use crate::{app::NavigationAction, shared::actions::DownloadAction};
 
@@ -219,7 +219,7 @@ pub struct DownloadNotificationPopup {
     #[rust]
     download_result: DownloadResult,
     #[rust]
-    file_id: Option<FileID>,
+    file_id: Option<FileId>,
     #[rust]
     filename: String,
     #[rust]

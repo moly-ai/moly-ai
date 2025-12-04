@@ -6,7 +6,7 @@ use crate::{
     },
 };
 use makepad_widgets::*;
-use moly_protocol::data::{FileID, PendingDownload, PendingDownloadsStatus};
+use moly_protocol::data::{FileId, PendingDownload, PendingDownloadsStatus};
 
 live_design! {
     use link::theme::*;
@@ -213,7 +213,7 @@ pub struct DownloadItem {
     view: View,
 
     #[rust]
-    file_id: Option<FileID>,
+    file_id: Option<FileId>,
 }
 
 impl Widget for DownloadItem {

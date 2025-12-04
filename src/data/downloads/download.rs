@@ -5,7 +5,7 @@ use moly_protocol::{data::*, protocol::FileDownloadResponse};
 
 #[derive(Debug)]
 pub struct DownloadFileAction {
-    pub file_id: FileID,
+    pub file_id: FileId,
     kind: DownloadFileActionKind,
 }
 

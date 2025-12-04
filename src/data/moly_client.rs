@@ -1,7 +1,7 @@
 use anyhow::{Result, anyhow};
 use makepad_widgets::*;
 use moly_protocol::{
-    data::{DownloadedFile, File, FileID, Model, PendingDownload},
+    data::{DownloadedFile, File, FileId, Model, PendingDownload},
     protocol::FileDownloadResponse,
 };
 use std::sync::{Arc, Mutex};
@@ -196,7 +196,7 @@ impl MolyClient {
 
     pub async fn track_download_progress(
         &self,
-        file_id: FileID,
+        file_id: FileId,
         mut tx: futures::channel::mpsc::UnboundedSender<
             Result<FileDownloadResponse, anyhow::Error>,
         >,
@@ -279,7 +279,7 @@ impl MolyClient {
         }
     }
 
-    pub async fn pause_download_file(&self, file_id: FileID) -> Result<()> {
+    pub async fn pause_download_file(&self, file_id: FileId) -> Result<()> {
         let mut url =
             Url::parse(&format!("{}/downloads", self.address())).expect("Invalid Moly server URL");
 
@@ -314,7 +314,7 @@ impl MolyClient {
         }
     }
 
-    pub async fn cancel_download_file(&self, file_id: FileID) -> Result<()> {
+    pub async fn cancel_download_file(&self, file_id: FileId) -> Result<()> {
         let mut url =
             Url::parse(&format!("{}/downloads", self.address())).expect("Invalid Moly server URL");
 
@@ -349,7 +349,7 @@ impl MolyClient {
         }
     }
 
-    pub async fn delete_file(&self, file_id: FileID) -> Result<()> {
+    pub async fn delete_file(&self, file_id: FileId) -> Result<()> {
         let mut url =
             Url::parse(&format!("{}/files", self.address())).expect("Invalid Moly server URL");
 

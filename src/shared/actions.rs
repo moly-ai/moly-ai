@@ -1,6 +1,6 @@
 use makepad_widgets::{ActionDefaultRef, DefaultNone};
 use moly_kit::prelude::*;
-use moly_protocol::data::FileID;
+use moly_protocol::data::FileId;
 
 use crate::data::chats::chat::ChatId;
 
@@ -17,8 +17,8 @@ pub enum ChatAction {
 
 #[derive(Clone, DefaultNone, Debug)]
 pub enum DownloadAction {
-    Play(FileID),
-    Pause(FileID),
-    Cancel(FileID),
+    Play(FileId),
+    Pause(FileId),
+    Cancel(FileId),
     None,
 }

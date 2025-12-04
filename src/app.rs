@@ -12,7 +12,7 @@ use crate::shared::download_notification_popup::{
 };
 use crate::shared::moly_server_popup::MolyServerPopupAction;
 use crate::shared::popup_notification::PopupNotificationWidgetRefExt;
-use moly_protocol::data::{File, FileID};
+use moly_protocol::data::{File, FileId};
 
 use makepad_widgets::*;
 use markdown::MarkdownAction;
@@ -224,7 +224,7 @@ pub struct App {
     download_retry_attempts: usize,
 
     #[rust]
-    file_id: Option<FileID>,
+    file_id: Option<FileId>,
 }
 
 impl LiveRegister for App {

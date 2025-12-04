@@ -1,5 +1,5 @@
 use makepad_widgets::*;
-use moly_protocol::data::{File, FileID, PendingDownloadsStatus};
+use moly_protocol::data::{File, FileId, PendingDownloadsStatus};
 
 use super::model_files_tags::ModelFilesTagsWidgetExt;
 use crate::{
@@ -207,7 +207,7 @@ live_design! {
 
 #[derive(Clone, DefaultNone, Debug)]
 pub enum ModelFileItemAction {
-    Download(FileID),
+    Download(FileId),
     None,
 }
 
@@ -217,7 +217,7 @@ pub struct ModelFilesItem {
     view: View,
 
     #[rust]
-    file_id: Option<FileID>,
+    file_id: Option<FileId>,
 }
 
 impl Widget for ModelFilesItem {

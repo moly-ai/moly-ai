@@ -5,7 +5,7 @@ use crate::shared::utils::{
 use anyhow::{Result, anyhow};
 use moly_kit::ai_kit::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
-use moly_protocol::data::FileID;
+use moly_protocol::data::FileId;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -31,7 +31,7 @@ struct ChatData {
     accessed_at: chrono::DateTime<chrono::Utc>,
 
     // Legacy field, it can be removed in the future.
-    last_used_file_id: Option<FileID>,
+    last_used_file_id: Option<FileId>,
 }
 
 #[derive(Debug, Clone)]

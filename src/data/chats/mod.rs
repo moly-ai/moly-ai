@@ -490,7 +490,7 @@ impl Chats {
         }
     }
 
-    pub fn get_bot_id_by_file_id(&self, file_id: &FileID) -> Option<BotId> {
+    pub fn get_bot_id_by_file_id(&self, file_id: &FileId) -> Option<BotId> {
         self.available_bots
             .values()
             .find(|m| m.name == file_id.as_str())
