@@ -1,7 +1,7 @@
 use makepad_widgets::*;
 
 use crate::{
-    data::{chats::chat::ChatID, store::Store},
+    data::{chats::chat::ChatId, store::Store},
     shared::tooltip::TooltipWidgetExt,
 };
 
@@ -242,7 +242,7 @@ pub struct ChatParams {
     deref: TogglePanel,
 
     #[rust]
-    current_chat_id: Option<ChatID>,
+    current_chat_id: Option<ChatId>,
 }
 
 impl Widget for ChatParams {

@@ -1,5 +1,5 @@
 use crate::{
-    data::{chats::chat::ChatID, store::Store},
+    data::{chats::chat::ChatId, store::Store},
     shared::{actions::ChatAction, utils::human_readable_name},
 };
 
@@ -285,7 +285,7 @@ pub struct ChatHistoryCard {
     #[deref]
     view: View,
     #[rust]
-    chat_id: ChatID,
+    chat_id: ChatId,
 
     #[rust]
     title_edition_state: TitleState,
@@ -402,7 +402,7 @@ impl WidgetMatchEvent for ChatHistoryCard {
 }
 
 impl ChatHistoryCard {
-    pub fn set_chat_id(&mut self, id: ChatID) {
+    pub fn set_chat_id(&mut self, id: ChatId) {
         if id != self.chat_id {
             self.chat_id = id;
             self.title_edition_state = TitleState::Editable;
@@ -538,7 +538,7 @@ impl ChatHistoryCard {
 }
 
 impl ChatHistoryCardRef {
-    pub fn set_chat_id(&mut self, id: ChatID) -> Result<(), &'static str> {
+    pub fn set_chat_id(&mut self, id: ChatId) -> Result<(), &'static str> {
         let Some(mut inner) = self.borrow_mut() else {
             return Err("Widget not found in the document");
         };
@@ -551,7 +551,7 @@ impl ChatHistoryCardRef {
 #[derive(Clone, DefaultNone, Eq, Hash, PartialEq, Debug)]
 pub enum ChatHistoryCardAction {
     None,
-    ActivateTitleEdition(ChatID),
-    MenuClosed(ChatID),
-    DeleteChatOptionSelected(ChatID),
+    ActivateTitleEdition(ChatId),
+    MenuClosed(ChatId),
+    DeleteChatOptionSelected(ChatId),
 }

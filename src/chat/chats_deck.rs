@@ -7,7 +7,7 @@ use super::chat_view::ChatViewRef;
 use crate::chat::chat_view::ChatViewWidgetRefExt;
 use crate::data::capture::CaptureAction;
 use crate::data::chats::chat::Chat as ChatData;
-use crate::data::chats::chat::ChatID;
+use crate::data::chats::chat::ChatId;
 use crate::data::store::Store;
 use crate::shared::actions::ChatAction;
 
@@ -36,16 +36,16 @@ pub struct ChatsDeck {
     /// All currently active chat instances, keyed by their corresponding ChatID.
     /// Each chat maintains its own instance to keep background streaming alive.
     #[rust]
-    chat_view_refs: HashMap<ChatID, ChatViewRef>,
+    chat_view_refs: HashMap<ChatId, ChatViewRef>,
 
     /// LRU tracking for memory management.
     /// When we exceed MAX_CHAT_VIEWS, we evict the oldest chat (unless it's streaming).
     #[rust]
-    chat_view_accessed_order: VecDeque<ChatID>,
+    chat_view_accessed_order: VecDeque<ChatId>,
 
     /// The currently visible/focused chat id.
     #[rust]
-    currently_visible_chat_id: Option<ChatID>,
+    currently_visible_chat_id: Option<ChatId>,
 
     /// The template for creating new chat views.
     #[live]

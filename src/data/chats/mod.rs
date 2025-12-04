@@ -1,6 +1,6 @@
 pub mod chat;
 
-use chat::{Chat, ChatID};
+use chat::{Chat, ChatId};
 use futures::StreamExt;
 use moly_kit::prelude::*;
 use moly_protocol::data::*;
@@ -12,7 +12,7 @@ use crate::shared::utils::filesystem;
 use super::moly_client::MolyClient;
 use super::preferences::Preferences;
 use super::providers::{
-    Provider, ProviderBot, ProviderConnectionStatus, ProviderFetchModelsResult, ProviderID,
+    Provider, ProviderBot, ProviderConnectionStatus, ProviderFetchModelsResult, ProviderId,
     ProviderType, fetch_models_for_provider,
 };
 use super::store::{ProviderSyncing, ProviderSyncingStatus};
@@ -24,10 +24,10 @@ pub struct Chats {
     pub available_bots: HashMap<BotId, ProviderBot>,
 
     /// Map of providers keyed by their ID
-    pub providers: HashMap<ProviderID, Provider>,
+    pub providers: HashMap<ProviderId, Provider>,
 
     /// Set it thru `set_current_chat` method to trigger side effects.
-    current_chat_id: Option<ChatID>,
+    current_chat_id: Option<ChatId>,
     chats_dir: PathBuf,
 
     /// Placeholder remote model used when a remote model is not available
@@ -87,14 +87,14 @@ impl Chats {
         chats
     }
 
-    pub fn get_last_selected_chat_id(&self) -> Option<ChatID> {
+    pub fn get_last_selected_chat_id(&self) -> Option<ChatId> {
         self.saved_chats
             .iter()
             .max_by_key(|c| c.borrow().accessed_at)
             .map(|c| c.borrow().id)
     }
 
-    pub fn get_current_chat_id(&self) -> Option<ChatID> {
+    pub fn get_current_chat_id(&self) -> Option<ChatId> {
         self.current_chat_id
     }
 
@@ -108,11 +108,11 @@ impl Chats {
         }
     }
 
-    pub fn get_chat_by_id(&self, chat_id: ChatID) -> Option<&RefCell<Chat>> {
+    pub fn get_chat_by_id(&self, chat_id: ChatId) -> Option<&RefCell<Chat>> {
         self.saved_chats.iter().find(|c| c.borrow().id == chat_id)
     }
 
-    pub fn set_current_chat(&mut self, chat_id: Option<ChatID>) {
+    pub fn set_current_chat(&mut self, chat_id: Option<ChatId>) {
         self.current_chat_id = chat_id;
 
         if let Some(chat) = self.get_current_chat() {
@@ -129,7 +129,7 @@ impl Chats {
         }
     }
 
-    pub fn create_empty_chat(&mut self, bot_id: Option<BotId>) -> ChatID {
+    pub fn create_empty_chat(&mut self, bot_id: Option<BotId>) -> ChatId {
         let mut new_chat = Chat::new(self.chats_dir.clone());
         let id = new_chat.id;
 
@@ -150,7 +150,7 @@ impl Chats {
         id
     }
 
-    pub fn remove_chat(&mut self, chat_id: ChatID) {
+    pub fn remove_chat(&mut self, chat_id: ChatId) {
         if self.current_chat_id == Some(chat_id) {
             self.set_current_chat(self.get_last_selected_chat_id());
         }
@@ -365,14 +365,14 @@ impl Chats {
         }
     }
 
-    pub fn remove_provider(&mut self, provider_id: &ProviderID) {
+    pub fn remove_provider(&mut self, provider_id: &ProviderId) {
         self.available_bots
             .retain(|_, model| model.provider_id != *provider_id);
         self.providers.remove(provider_id);
     }
 
     /// Returns a list of remote models for a given server address.
-    pub fn get_provider_models(&self, provider_id: &ProviderID) -> Vec<ProviderBot> {
+    pub fn get_provider_models(&self, provider_id: &ProviderId) -> Vec<ProviderBot> {
         let provider = self.providers.get(provider_id);
 
         if let Some(provider) = provider {

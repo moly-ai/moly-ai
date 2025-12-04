@@ -3,7 +3,7 @@ use makepad_widgets::*;
 use moly_kit::ai_kit::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
 
-use crate::data::chats::chat::ChatID;
+use crate::data::chats::chat::ChatId;
 use crate::data::deep_inquire_client::DeepInquireCustomContent;
 use crate::data::store::{ProviderSyncingStatus, Store};
 use crate::shared::bot_context::BotContext;
@@ -125,7 +125,7 @@ pub struct ChatView {
     deep_inquire_content: LivePtr,
 
     #[rust]
-    chat_id: ChatID,
+    chat_id: ChatId,
 
     #[rust]
     plugin_id: Option<ChatControllerPluginRegistrationId>,
@@ -504,7 +504,7 @@ impl ChatView {
 }
 
 impl ChatViewRef {
-    pub fn set_chat_id(&mut self, chat_id: ChatID) {
+    pub fn set_chat_id(&mut self, chat_id: ChatId) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.chat_id = chat_id;
             // Reset sync flag so bot_id will be synced from Store on next draw

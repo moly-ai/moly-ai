@@ -567,7 +567,7 @@ impl WidgetMatchEvent for ProviderView {
             }
 
             // Save system prompt for Realtime providers
-            if self.provider.provider_type == ProviderType::OpenAIRealtime {
+            if self.provider.provider_type == ProviderType::OpenAiRealtime {
                 let system_prompt = self
                     .view
                     .text_input(ids!(system_prompt))
@@ -657,7 +657,7 @@ impl ProviderViewRef {
                 .set_active(cx, provider.tools_enabled);
 
             // Show/hide system prompt field for Realtime providers
-            if provider.provider_type == ProviderType::OpenAIRealtime {
+            if provider.provider_type == ProviderType::OpenAiRealtime {
                 inner.view(ids!(system_prompt_group)).set_visible(cx, true);
                 if let Some(system_prompt) = &provider.system_prompt {
                     inner
@@ -670,8 +670,8 @@ impl ProviderViewRef {
                 inner.view(ids!(system_prompt_group)).set_visible(cx, false);
             }
 
-            if provider.provider_type == ProviderType::OpenAIRealtime
-                || provider.provider_type == ProviderType::OpenAI
+            if provider.provider_type == ProviderType::OpenAiRealtime
+                || provider.provider_type == ProviderType::OpenAi
             {
                 inner.view(ids!(tools_form_group)).set_visible(cx, true);
             } else {

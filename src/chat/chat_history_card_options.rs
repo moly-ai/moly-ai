@@ -1,5 +1,5 @@
 use super::chat_history_card::ChatHistoryCardAction;
-use crate::data::chats::chat::ChatID;
+use crate::data::chats::chat::ChatId;
 use makepad_widgets::*;
 
 live_design! {
@@ -95,7 +95,7 @@ pub struct ChatHistoryCardOptions {
     #[deref]
     view: View,
     #[rust]
-    chat_id: ChatID,
+    chat_id: ChatId,
 }
 
 impl Widget for ChatHistoryCardOptions {
@@ -110,14 +110,14 @@ impl Widget for ChatHistoryCardOptions {
 }
 
 impl ChatHistoryCardOptions {
-    pub fn selected(&mut self, cx: &mut Cx, chat_id: ChatID) {
+    pub fn selected(&mut self, cx: &mut Cx, chat_id: ChatId) {
         self.chat_id = chat_id;
         self.redraw(cx);
     }
 }
 
 impl ChatHistoryCardOptionsRef {
-    pub fn selected(&mut self, cx: &mut Cx, chat_id: ChatID) {
+    pub fn selected(&mut self, cx: &mut Cx, chat_id: ChatId) {
         let Some(mut inner) = self.borrow_mut() else {
             return;
         };

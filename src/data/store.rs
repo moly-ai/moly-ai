@@ -1,9 +1,9 @@
 use crate::app::app_runner;
-use crate::data::providers::ProviderID;
+use crate::data::providers::ProviderId;
 use crate::shared::actions::ChatAction;
 use crate::shared::bot_context::BotContext;
 
-use super::chats::chat::ChatID;
+use super::chats::chat::ChatId;
 use super::downloads::download::DownloadFileAction;
 use super::mcp_servers::McpServersConfig;
 use super::moly_client::MolyClient;
@@ -153,7 +153,7 @@ impl Store {
         });
     }
 
-    pub fn get_chat_associated_bot(&self, chat_id: ChatID) -> Option<BotId> {
+    pub fn get_chat_associated_bot(&self, chat_id: ChatId) -> Option<BotId> {
         self.chats
             .get_chat_by_id(chat_id)
             .and_then(|chat| chat.borrow().associated_bot.clone())
@@ -286,7 +286,7 @@ impl Store {
         }
     }
 
-    pub fn delete_chat(&mut self, chat_id: ChatID) {
+    pub fn delete_chat(&mut self, chat_id: ChatId) {
         self.chats.remove_chat(chat_id);
 
         // TODO Decide proper behavior when deleting the current chat
@@ -402,7 +402,7 @@ impl Store {
                     && (pp.api_key.is_some()
                         || pp.provider_type == ProviderType::MoFa
                         || pp.provider_type == ProviderType::DeepInquire
-                        || pp.provider_type == ProviderType::OpenAIRealtime
+                        || pp.provider_type == ProviderType::OpenAiRealtime
                         || pp.url.starts_with("http://localhost"))
             })
             .map(|pp| {
@@ -444,7 +444,7 @@ impl Store {
         self.reload_bot_context();
     }
 
-    pub fn remove_provider(&mut self, provider_id: &ProviderID) {
+    pub fn remove_provider(&mut self, provider_id: &ProviderId) {
         self.chats.remove_provider(provider_id);
         self.preferences.remove_provider(provider_id);
     }

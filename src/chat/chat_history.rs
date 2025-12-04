@@ -1,6 +1,6 @@
 use super::chat_history_card::ChatHistoryCardWidgetRefExt;
 use crate::chat::entity_button::EntityButtonWidgetRefExt;
-use crate::data::chats::chat::ChatID;
+use crate::data::chats::chat::ChatId;
 use crate::data::store::Store;
 use crate::shared::actions::ChatAction;
 use makepad_widgets::*;
@@ -76,7 +76,7 @@ impl Widget for ChatHistory {
             // AgentsHeader,
             // NoAgentsWarning(&'a str),
             // AgentButton(&'a ProviderBot),
-            ChatButton(&'a ChatID),
+            ChatButton(&'a ChatId),
         }
 
         let mut items: Vec<Item> = Vec::new();

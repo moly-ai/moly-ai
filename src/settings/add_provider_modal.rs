@@ -348,7 +348,7 @@ impl WidgetMatchEvent for AddProviderModal {
             };
 
             let provider = match self.selected_provider.as_ref().unwrap() {
-                ProviderType::OpenAI => Provider {
+                ProviderType::OpenAi => Provider {
                     id: provider_id,
                     name: name.clone(),
                     url: api_host.clone(),
@@ -357,7 +357,7 @@ impl WidgetMatchEvent for AddProviderModal {
                     } else {
                         Some(api_key.clone())
                     },
-                    provider_type: ProviderType::OpenAI,
+                    provider_type: ProviderType::OpenAi,
                     connection_status: ProviderConnectionStatus::Disconnected,
                     enabled: true,
                     models: vec![],
@@ -365,7 +365,7 @@ impl WidgetMatchEvent for AddProviderModal {
                     system_prompt: None,
                     tools_enabled: true,
                 },
-                ProviderType::OpenAIImage => Provider {
+                ProviderType::OpenAiImage => Provider {
                     id: provider_id,
                     name: name.clone(),
                     url: api_host.clone(),
@@ -374,7 +374,7 @@ impl WidgetMatchEvent for AddProviderModal {
                     } else {
                         Some(api_key.clone())
                     },
-                    provider_type: ProviderType::OpenAIImage,
+                    provider_type: ProviderType::OpenAiImage,
                     connection_status: ProviderConnectionStatus::Disconnected,
                     enabled: true,
                     models: vec![],
@@ -433,7 +433,7 @@ impl WidgetMatchEvent for AddProviderModal {
                     system_prompt: None,
                     tools_enabled: true,
                 },
-                ProviderType::OpenAIRealtime => Provider {
+                ProviderType::OpenAiRealtime => Provider {
                     id: provider_id,
                     name: name.clone(),
                     url: api_host.clone(),
@@ -442,7 +442,7 @@ impl WidgetMatchEvent for AddProviderModal {
                     } else {
                         Some(api_key.clone())
                     },
-                    provider_type: ProviderType::OpenAIRealtime,
+                    provider_type: ProviderType::OpenAiRealtime,
                     connection_status: ProviderConnectionStatus::Disconnected,
                     enabled: true,
                     models: vec![],
@@ -469,12 +469,12 @@ impl WidgetMatchEvent for AddProviderModal {
             .selected(cx, actions);
         if let Some(selected) = selected {
             self.selected_provider = match selected {
-                0 => Some(ProviderType::OpenAI),
+                0 => Some(ProviderType::OpenAi),
                 1 => Some(ProviderType::MoFa),
                 2 => Some(ProviderType::DeepInquire),
                 3 => Some(ProviderType::MolyServer),
-                4 => Some(ProviderType::OpenAIRealtime),
-                _ => Some(ProviderType::OpenAI),
+                4 => Some(ProviderType::OpenAiRealtime),
+                _ => Some(ProviderType::OpenAi),
             };
         }
     }

@@ -1,9 +1,9 @@
-use moly_kit::prelude::*;
 use moly_kit::ai_kit::utils::asynchronous::spawn;
+use moly_kit::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
-use crate::data::providers::ProviderID;
+use crate::data::providers::ProviderId;
 use crate::shared::utils::filesystem;
 
 use super::mcp_servers::McpServersConfig;
@@ -107,7 +107,7 @@ impl Preferences {
         self.save();
     }
 
-    pub fn remove_provider(&mut self, provider_id: &ProviderID) {
+    pub fn remove_provider(&mut self, provider_id: &ProviderId) {
         self.providers_preferences.retain(|p| &p.id != provider_id);
         self.save();
     }
@@ -115,7 +115,7 @@ impl Preferences {
     /// Update the enabled/disabled status of a model for a specific server
     pub fn update_model_status(
         &mut self,
-        provider_id: &ProviderID,
+        provider_id: &ProviderId,
         model_name: &str,
         enabled: bool,
     ) {
@@ -221,7 +221,7 @@ fn preferences_path() -> PathBuf {
 pub struct ProviderPreferences {
     /// Unique identifier for the provider
     #[serde(default)]
-    pub id: ProviderID,
+    pub id: ProviderId,
     pub name: String,
     pub url: String,
     pub api_key: Option<String>,
@@ -260,7 +260,7 @@ impl ProviderPreferences {
         // For known built-in providers, use predefined IDs
         match url {
             "https://api.openai.com/v1" => match provider_type {
-                ProviderType::OpenAI => "openai_chat".to_string(),
+                ProviderType::OpenAi => "openai_chat".to_string(),
                 _ => "openai_chat".to_string(),
             },
             "#https://api.openai.com/v1" => "openai_image".to_string(),

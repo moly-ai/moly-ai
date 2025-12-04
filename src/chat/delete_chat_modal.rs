@@ -1,6 +1,6 @@
 use makepad_widgets::*;
 
-use crate::data::{chats::chat::ChatID, store::Store};
+use crate::data::{chats::chat::ChatId, store::Store};
 
 live_design! {
     use link::theme::*;
@@ -135,7 +135,7 @@ pub struct DeleteChatModal {
     #[deref]
     view: View,
     #[rust]
-    chat_id: ChatID,
+    chat_id: ChatId,
 }
 
 #[derive(Clone, Debug, DefaultNone)]
@@ -198,7 +198,7 @@ impl WidgetMatchEvent for DeleteChatModal {
 }
 
 impl DeleteChatModalRef {
-    pub fn set_chat_id(&mut self, chat_id: ChatID) {
+    pub fn set_chat_id(&mut self, chat_id: ChatId) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.chat_id = chat_id;
         }

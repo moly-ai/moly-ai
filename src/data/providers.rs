@@ -3,14 +3,14 @@ use makepad_widgets::*;
 use moly_kit::prelude::*;
 use serde::{Deserialize, Serialize};
 
-pub type ProviderID = String;
+pub type ProviderId = String;
 
 /// Represents an AI provider
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Provider {
     /// Unique identifier for the provider
     #[serde(default)]
-    pub id: ProviderID,
+    pub id: ProviderId,
     pub name: String,
     /// Refered as API host in the UI
     pub url: String,
@@ -152,17 +152,17 @@ impl ProviderConnectionStatus {
 
 #[derive(Debug, DefaultNone, Clone)]
 pub enum ProviderFetchModelsResult {
-    Success(ProviderID, Vec<ProviderBot>),
-    Failure(ProviderID, ClientError),
+    Success(ProviderId, Vec<ProviderBot>),
+    Failure(ProviderId, ClientError),
     None,
 }
 
 #[derive(Live, LiveHook, PartialEq, Debug, LiveRead, Serialize, Deserialize, Clone)]
 pub enum ProviderType {
     #[pick]
-    OpenAI,
-    OpenAIImage,
-    OpenAIRealtime,
+    OpenAi,
+    OpenAiImage,
+    OpenAiRealtime,
     MoFa,
     DeepInquire,
     MolyServer,
@@ -171,9 +171,9 @@ pub enum ProviderType {
 impl ProviderType {
     pub fn to_human_readable(&self) -> &str {
         match self {
-            ProviderType::OpenAI => "OpenAI",
-            ProviderType::OpenAIImage => "OpenAI (Image Generation)",
-            ProviderType::OpenAIRealtime => "OpenAI (Realtime)",
+            ProviderType::OpenAi => "OpenAI",
+            ProviderType::OpenAiImage => "OpenAI (Image Generation)",
+            ProviderType::OpenAiRealtime => "OpenAI (Realtime)",
             ProviderType::MoFa => "MoFa",
             ProviderType::DeepInquire => "DeepInquire",
             ProviderType::MolyServer => "MolyServer",
@@ -183,6 +183,6 @@ impl ProviderType {
 
 impl Default for ProviderType {
     fn default() -> Self {
-        ProviderType::OpenAI
+        ProviderType::OpenAi
     }
 }
