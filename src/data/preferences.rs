@@ -1,4 +1,5 @@
-use moly_kit::ai_kit::{protocol::*, utils::asynchronous::spawn};
+use moly_kit::prelude::*;
+use moly_kit::ai_kit::utils::asynchronous::spawn;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 

@@ -4,7 +4,7 @@ use crate::{
 };
 
 use makepad_widgets::*;
-use moly_kit::widgets::moly_modal::MolyModalWidgetExt;
+use moly_kit::prelude::*;
 
 use super::delete_chat_modal::DeleteChatModalWidgetExt;
 use super::{

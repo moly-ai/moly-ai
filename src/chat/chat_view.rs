@@ -1,24 +1,7 @@
 use makepad_widgets::*;
 
-use moly_kit::{
-    ai_kit::{
-        controllers::chat::{
-            ChatController, ChatControllerPlugin, ChatControllerPluginRegistrationId, ChatState,
-            ChatStateMutation,
-        },
-        protocol::*,
-        utils::{
-            asynchronous::spawn,
-            vec::{VecEffect, VecMutation},
-        },
-    },
-    widgets::{
-        chat::ChatWidgetExt,
-        messages::MessagesWidgetExt,
-        model_selector::{BotGroup, ModelSelectorWidgetRefExt},
-        prompt_input::PromptInputWidgetExt,
-    },
-};
+use moly_kit::ai_kit::utils::asynchronous::spawn;
+use moly_kit::prelude::*;
 
 use crate::data::chats::chat::ChatID;
 use crate::data::deep_inquire_client::DeepInquireCustomContent;

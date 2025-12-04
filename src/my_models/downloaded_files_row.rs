@@ -3,7 +3,7 @@ use crate::data::store::Store;
 use crate::shared::utils::format_model_size;
 use crate::shared::{actions::ChatAction, utils::human_readable_name};
 use makepad_widgets::*;
-use moly_kit::widgets::moly_modal::MolyModalWidgetExt;
+use moly_kit::prelude::*;
 use moly_protocol::data::{DownloadedFile, FileID};
 
 live_design! {

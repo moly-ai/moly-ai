@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use makepad_widgets::*;
 
 use crate::data::deep_inquire_client::{Stage, StageType, SubStage};
-use moly_kit::widgets::citation_list::CitationListWidgetExt;
+use moly_kit::prelude::*;
 
 live_design! {
     use link::theme::*;

@@ -2,7 +2,7 @@ pub mod chat;
 
 use chat::{Chat, ChatID};
 use futures::StreamExt;
-use moly_kit::ai_kit::protocol::*;
+use moly_kit::prelude::*;
 use moly_protocol::data::*;
 use std::collections::HashMap;
 use std::{cell::RefCell, path::PathBuf};

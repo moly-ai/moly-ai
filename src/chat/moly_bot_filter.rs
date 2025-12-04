@@ -1,6 +1,5 @@
 use crate::data::providers::ProviderBot;
-use moly_kit::ai_kit::protocol::*;
-use moly_kit::widgets::model_selector_list::BotFilter;
+use moly_kit::prelude::*;
 use std::collections::HashMap;
 
 /// Moly-specific bot filter that filters by enabled status

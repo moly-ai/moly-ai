@@ -5,7 +5,7 @@ use std::{
     sync::Arc,
 };
 
-use moly_kit::ai_kit::protocol::*;
+use moly_kit::prelude::*;
 
 pub fn generate_persistence_key(attachment: &Attachment) -> String {
     // If `filename.a.b` this is `.b`.

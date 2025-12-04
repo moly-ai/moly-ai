@@ -1,5 +1,5 @@
 use makepad_widgets::*;
-use moly_kit::ai_kit::protocol::*;
+use moly_kit::prelude::*;
 
 use crate::data::{
     providers::{Provider, ProviderConnectionStatus, ProviderType},

@@ -1,12 +1,6 @@
 use makepad_widgets::*;
-use moly_kit::ai_kit::{
-    clients::{
-        map::MapClient, multi::MultiClient, openai::OpenAIClient, openai_image::OpenAIImageClient,
-        openai_realtime::OpenAIRealtimeClient,
-    },
-    protocol::*,
-    utils::asynchronous::spawn,
-};
+use moly_kit::ai_kit::utils::asynchronous::spawn;
+use moly_kit::prelude::*;
 
 use std::collections::HashMap;
 

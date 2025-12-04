@@ -1,11 +1,8 @@
 use async_stream::stream;
 use makepad_widgets::*;
 use makepad_widgets::{Cx, LiveNew, WidgetRef};
-use moly_kit::ai_kit::{
-    protocol::*,
-    utils::{asynchronous::sleep, errors::enrich_http_error, sse::parse_sse},
-};
-use moly_kit::widgets::messages::CustomContent;
+use moly_kit::prelude::*;
+use moly_kit::ai_kit::utils::{asynchronous::sleep, errors::enrich_http_error, sse::parse_sse};
 use reqwest::header::{HeaderMap, HeaderName};
 use serde::{Deserialize, Serialize};
 use std::{

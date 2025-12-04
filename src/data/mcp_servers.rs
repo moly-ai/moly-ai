@@ -1,5 +1,5 @@
 use indexmap::IndexMap;
-use moly_kit::ai_kit::mcp::mcp_manager::McpTransport;
+use moly_kit::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// Represents an input configuration for MCP servers

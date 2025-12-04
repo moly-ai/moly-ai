@@ -1,6 +1,6 @@
 use crate::data::bot_fetcher;
 use makepad_widgets::*;
-use moly_kit::ai_kit::protocol::*;
+use moly_kit::prelude::*;
 use serde::{Deserialize, Serialize};
 
 pub type ProviderID = String;
