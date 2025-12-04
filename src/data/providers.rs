@@ -158,10 +158,14 @@ pub enum ProviderFetchModelsResult {
 }
 
 #[derive(Live, LiveHook, PartialEq, Debug, LiveRead, Serialize, Deserialize, Clone)]
+// Note: Aliases are used to support old casing styles in saved data.
 pub enum ProviderType {
     #[pick]
+    #[serde(alias = "OpenAI")]
     OpenAi,
+    #[serde(alias = "OpenAIImage")]
     OpenAiImage,
+    #[serde(alias = "OpenAIRealtime")]
     OpenAiRealtime,
     MoFa,
     DeepInquire,
