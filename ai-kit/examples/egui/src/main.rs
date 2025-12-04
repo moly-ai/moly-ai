@@ -1,13 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use ai_kit::{
-    clients::openai::OpenAIClient,
-    controllers::chat::{
-        ChatController, ChatControllerPlugin, ChatState, ChatStateMutation, ChatTask,
-    },
-    protocol::*,
-    utils::vec::VecMutation,
-};
+use ai_kit::prelude::*;
 
 fn main() -> eframe::Result {
     env_logger::init();

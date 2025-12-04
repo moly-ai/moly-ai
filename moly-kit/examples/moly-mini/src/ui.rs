@@ -1,6 +1,6 @@
 use crate::demo_chat::DemoChatWidgetExt;
 use makepad_widgets::*;
-use moly_kit::ai_kit::protocol::*;
+use moly_kit::prelude::*;
 
 live_design!(
     use link::theme::*;

@@ -1,11 +1,4 @@
-use ai_kit::{
-    clients::openai::OpenAIClient,
-    controllers::chat::{
-        ChatController, ChatControllerPlugin, ChatState, ChatStateMutation, ChatTask,
-    },
-    protocol::*,
-    utils::vec::VecMutation,
-};
+use ai_kit::prelude::*;
 use crossterm::{QueueableCommand, cursor, terminal};
 use std::io::{Write, stdin, stdout};
 use std::sync::mpsc::{Sender, channel};

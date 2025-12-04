@@ -20,3 +20,5 @@ pub mod utils;
 pub mod widgets;
 
 pub use ai_kit;
+
+pub mod prelude;

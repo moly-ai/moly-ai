@@ -18,20 +18,13 @@ mod slot;
 mod standard_message_content;
 mod theme_moly_kit_light;
 
-pub mod message_markdown;
-
 pub mod citation_list;
-
-pub mod model_selector_list;
-
+pub mod message_markdown;
 pub mod messages;
-
-pub mod prompt_input;
-
-pub mod moly_modal;
-
 pub mod model_selector;
-
+pub mod model_selector_list;
+pub mod moly_modal;
+pub mod prompt_input;
 pub mod realtime;
 
 cfg_if::cfg_if! {
