@@ -35,7 +35,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         if model.is_empty() { "(empty)" } else { &model }
     );
 
-    let mut client = OpenAIClient::new(url.into());
+    let mut client = OpenAiClient::new(url.into());
 
     if !key.is_empty() {
         client.set_key(&key)?;

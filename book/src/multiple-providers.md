@@ -30,15 +30,15 @@ impl LiveHook for YourAmazingWidget {
         let client = {
           let mut client = MultiClient::new();
 
-          let mut openai = OpenAIClient::new("https://api.openai.com/v1".into());
+          let mut openai = OpenAiClient::new("https://api.openai.com/v1".into());
           openai.set_key("<YOUR_KEY>".into());
           client.add_client(openai);
 
-          let mut openrouter = OpenAIClient::new("https://openrouter.ai/api/v1".into());
+          let mut openrouter = OpenAiClient::new("https://openrouter.ai/api/v1".into());
           openrouter.set_key("<YOUR_KEY>".into());
           client.add_client(openrouter);
 
-          let ollama = OpenAIClient::new("http://localhost:11434/v1".into());
+          let ollama = OpenAiClient::new("http://localhost:11434/v1".into());
           client.add_client(ollama);
 
           client

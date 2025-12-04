@@ -15,7 +15,7 @@ enum ImageData<'a> {
 }
 
 #[derive(Debug, Clone)]
-struct OpenAIImageClientInner {
+struct OpenAiImageClientInner {
     url: String,
     client: reqwest::Client,
     headers: HeaderMap,
@@ -27,26 +27,26 @@ struct OpenAIImageClientInner {
 /// before the standard OpenAI client to ensure it get's priority. This is not strictly
 /// necessary if the OpenAI client recognizes and filters the image models you use.
 #[derive(Debug)]
-pub struct OpenAIImageClient(Arc<RwLock<OpenAIImageClientInner>>);
+pub struct OpenAiImageClient(Arc<RwLock<OpenAiImageClientInner>>);
 
-impl Clone for OpenAIImageClient {
+impl Clone for OpenAiImageClient {
     fn clone(&self) -> Self {
-        OpenAIImageClient(Arc::clone(&self.0))
+        OpenAiImageClient(Arc::clone(&self.0))
     }
 }
 
-impl OpenAIImageClient {
+impl OpenAiImageClient {
     pub fn new(url: String) -> Self {
         let headers = HeaderMap::new();
         let client = default_client();
 
-        let inner = OpenAIImageClientInner {
+        let inner = OpenAiImageClientInner {
             url,
             client,
             headers,
         };
 
-        OpenAIImageClient(Arc::new(RwLock::new(inner)))
+        OpenAiImageClient(Arc::new(RwLock::new(inner)))
     }
 
     pub fn set_header(&mut self, key: &str, value: &str) -> Result<(), &'static str> {
@@ -210,7 +210,7 @@ async fn attachment_from_url(
         .map(|bytes| Attachment::from_bytes("image.png".into(), Some("image/png".into()), &bytes))
 }
 
-impl BotClient for OpenAIImageClient {
+impl BotClient for OpenAiImageClient {
     fn bots(&self) -> BoxPlatformSendFuture<'static, ClientResult<Vec<Bot>>> {
         let inner = self.0.read().unwrap().clone();
 

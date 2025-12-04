@@ -17,7 +17,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
             fetch_models_with_client(
                 provider_id.clone(),
                 move || {
-                    let mut client = OpenAIClient::new(url);
+                    let mut client = OpenAiClient::new(url);
                     if let Some(key) = api_key {
                         let _ = client.set_key(&key);
                     }
@@ -38,7 +38,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
                 provider_id.clone(),
                 move || {
                     let client_url = url.trim_start_matches('#').to_string();
-                    let mut client = OpenAIImageClient::new(client_url);
+                    let mut client = OpenAiImageClient::new(client_url);
                     if let Some(key) = api_key {
                         let _ = client.set_key(&key);
                     }
@@ -59,7 +59,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
                 provider_id.clone(),
                 move || {
                     let client_url = url.trim_start_matches('#').to_string();
-                    let mut client = OpenAIRealtimeClient::new(client_url);
+                    let mut client = OpenAiRealtimeClient::new(client_url);
                     if let Some(key) = api_key {
                         let _ = client.set_key(&key);
                     }

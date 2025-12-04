@@ -313,7 +313,7 @@ One of the easiest ways to contribute to Moly is by extending the list of predef
 
 - `name`: The name to display in the UI
 - `url`: The full API endpoint for this provider, including versioning, e.g. "https://api.openai.com/v1"
-- `provider_type`: The type of API format that the provider uses, e.g. the `"provider_type": "OpenAI"` will use the `OpenAIClient` from MolyKit. In Moly, the mapping between supported provider types and MolyKit clients can be found in [src/chat/chat_screen.rs](src/chat/chat_screen.rs) (if you were to add a custom MolyKit client and default supported provider, you would need to extend the mapping here).
+- `provider_type`: The type of API format that the provider uses, e.g. the `"provider_type": "OpenAI"` will use the `OpenAiClient` from MolyKit. In Moly, the mapping between supported provider types and MolyKit clients can be found in [src/chat/chat_screen.rs](src/chat/chat_screen.rs) (if you were to add a custom MolyKit client and default supported provider, you would need to extend the mapping here).
 - `supported_models`: A list of model ids to be used as the whitelist of allowed/supported models in Moly for this provider.
 
 2. Add a new icon for the provider under [/resources/images/providers](/resources/images/providers) (in PNG format), using the **same name** as the provider you registered in the previous step.

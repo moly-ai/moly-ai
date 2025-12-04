@@ -14,7 +14,7 @@ models/agents from providers like OpenAI, Ollama, etc., asynchronously.
 
 In general, as long as Moly Kit has a client compatible with the provider you want
 to connect to, you don't need to implement your own client. For example, you may
-recall from the [Quickstart](quickstart.md) that there is a built-in `OpenAIClient`
+recall from the [Quickstart](quickstart.md) that there is a built-in `OpenAiClient`
 that you can use with any OpenAI-compatible API.
 
 You also have the `MultiClient` we mentioned in [Use multiple providers](multiple-providers.md),
@@ -105,7 +105,7 @@ with the `async_stream` crate is advised for simplicity.
 
 Note that the exact implementation of a client greatly depends on the provider you
 are trying to support, so it's difficult to make a generic guide on how to build it
-step by step. I recommend checking how `OpenAIClient` and `MultiClient` are implemented
+step by step. I recommend checking how `OpenAiClient` and `MultiClient` are implemented
 as examples to create your own.
 
 But to avoid leaving this section without a working client, let's finish the implementation

@@ -417,7 +417,7 @@ struct Completion {
 }
 
 #[derive(Clone, Debug)]
-struct OpenAIClientInner {
+struct OpenAiClientInner {
     url: String,
     headers: HeaderMap,
     client: reqwest::Client,
@@ -426,27 +426,27 @@ struct OpenAIClientInner {
 
 /// A client capable of interacting with Moly Server and other OpenAI-compatible APIs.
 #[derive(Debug)]
-pub struct OpenAIClient(Arc<RwLock<OpenAIClientInner>>);
+pub struct OpenAiClient(Arc<RwLock<OpenAiClientInner>>);
 
-impl Clone for OpenAIClient {
+impl Clone for OpenAiClient {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }
 }
 
-impl From<OpenAIClientInner> for OpenAIClient {
-    fn from(inner: OpenAIClientInner) -> Self {
+impl From<OpenAiClientInner> for OpenAiClient {
+    fn from(inner: OpenAiClientInner) -> Self {
         Self(Arc::new(RwLock::new(inner)))
     }
 }
 
-impl OpenAIClient {
+impl OpenAiClient {
     /// Creates a new client with the given OpenAI-compatible API URL.
     pub fn new(url: String) -> Self {
         let headers = HeaderMap::new();
         let client = default_client();
 
-        OpenAIClientInner {
+        OpenAiClientInner {
             url,
             headers,
             client,
@@ -488,7 +488,7 @@ impl OpenAIClient {
     }
 }
 
-impl BotClient for OpenAIClient {
+impl BotClient for OpenAiClient {
     fn bots(&self) -> BoxPlatformSendFuture<'static, ClientResult<Vec<Bot>>> {
         let inner = self.0.read().unwrap().clone();
 

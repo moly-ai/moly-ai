@@ -323,7 +323,7 @@ fn create_openai_client(
     store: &Store,
     filter: ClientFilter,
 ) -> Option<Box<dyn BotClient>> {
-    let mut client = OpenAIClient::new(provider.url.clone());
+    let mut client = OpenAiClient::new(provider.url.clone());
 
     if let Some(key) = provider.api_key.as_ref() {
         if let Err(e) = client.set_key(key) {
@@ -356,7 +356,7 @@ fn create_openai_image_client(
     store: &Store,
 ) -> Option<Box<dyn BotClient>> {
     let client_url = provider.url.trim_start_matches('#').to_string();
-    let mut client = OpenAIImageClient::new(client_url);
+    let mut client = OpenAiImageClient::new(client_url);
 
     if let Some(key) = provider.api_key.as_ref() {
         if let Err(e) = client.set_key(key) {
@@ -382,7 +382,7 @@ fn create_openai_image_client(
 
 fn create_openai_realtime_client(provider: &Provider) -> Option<Box<dyn BotClient>> {
     let client_url = provider.url.trim_start_matches('#').to_string();
-    let mut client = OpenAIRealtimeClient::new(client_url);
+    let mut client = OpenAiRealtimeClient::new(client_url);
 
     if let Some(key) = provider.api_key.as_ref() {
         if let Err(e) = client.set_key(key) {

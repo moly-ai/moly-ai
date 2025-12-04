@@ -4,11 +4,11 @@
 pub use crate::protocol::*;
 
 // These are the clients that are most commonly used.
-pub use crate::clients::{multi::MultiClient, openai::OpenAIClient};
+pub use crate::clients::{multi::MultiClient, openai::OpenAiClient};
 
 // These other clients are less commonly used.
 pub use crate::clients::{
-    map::MapClient, openai_image::OpenAIImageClient, openai_realtime::OpenAIRealtimeClient,
+    map::MapClient, openai_image::OpenAiImageClient, openai_realtime::OpenAiRealtimeClient,
     tester::TesterClient,
 };
 

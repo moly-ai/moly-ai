@@ -41,7 +41,7 @@ impl App {
             if model.is_empty() { "(empty)" } else { &model }
         );
 
-        let mut client = OpenAIClient::new(url);
+        let mut client = OpenAiClient::new(url);
         client.set_key(&key).unwrap();
 
         let plugin = Plugin::new(ctx.clone());

@@ -251,14 +251,14 @@ pub struct ErrorDetails {
 pub use crate::protocol::{RealtimeChannel, RealtimeCommand, RealtimeEvent};
 
 #[derive(Clone, Debug)]
-pub struct OpenAIRealtimeClient {
+pub struct OpenAiRealtimeClient {
     address: String,
     api_key: Option<String>,
     system_prompt: Option<String>,
     tools_enabled: bool,
 }
 
-impl OpenAIRealtimeClient {
+impl OpenAiRealtimeClient {
     pub fn new(address: String) -> Self {
         Self {
             address,
@@ -763,7 +763,7 @@ fn default_instructions() -> String {
     )
 }
 
-impl OpenAIRealtimeClient {
+impl OpenAiRealtimeClient {
     #[cfg(all(feature = "realtime", not(target_arch = "wasm32")))]
     fn build_websocket_request(
         url_str: &str,
@@ -1027,7 +1027,7 @@ impl OpenAIRealtimeClient {
     }
 }
 
-impl BotClient for OpenAIRealtimeClient {
+impl BotClient for OpenAiRealtimeClient {
     fn send(
         &mut self,
         bot_id: &BotId,

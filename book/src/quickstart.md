@@ -76,7 +76,7 @@ Moly Server, MoFa, etc.
 
 Once again, we don't need to understand how a `BotClient` works (unless you need
 to implement your own) as Moly Kit already comes with some built-in ones. We can
-simply use `OpenAIClient` to interact with any OpenAI-compatible remote API.
+simply use `OpenAiClient` to interact with any OpenAI-compatible remote API.
 
 We will also need to set the "current bot" in the `Chat` widget, which is the bot
 that will respond to user messages (specified with a `BotId` type) and also trigger
@@ -95,7 +95,7 @@ impl LiveHook for YourAmazingWidget {
         let key = "<YOUR_KEY>";
         let model = "gpt-5-mini";
 
-        let mut client = OpenAIClient::new(provider.into());
+        let mut client = OpenAiClient::new(provider.into());
         client.set_key(key.into());
 
         let bot_context = BotContext::from(client);
