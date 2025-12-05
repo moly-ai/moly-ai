@@ -9,7 +9,6 @@ reqwest = { version = "0.12.12", features = [
   "stream",
   "rustls-tls",
 ], default-features = false, optional = true }
-scraper = { version = "0.23.1", optional = true }
 serde = { version = "1.0.217", features = ["derive", "rc"], optional = true }
 serde_json = { version = "1.0.135", optional = true }
 base64 = { version = "0.22.1", optional = true }
@@ -19,7 +18,6 @@ url = "2.4.10"
 async-stream = "0.3.6"
 cfg-if = "1.0.0"
 log = "0.4"
-env_logger = "0.11"
 chrono = "0.4.41"
 mime_guess = "2.0.5"
 unicode-segmentation = "1.12.0"
@@ -48,7 +46,7 @@ web-sys = { version = "0.3.77", features = [
 default = []
 # default = ["full"]
 json = ["dep:serde", "dep:serde_json", "dep:base64", "chrono/serde"]
-http = ["dep:reqwest", "dep:scraper"]
+http = ["dep:reqwest"]
 async-rt = ["dep:tokio", "dep:wasm-bindgen-futures"]
 realtime = ["dep:tokio-tungstenite", "dep:tokio"]
 full = ["default", "json", "async-rt", "realtime", "http"]
