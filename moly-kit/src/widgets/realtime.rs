@@ -1,17 +1,11 @@
+use crate::ai_kit::{
+    mcp::mcp_manager::{display_name_from_namespaced, parse_tool_arguments},
+    utils::asynchronous::spawn,
+};
+use crate::prelude::*;
 use crate::{
-    ai_kit::{
-        controllers::chat::ChatController,
-        mcp::mcp_manager::{display_name_from_namespaced, parse_tool_arguments},
-        protocol::*,
-        utils::asynchronous::spawn,
-    },
     utils::makepad::events::EventExt,
-    widgets::{
-        avatar::AvatarWidgetRefExt,
-        chat_line::{ChatLineAction, ChatLineWidgetExt},
-        slot::SlotWidgetRefExt,
-        standard_message_content::StandardMessageContentWidgetRefExt,
-    },
+    widgets::{avatar::*, chat_line::*, slot::*, standard_message_content::*},
 };
 use makepad_widgets::permission::Permission;
 use makepad_widgets::permission::PermissionStatus;
