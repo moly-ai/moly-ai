@@ -1,11 +1,12 @@
 use makepad_widgets::*;
-
+use math_widget::math::Math;
 live_design! {
     use link::theme::*;
     use link::widgets::*;
     use link::moly_kit_theme::*;
 
     use makepad_code_editor::code_view::CodeView;
+    use math_widget::math::Math;
 
     MD_LINE_SPACING = 1.5
     MD_FONT_COLOR = #000
@@ -88,7 +89,18 @@ live_design! {
                 }
             }
         }
-        use_code_block_widget: true,
+        use_code_block_widget: true
+
+        use_math_widget: true
+        inline_math = <Math> {
+            color: #000
+            font_size: 11.0
+        }
+        display_math = <Math> {
+            color: #000
+            font_size: 11.0
+        }
+
         list_item_layout: { padding: {left: 10.0, right:10, top: 6.0, bottom: 0}, }
         list_item_walk:{margin:0, height:Fit, width:Fill}
         code_layout: { padding: {top: 10.0, bottom: 10.0}}

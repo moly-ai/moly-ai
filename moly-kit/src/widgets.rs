@@ -39,6 +39,7 @@ pub fn live_design(cx: &mut makepad_widgets::Cx) {
     // Currently we only have a light theme which we use as default.
     cx.link(live_id!(moly_kit_theme), live_id!(theme_moly_kit_light));
 
+    math_widget::math::live_design(cx);
     image_view::live_design(cx);
     attachment_view::live_design(cx);
     moly_modal::live_design(cx);
