@@ -1,8 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["ai-kit",
-    "ai-kit/examples/*",
+members = [
     "moly-kit",
     "moly-kit/examples/*",
     "moly-sync",
