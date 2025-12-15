@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    ai_kit::{controllers::chat::ChatController, protocol::*},
+    aitk::{controllers::chat::ChatController, protocol::*},
     utils::makepad::{events::EventExt, portal_list::ItemsRangeIter, ui_runner::DeferRedraw},
     widgets::{
         avatar::AvatarWidgetRefExt, chat_line::ChatLineAction,

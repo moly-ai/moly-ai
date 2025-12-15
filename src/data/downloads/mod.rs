@@ -2,7 +2,7 @@ pub mod download;
 
 use download::{Download, DownloadFileAction, DownloadState};
 use makepad_widgets::Action;
-use moly_kit::ai_kit::utils::asynchronous::spawn;
+use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_protocol::data::{
     DownloadedFile, File, FileId, Model, PendingDownload, PendingDownloadsStatus,
 };

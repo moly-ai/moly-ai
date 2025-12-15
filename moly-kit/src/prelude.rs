@@ -5,4 +5,4 @@ pub use crate::widgets::{
     model_selector_list::*, moly_modal::*, prompt_input::*, realtime::*,
 };
 
-pub use ai_kit::prelude::*;
+pub use aitk::prelude::*;

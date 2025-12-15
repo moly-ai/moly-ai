@@ -2,7 +2,7 @@ use makepad_widgets::*;
 use std::sync::{Arc, Mutex};
 
 use crate::{
-    ai_kit::{
+    aitk::{
         controllers::chat::{ChatController, ChatStateMutation},
         protocol::*,
     },

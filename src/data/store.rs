@@ -14,7 +14,7 @@ use super::supported_providers;
 use super::{chats::Chats, downloads::Downloads, search::Search};
 use chrono::{DateTime, Utc};
 use makepad_widgets::{Action, ActionDefaultRef, DefaultNone};
-use moly_kit::ai_kit::utils::asynchronous::spawn;
+use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
 
 use super::providers::{Provider, ProviderConnectionStatus};

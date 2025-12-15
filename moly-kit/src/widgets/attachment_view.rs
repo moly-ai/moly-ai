@@ -1,5 +1,5 @@
 use crate::{
-    ai_kit::{
+    aitk::{
         protocol::*,
         utils::asynchronous::{AbortOnDropHandle, abort_on_drop, spawn},
     },

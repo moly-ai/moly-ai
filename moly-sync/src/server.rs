@@ -1,4 +1,4 @@
-use ai_kit::utils::asynchronous::spawn;
+use aitk::utils::asynchronous::spawn;
 use anyhow::Result;
 use axum::extract::Query;
 use rand::Rng;

@@ -1,4 +1,4 @@
-use crate::ai_kit::{
+use crate::aitk::{
     mcp::mcp_manager::{display_name_from_namespaced, parse_tool_arguments},
     utils::asynchronous::spawn,
 };

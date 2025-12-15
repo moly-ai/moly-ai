@@ -1,4 +1,4 @@
-use crate::ai_kit::protocol::*;
+use crate::aitk::protocol::*;
 use makepad_widgets::*;
 
 live_design! {

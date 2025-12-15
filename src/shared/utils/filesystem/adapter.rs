@@ -4,7 +4,7 @@
 //! for filesystem operations across different platforms (native, web, Android).
 
 use anyhow::Result;
-use moly_kit::ai_kit::utils::asynchronous::PlatformSendFuture;
+use moly_kit::aitk::utils::asynchronous::PlatformSendFuture;
 use std::path::Path;
 
 /// An adapter exposes the **bare minimum** functionality needed to interact with

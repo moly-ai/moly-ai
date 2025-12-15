@@ -1,4 +1,4 @@
-use crate::ai_kit::utils::asynchronous::spawn;
+use crate::aitk::utils::asynchronous::spawn;
 use crate::utils::scraping::*;
 use makepad_widgets::*;
 use url::Url;

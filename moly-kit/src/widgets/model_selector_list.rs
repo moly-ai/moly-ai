@@ -1,6 +1,6 @@
 use super::model_selector_item::{ModelSelectorItemAction, ModelSelectorItemWidgetRefExt};
 use crate::{
-    ai_kit::{controllers::chat::ChatController, protocol::*},
+    aitk::{controllers::chat::ChatController, protocol::*},
     widgets::model_selector::{BotGroup, GroupingFn},
 };
 use makepad_widgets::*;

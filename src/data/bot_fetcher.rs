@@ -1,5 +1,5 @@
 use makepad_widgets::Cx;
-use moly_kit::ai_kit::utils::asynchronous::spawn;
+use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
 
 use crate::data::providers::ProviderId;

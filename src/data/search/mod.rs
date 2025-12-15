@@ -1,5 +1,5 @@
 use makepad_widgets::{Action, Cx};
-use moly_kit::ai_kit::utils::asynchronous::spawn;
+use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_protocol::data::*;
 
 use super::moly_client::MolyClient;

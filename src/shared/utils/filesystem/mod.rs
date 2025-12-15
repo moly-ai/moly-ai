@@ -44,7 +44,7 @@ use futures::{
     SinkExt, StreamExt,
     channel::{mpsc, oneshot},
 };
-use moly_kit::ai_kit::utils::asynchronous::spawn;
+use moly_kit::aitk::utils::asynchronous::spawn;
 use serde::{Serialize, de::DeserializeOwned};
 use std::{
     path::{Path, PathBuf},

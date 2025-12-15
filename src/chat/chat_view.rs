@@ -1,6 +1,6 @@
 use makepad_widgets::*;
 
-use moly_kit::ai_kit::utils::asynchronous::spawn;
+use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
 
 use crate::data::chats::chat::ChatId;
