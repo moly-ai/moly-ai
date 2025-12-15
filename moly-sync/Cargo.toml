@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ai-kit = { path = "../ai-kit", features = ["full"] }
+aitk = { path = "../aitk", features = ["full"] }
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
