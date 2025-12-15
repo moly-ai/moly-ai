@@ -1,4 +1,4 @@
-//! Re-exports Rust code of widgets and AI Kit's prelude.
+//! Re-exports Rust code of widgets and aitk's prelude.
 
 pub use crate::widgets::{
     chat::*, citation_list::*, message_markdown::*, messages::*, model_selector::*,
