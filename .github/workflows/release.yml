@@ -254,6 +254,10 @@ jobs:
           CERT_FINGERPRINT=$(security find-certificate -c "Apple Distribution" -a -Z $KEYCHAIN_PATH | grep SHA-1 | head -n 1 | awk '{print $3}')
           echo "CERT_FINGERPRINT=$CERT_FINGERPRINT" >> $GITHUB_ENV
 
+      - name: Clean build artifacts to avoid stale cache
+        run: |
+          cargo clean
+
       - name: Build for iOS
         run: |
           cargo makepad apple ios \
