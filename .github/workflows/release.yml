@@ -200,14 +200,16 @@ jobs:
     
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v4 
-    
+        uses: actions/checkout@v4
+
       - name: Install Rust-stable
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
           rustflags: ""
-          cache: true
+          # CRITICAL: Disable caching to ensure fresh builds
+          # The cache was causing stale makepad binaries to be reused
+          cache: false
 
       - name: Install cargo-makepad
         run: |
@@ -253,13 +255,6 @@ jobs:
 
           CERT_FINGERPRINT=$(security find-certificate -c "Apple Distribution" -a -Z $KEYCHAIN_PATH | grep SHA-1 | head -n 1 | awk '{print $3}')
           echo "CERT_FINGERPRINT=$CERT_FINGERPRINT" >> $GITHUB_ENV
-
-      - name: Clean build artifacts and git cache to avoid stale dependencies
-        run: |
-          cargo clean
-          # Also clear cached git checkouts to ensure fresh fetch of makepad
-          rm -rf ~/.cargo/git/checkouts/makepad-*
-          rm -rf ~/.cargo/git/db/makepad-*
 
       - name: Build for iOS
         run: |
