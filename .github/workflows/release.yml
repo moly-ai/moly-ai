@@ -171,8 +171,8 @@ jobs:
 
       - name: Install cargo-makepad
         run: |
-          cargo install --force --git https://github.com/wyeworks/makepad.git --rev 3aa08b53d cargo-makepad
-        
+          cargo install --force --git https://github.com/wyeworks/makepad.git --rev 754e492e7 cargo-makepad
+
       - name: Install toolchain
         run: |
           cargo makepad android install-toolchain
@@ -211,13 +211,41 @@ jobs:
           # The cache was causing stale makepad binaries to be reused
           cache: false
 
+      - name: Clear cargo git cache for makepad
+        run: |
+          echo "Clearing cargo git cache to ensure fresh makepad fetch..."
+          rm -rf ~/.cargo/git/db/makepad-*
+          rm -rf ~/.cargo/git/checkouts/makepad-*
+          echo "Cache cleared."
+
       - name: Install cargo-makepad
         run: |
-          cargo install --force --git https://github.com/wyeworks/makepad.git --rev 3aa08b53d cargo-makepad
+          cargo install --force --git https://github.com/wyeworks/makepad.git --rev 754e492e7 cargo-makepad
 
       - name: Install toolchain
         run: |
           cargo makepad apple ios install-toolchain
+
+      - name: Fetch dependencies and verify makepad fix
+        run: |
+          # Fetch all dependencies to populate cargo cache
+          cargo fetch
+          # Find and verify the draw_in_rect fix is present
+          MAKEPAD_PATH=$(find ~/.cargo/git/checkouts -path "*makepad*/platform/src/os/apple/ios/ios_app.rs" 2>/dev/null | head -1)
+          if [ -n "$MAKEPAD_PATH" ]; then
+            echo "Found makepad ios_app.rs at: $MAKEPAD_PATH"
+            echo "=== draw_in_rect implementation ==="
+            grep -A 15 "pub fn draw_in_rect" "$MAKEPAD_PATH"
+            # Verify the fix is present (try_with should be in the function)
+            if grep -A 10 "pub fn draw_in_rect" "$MAKEPAD_PATH" | grep -q "try_with"; then
+              echo "✅ draw_in_rect fix is present (uses try_with)"
+            else
+              echo "❌ ERROR: draw_in_rect fix NOT found! Old code may be cached."
+              exit 1
+            fi
+          else
+            echo "⚠️ Could not find makepad ios_app.rs in cargo cache"
+          fi
 
       - name: Select Xcode 26
         run: |

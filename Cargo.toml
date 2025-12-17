@@ -25,8 +25,8 @@ path = "src/main.rs"
 moly-protocol = { git = "https://github.com/moly-ai/moly-local", package = "moly-protocol", rev = "788cac14d"}
 moly-kit = { path = "./moly-kit", features = ["full"] }
 moly-sync = { path = "./moly-sync"}
-makepad-widgets = { git = "https://github.com/wyeworks/makepad", rev = "3aa08b53d" }
-makepad-code-editor = { git = "https://github.com/wyeworks/makepad", rev = "3aa08b53d" }
+makepad-widgets = { git = "https://github.com/wyeworks/makepad", rev = "754e492e7" }
+makepad-code-editor = { git = "https://github.com/wyeworks/makepad", rev = "754e492e7" }
 
 unicode-segmentation = "1.10.1"
 anyhow = "1.0"
