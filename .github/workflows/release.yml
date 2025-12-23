@@ -171,8 +171,8 @@ jobs:
 
       - name: Install cargo-makepad
         run: |
-          cargo install --force --git https://github.com/makepad/makepad.git --branch dev cargo-makepad
-        
+          cargo install --force --git https://github.com/wyeworks/makepad.git --rev 2e138d0c5 cargo-makepad
+
       - name: Install toolchain
         run: |
           cargo makepad android install-toolchain
@@ -185,7 +185,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MOLY_RELEASE }}
         run: |
-          VERSION=$(cargo metadata --no-deps --format-version 1 --frozen | jq -r '.packages[0].version')
+          VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "moly") | .version')
           cd ./target/makepad-android-apk/moly/apk
           mv moly.apk "Moly-${VERSION}-android.apk"
           gh release upload ${{ github.event.inputs.release_tags }} "Moly-${VERSION}-android.apk" --clobber
@@ -211,7 +211,7 @@ jobs:
 
       - name: Install cargo-makepad
         run: |
-          cargo install --force --git https://github.com/makepad/makepad.git --branch dev cargo-makepad
+          cargo install --force --git https://github.com/wyeworks/makepad.git --rev 2e138d0c5 cargo-makepad
 
       - name: Install toolchain
         run: |
@@ -299,7 +299,7 @@ jobs:
 
           # Set version keys (cargo-makepad generates hardcoded "1.0.0", we must override)
           # Strip non-numeric suffixes from version (Apple requires numeric-only)
-          VERSION=$(cd $GITHUB_WORKSPACE && cargo metadata --no-deps --format-version 1 --frozen | jq -r '.packages[0].version' | sed 's/-.*$//')
+          VERSION=$(cd $GITHUB_WORKSPACE && cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "moly") | .version' | sed 's/-.*$//')
           BUILD_NUMBER="${{ github.run_number }}"  # Auto-increment using GitHub run number
 
           echo "Setting iOS bundle versions: $VERSION (build: $BUILD_NUMBER)"
@@ -342,7 +342,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MOLY_RELEASE }}
         run: |
-          VERSION=$(cargo metadata --no-deps --format-version 1 --frozen | jq -r '.packages[0].version')
+          VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "moly") | .version')
           cd ./target/makepad-apple-app/aarch64-apple-ios/release
 
           # Use ditto to preserve macOS extended attributes (required by Apple validation)
