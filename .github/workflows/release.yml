@@ -171,7 +171,7 @@ jobs:
 
       - name: Install cargo-makepad
         run: |
-          cargo install --force --git https://github.com/wyeworks/makepad.git --rev a0249498a cargo-makepad
+          cargo install --force --git https://github.com/wyeworks/makepad.git --rev 1e20b58e4 cargo-makepad
 
       - name: Install toolchain
         run: |
@@ -220,32 +220,11 @@ jobs:
 
       - name: Install cargo-makepad
         run: |
-          cargo install --force --git https://github.com/wyeworks/makepad.git --rev a0249498a cargo-makepad
+          cargo install --force --git https://github.com/wyeworks/makepad.git --rev 1e20b58e4 cargo-makepad
 
       - name: Install toolchain
         run: |
           cargo makepad apple ios install-toolchain
-
-      - name: Fetch dependencies and verify makepad fix
-        run: |
-          # Fetch all dependencies to populate cargo cache
-          cargo fetch
-          # Find and verify the draw_in_rect fix is present
-          MAKEPAD_PATH=$(find ~/.cargo/git/checkouts -path "*makepad*/platform/src/os/apple/ios/ios_app.rs" 2>/dev/null | head -1)
-          if [ -n "$MAKEPAD_PATH" ]; then
-            echo "Found makepad ios_app.rs at: $MAKEPAD_PATH"
-            echo "=== draw_in_rect implementation ==="
-            grep -A 15 "pub fn draw_in_rect" "$MAKEPAD_PATH"
-            # Verify the fix is present (try_with should be in the function)
-            if grep -A 10 "pub fn draw_in_rect" "$MAKEPAD_PATH" | grep -q "try_with"; then
-              echo "✅ draw_in_rect fix is present (uses try_with)"
-            else
-              echo "❌ ERROR: draw_in_rect fix NOT found! Old code may be cached."
-              exit 1
-            fi
-          else
-            echo "⚠️ Could not find makepad ios_app.rs in cargo cache"
-          fi
 
       - name: Select Xcode 26
         run: |
@@ -293,72 +272,6 @@ jobs:
             --cert=$CERT_FINGERPRINT \
             --device=IPhone \
             run-device -p moly --release
-
-      - name: Debug resource copying
-        run: |
-          echo "=== .path files in build dir ==="
-          ls -la ./target/aarch64-apple-ios/release/*.path || echo "No .path files found"
-
-          echo ""
-          echo "=== Contents of .path files ==="
-          for f in ./target/aarch64-apple-ios/release/*.path; do
-            if [ -f "$f" ]; then
-              echo "--- $f ---"
-              cat "$f"
-              path=$(cat "$f")
-              if [ -d "$path" ]; then
-                echo "  → Directory EXISTS"
-              else
-                echo "  → Directory MISSING!"
-              fi
-            fi
-          done
-
-          echo ""
-          echo "=== App bundle resources BEFORE fix ==="
-          ls -laR ./target/makepad-apple-app/aarch64-apple-ios/release/moly.app/makepad/ || echo "No makepad resources found"
-
-      - name: Copy missing resources to app bundle
-        run: |
-          APP_DIR=./target/makepad-apple-app/aarch64-apple-ios/release/moly.app/makepad
-
-          # Find the makepad checkout directory
-          MAKEPAD_CHECKOUT=$(find ~/.cargo/git/checkouts -type d -name "makepad-*" -exec test -d {}/widgets \; -print 2>/dev/null | head -1)
-
-          if [ -z "$MAKEPAD_CHECKOUT" ]; then
-            # Try finding by looking for the widgets directory
-            MAKEPAD_CHECKOUT=$(dirname $(find ~/.cargo/git/checkouts -type d -path "*/makepad*/widgets" 2>/dev/null | head -1))
-          fi
-
-          echo "Found makepad checkout at: $MAKEPAD_CHECKOUT"
-
-          if [ -n "$MAKEPAD_CHECKOUT" ] && [ -d "$MAKEPAD_CHECKOUT/widgets" ]; then
-            # Copy makepad_widgets resources
-            echo "Copying makepad_widgets resources..."
-            mkdir -p "$APP_DIR/makepad_widgets/resources"
-            cp -r "$MAKEPAD_CHECKOUT/widgets/resources/"* "$APP_DIR/makepad_widgets/resources/" 2>/dev/null || true
-
-            # Copy font resources
-            for font_dir in chinese_bold chinese_bold_2 chinese_regular chinese_regular_2 emoji; do
-              if [ -d "$MAKEPAD_CHECKOUT/widgets/fonts/$font_dir/resources" ]; then
-                echo "Copying makepad_fonts_$font_dir resources..."
-                mkdir -p "$APP_DIR/makepad_fonts_$font_dir/resources"
-                cp -r "$MAKEPAD_CHECKOUT/widgets/fonts/$font_dir/resources/"* "$APP_DIR/makepad_fonts_$font_dir/resources/" 2>/dev/null || true
-              fi
-            done
-          else
-            echo "WARNING: Could not find makepad checkout directory!"
-            find ~/.cargo/git/checkouts -type d -name "*makepad*" 2>/dev/null | head -10
-          fi
-
-          # Copy moly_kit resources (from local path)
-          echo "Copying moly_kit resources..."
-          mkdir -p "$APP_DIR/moly_kit/resources"
-          cp -r ./moly-kit/resources/* "$APP_DIR/moly_kit/resources/" 2>/dev/null || true
-
-          echo ""
-          echo "=== App bundle resources AFTER fix ==="
-          ls -laR "$APP_DIR/" || echo "No makepad resources found"
 
       - name: Compile Asset Catalog and patch Info.plist for App Store
         run: |
