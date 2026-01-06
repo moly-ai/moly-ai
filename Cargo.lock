@@ -5,7 +5,7 @@ version = 4
 [[package]]
 name = "ab_glyph_rasterizer"
 version = "0.1.8"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 
 [[package]]
 name = "ab_glyph_rasterizer"
@@ -2507,18 +2507,18 @@ dependencies = [
 [[package]]
 name = "makepad-code-editor"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-widgets 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-widgets 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
 name = "makepad-derive-live"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-micro-proc-macro 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-micro-proc-macro 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2533,9 +2533,9 @@ dependencies = [
 [[package]]
 name = "makepad-derive-wasm-bridge"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-micro-proc-macro 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-micro-proc-macro 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2549,10 +2549,10 @@ dependencies = [
 [[package]]
 name = "makepad-derive-widget"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-micro-proc-macro 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-micro-proc-macro 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2567,17 +2567,17 @@ dependencies = [
 [[package]]
 name = "makepad-draw"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "ab_glyph_rasterizer 0.1.8 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "ab_glyph_rasterizer 0.1.8 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
  "fxhash",
- "makepad-html 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-platform 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-rustybuzz 0.8.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-vector 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-html 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-platform 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-rustybuzz 0.8.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-vector 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
  "png 0.17.16",
- "sdfer 0.2.1 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "sdfer 0.2.1 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
  "ttf-parser 0.25.1",
  "unicode-bidi",
  "unicode-linebreak",
@@ -2606,17 +2606,17 @@ dependencies = [
 [[package]]
 name = "makepad-error-log"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-micro-serde 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-micro-serde 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
 name = "makepad-fonts-chinese-bold"
 version = "1.0.1"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-platform 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-platform 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2630,9 +2630,9 @@ dependencies = [
 [[package]]
 name = "makepad-fonts-chinese-bold-2"
 version = "1.0.1"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-platform 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-platform 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2646,9 +2646,9 @@ dependencies = [
 [[package]]
 name = "makepad-fonts-chinese-regular"
 version = "1.0.1"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-platform 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-platform 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2662,9 +2662,9 @@ dependencies = [
 [[package]]
 name = "makepad-fonts-chinese-regular-2"
 version = "1.0.1"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-platform 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-platform 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2678,9 +2678,9 @@ dependencies = [
 [[package]]
 name = "makepad-fonts-emoji"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-platform 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-platform 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2694,7 +2694,7 @@ dependencies = [
 [[package]]
 name = "makepad-futures"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 
 [[package]]
 name = "makepad-futures"
@@ -2704,7 +2704,7 @@ source = "git+https://github.com/wyeworks/makepad?rev=b8b65f4fa#b8b65f4fa7e4814b
 [[package]]
 name = "makepad-futures-legacy"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 
 [[package]]
 name = "makepad-futures-legacy"
@@ -2714,9 +2714,9 @@ source = "git+https://github.com/wyeworks/makepad?rev=b8b65f4fa#b8b65f4fa7e4814b
 [[package]]
 name = "makepad-html"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2730,7 +2730,7 @@ dependencies = [
 [[package]]
 name = "makepad-http"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 
 [[package]]
 name = "makepad-http"
@@ -2746,11 +2746,11 @@ checksum = "9775cbec5fa0647500c3e5de7c850280a88335d1d2d770e5aa2332b801ba7064"
 [[package]]
 name = "makepad-live-compiler"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-derive-live 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-live-tokenizer 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-math 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-derive-live 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-live-tokenizer 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-math 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2766,9 +2766,9 @@ dependencies = [
 [[package]]
 name = "makepad-live-id"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-live-id-macros 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-live-id-macros 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2782,9 +2782,9 @@ dependencies = [
 [[package]]
 name = "makepad-live-id-macros"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-micro-proc-macro 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-micro-proc-macro 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2798,11 +2798,11 @@ dependencies = [
 [[package]]
 name = "makepad-live-tokenizer"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-math 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-micro-serde 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-math 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-micro-serde 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2818,9 +2818,9 @@ dependencies = [
 [[package]]
 name = "makepad-math"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-micro-serde 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-micro-serde 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2834,7 +2834,7 @@ dependencies = [
 [[package]]
 name = "makepad-micro-proc-macro"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 
 [[package]]
 name = "makepad-micro-proc-macro"
@@ -2844,10 +2844,10 @@ source = "git+https://github.com/wyeworks/makepad?rev=b8b65f4fa#b8b65f4fa7e4814b
 [[package]]
 name = "makepad-micro-serde"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-micro-serde-derive 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-micro-serde-derive 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2862,9 +2862,9 @@ dependencies = [
 [[package]]
 name = "makepad-micro-serde-derive"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-micro-proc-macro 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-micro-proc-macro 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -2878,7 +2878,7 @@ dependencies = [
 [[package]]
 name = "makepad-objc-sys"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 
 [[package]]
 name = "makepad-objc-sys"
@@ -2888,19 +2888,19 @@ source = "git+https://github.com/wyeworks/makepad?rev=b8b65f4fa#b8b65f4fa7e4814b
 [[package]]
 name = "makepad-platform"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
  "bitflags 2.10.0",
  "hilog-sys",
  "makepad-android-state",
  "makepad-error-log",
- "makepad-futures 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-futures-legacy 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-http 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-futures 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-futures-legacy 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-http 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
  "makepad-jni-sys",
- "makepad-objc-sys 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-shader-compiler 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-wasm-bridge 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-objc-sys 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-shader-compiler 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-wasm-bridge 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
  "napi-derive-ohos",
  "napi-ohos",
  "ohos-sys",
@@ -2946,11 +2946,11 @@ dependencies = [
 [[package]]
 name = "makepad-rustybuzz"
 version = "0.8.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
- "makepad-ttf-parser 0.21.1 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-ttf-parser 0.21.1 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
  "smallvec",
  "unicode-bidi-mirroring 0.1.0",
  "unicode-ccc 0.1.2",
@@ -2994,9 +2994,9 @@ dependencies = [
 [[package]]
 name = "makepad-shader-compiler"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-live-compiler 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-live-compiler 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -3010,7 +3010,7 @@ dependencies = [
 [[package]]
 name = "makepad-ttf-parser"
 version = "0.21.1"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 
 [[package]]
 name = "makepad-ttf-parser"
@@ -3020,9 +3020,9 @@ source = "git+https://github.com/wyeworks/makepad?rev=b8b65f4fa#b8b65f4fa7e4814b
 [[package]]
 name = "makepad-vector"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-ttf-parser 0.21.1 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-ttf-parser 0.21.1 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
  "resvg 0.42.0",
 ]
 
@@ -3038,10 +3038,10 @@ dependencies = [
 [[package]]
 name = "makepad-wasm-bridge"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-derive-wasm-bridge 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-derive-wasm-bridge 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-live-id 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -3056,18 +3056,18 @@ dependencies = [
 [[package]]
 name = "makepad-widgets"
 version = "1.0.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-derive-widget 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-draw 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-fonts-chinese-bold 1.0.1 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-fonts-chinese-bold-2 1.0.1 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-fonts-chinese-regular 1.0.1 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-fonts-chinese-regular-2 1.0.1 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-fonts-emoji 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-html 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-zune-jpeg 0.3.17 (git+https://github.com/wyeworks/makepad?rev=397573829)",
- "makepad-zune-png 0.4.10 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-derive-widget 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-draw 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-fonts-chinese-bold 1.0.1 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-fonts-chinese-bold-2 1.0.1 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-fonts-chinese-regular 1.0.1 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-fonts-chinese-regular-2 1.0.1 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-fonts-emoji 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-html 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-zune-jpeg 0.3.17 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
+ "makepad-zune-png 0.4.10 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
  "pulldown-cmark",
  "unicode-segmentation",
 ]
@@ -3094,7 +3094,7 @@ dependencies = [
 [[package]]
 name = "makepad-zune-core"
 version = "0.2.14"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
  "bitflags 2.10.0",
 ]
@@ -3110,9 +3110,9 @@ dependencies = [
 [[package]]
 name = "makepad-zune-jpeg"
 version = "0.3.17"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-zune-core 0.2.14 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-zune-core 0.2.14 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
 ]
 
 [[package]]
@@ -3126,7 +3126,7 @@ dependencies = [
 [[package]]
 name = "makepad-zune-png"
 version = "0.4.10"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
  "zune-core 0.4.12",
  "zune-inflate",
@@ -3184,9 +3184,9 @@ checksum = "0e7465ac9959cc2b1404e8e2367b43684a6d13790fe23056cc8c6c5a6b7bcb94"
 [[package]]
 name = "math_widget"
 version = "0.1.0"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 dependencies = [
- "makepad-widgets 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-widgets 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
  "mitex",
  "typst",
  "typst-render",
@@ -3343,7 +3343,7 @@ dependencies = [
  "indexmap",
  "log",
  "makepad-code-editor",
- "makepad-widgets 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-widgets 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
  "moly-kit",
  "moly-protocol",
  "moly-sync",
@@ -3372,7 +3372,7 @@ dependencies = [
  "futures",
  "log",
  "makepad-code-editor",
- "makepad-widgets 1.0.0 (git+https://github.com/wyeworks/makepad?rev=397573829)",
+ "makepad-widgets 1.0.0 (git+https://github.com/wyeworks/makepad?rev=4d6534cb2)",
  "math_widget",
  "reqwest",
  "robius-open 0.2.0 (git+https://github.com/project-robius/robius?rev=a62b82c8)",
@@ -4860,7 +4860,7 @@ dependencies = [
 [[package]]
 name = "sdfer"
 version = "0.2.1"
-source = "git+https://github.com/wyeworks/makepad?rev=397573829#397573829b5f81d7ac5c6e90ed6cb40704109cc7"
+source = "git+https://github.com/wyeworks/makepad?rev=4d6534cb2#4d6534cb2aba82f01dd7653b96ecf74fadc7dc76"
 
 [[package]]
 name = "sdfer"
