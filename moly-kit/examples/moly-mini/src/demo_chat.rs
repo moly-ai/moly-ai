@@ -304,6 +304,7 @@ impl DemoChat {
         };
 
         let controller = ChatController::builder()
+            .with_basic_spawner()
             .with_client(client)
             .with_tool_manager(tool_manager)
             .with_plugin_prepend(Plugin {
