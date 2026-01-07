@@ -49,11 +49,7 @@ jobs:
 
   build_macos:
     name: MacOS
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        # `macos-13` has intel architecture, while from `macos-14` onwards, arm64 is used.
-        os: [macos-14, macos-13]
+    runs-on: macos-14
 
     steps:
       - name: Checkout sources
