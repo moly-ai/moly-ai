@@ -1,7 +1,7 @@
 use async_stream::stream;
 use makepad_widgets::*;
 use makepad_widgets::{Cx, LiveNew, WidgetRef};
-use moly_kit::aitk::utils::{errors::enrich_http_error, sse::parse_sse};
+use moly_kit::aitk::utils::{http::enrich_http_error, sse::parse_sse};
 use moly_kit::prelude::*;
 use reqwest::header::{HeaderMap, HeaderName};
 use serde::{Deserialize, Serialize};

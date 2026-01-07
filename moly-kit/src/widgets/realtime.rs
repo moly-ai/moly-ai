@@ -1,6 +1,6 @@
 use crate::aitk::{
-    mcp::mcp_manager::{display_name_from_namespaced, parse_tool_arguments},
     utils::asynchronous::spawn,
+    utils::tool::{display_name_from_namespaced, parse_tool_arguments},
 };
 use crate::prelude::*;
 use crate::{

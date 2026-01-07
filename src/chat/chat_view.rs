@@ -170,6 +170,8 @@ impl LiveHook for ChatView {
             .append_plugin(Glue::new(self.ui_runner()));
         self.plugin_id = Some(plugin_id);
 
+        self.chat_controller.lock().unwrap().set_basic_spawner();
+
         self.chat(ids!(chat))
             .write()
             .set_chat_controller(cx, Some(self.chat_controller.clone()));

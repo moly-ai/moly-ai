@@ -1,5 +1,5 @@
 use crate::{
-    aitk::{mcp::mcp_manager::display_name_from_namespaced, protocol::*},
+    aitk::{protocol::*, utils::tool::display_name_from_namespaced},
     widgets::{
         attachment_list::AttachmentListWidgetExt,
         attachment_viewer_modal::AttachmentViewerModalWidgetExt,

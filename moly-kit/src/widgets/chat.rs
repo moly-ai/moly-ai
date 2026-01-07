@@ -2,7 +2,7 @@ use makepad_widgets::*;
 use std::cell::{Ref, RefMut};
 use std::sync::{Arc, Mutex};
 
-use crate::aitk::mcp::mcp_manager::display_name_from_namespaced;
+use crate::aitk::utils::tool::display_name_from_namespaced;
 use crate::prelude::*;
 use crate::utils::makepad::events::EventExt;
 
