@@ -425,7 +425,6 @@ impl PromptInput {
         // Show audio/call button only if bot supports realtime, we're on a supported platform
         // and realtime feature is enabled
         #[cfg(not(target_arch = "wasm32"))]
-        #[cfg(feature = "realtime")]
         self.button(ids!(audio)).set_visible(cx, supports_realtime);
 
         // Hide send button for realtime models since audio button serves same purpose

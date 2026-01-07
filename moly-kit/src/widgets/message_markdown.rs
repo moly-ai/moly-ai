@@ -1,5 +1,4 @@
 use makepad_widgets::*;
-use math_widget::math::Math;
 live_design! {
     use link::theme::*;
     use link::widgets::*;

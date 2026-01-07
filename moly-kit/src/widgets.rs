@@ -18,6 +18,7 @@ mod slot;
 mod standard_message_content;
 mod theme_moly_kit_light;
 
+pub mod chat;
 pub mod citation_list;
 pub mod message_markdown;
 pub mod messages;
@@ -26,12 +27,6 @@ pub mod model_selector_list;
 pub mod moly_modal;
 pub mod prompt_input;
 pub mod realtime;
-
-cfg_if::cfg_if! {
-    if #[cfg(feature = "async-rt")] {
-        pub mod chat;
-    }
-}
 
 pub fn live_design(cx: &mut makepad_widgets::Cx) {
     theme_moly_kit_light::live_design(cx);
