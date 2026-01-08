@@ -47,7 +47,6 @@ Certain features are not yet supported in web therefore locked behind cfg flags.
 - If ownership is required, prefer taking parameters by value (T) over references (which would end up in unnecessary cloning).
 - Limit function parameters to 5 or fewer; use a config struct for more.
 - Return early to reduce nesting.
-- Use iterators and combinators over explicit loops where clearer.
 
 # Struct and Enum Design
 
