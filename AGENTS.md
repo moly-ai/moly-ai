@@ -1,11 +1,11 @@
 # Important context
 - Moly is an LLM app that allows users to interact with multiple AI providers, both local and remote.
-- MolyKit is an UI kit of reusable AI components, mainly a Chat widget, that allows adding an AI-assited chat to any Makepad application.
+- MolyKit is an UI kit of reusable AI components, mainly a Chat widget, that allows adding an AI-assisted chat to any Makepad application.
 - AITK provides the core types (protocol), built-in API clients, etc. It works on CLIs, GUIs, servers, and is not tied to Makepad.
 - It's most important that the features we add to MolyKit and AITK are generic and reusable so that they can
 be leveraged by multiple providers and clients.
 
-# Implementation Requriemtents 
+# Implementation Requirements 
 - All features must compile for all platforms, including desktop, mobile and web. 
 Certain features are not yet supported in web therefore locked behind cfg flags.
 - Async Runtime & Spawning:
@@ -38,7 +38,7 @@ Certain features are not yet supported in web therefore locked behind cfg flags.
 # Error Handling
 
 - Never use .unwrap() in library code; use .expect() only for invariant violations with a descriptive message.
-- Define meningful error types in library code.
+- Define meaningful error types in library code.
 
 # Function Design
 
