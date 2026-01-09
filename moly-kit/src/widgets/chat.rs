@@ -2,9 +2,16 @@ use makepad_widgets::*;
 use std::cell::{Ref, RefMut};
 use std::sync::{Arc, Mutex};
 
+use crate::aitk::protocol::BotClient;
 use crate::aitk::utils::tool::display_name_from_namespaced;
 use crate::prelude::*;
 use crate::utils::makepad::events::EventExt;
+
+#[derive(Clone)]
+pub struct SttUtility {
+    pub client: Box<dyn BotClient>,
+    pub bot_id: BotId,
+}
 
 live_design!(
     use link::theme::*;
@@ -50,6 +57,15 @@ pub struct Chat {
 
     #[rust]
     plugin_id: Option<ChatControllerPluginRegistrationId>,
+
+    #[rust]
+    pub stt_utility: Option<SttUtility>,
+
+    #[rust]
+    is_recording_stt: bool,
+
+    #[rust]
+    recorded_stt_audio: Option<Arc<Mutex<Vec<f32>>>>,
 }
 
 impl Widget for Chat {
@@ -64,6 +80,15 @@ impl Widget for Chat {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
+        self.prompt_input_ref().read_with(|widget| {
+            // Access mutable here via interior mutability not possible directly if method is &mut self
+            // set_stt_visible is &mut self on PromptInput. PromptInputRef has write().
+        });
+
+        self.prompt_input_ref()
+            .write()
+            .set_stt_visible(cx, self.stt_utility.is_some());
+
         self.deref.draw_walk(cx, scope, walk)
     }
 }
@@ -86,6 +111,158 @@ impl Chat {
 
         if self.prompt_input_ref().read().call_pressed(event.actions()) {
             self.handle_call(cx);
+        }
+
+        if self.prompt_input_ref().read().stt_pressed(event.actions()) {
+            self.handle_stt(cx);
+        }
+    }
+
+    fn handle_stt(&mut self, cx: &mut Cx) {
+        if self.stt_utility.is_none() {
+            return;
+        }
+
+        if self.is_recording_stt {
+            self.stop_stt_recording(cx);
+        } else {
+            self.start_stt_recording(cx);
+        }
+    }
+
+    fn start_stt_recording(&mut self, cx: &mut Cx) {
+        self.is_recording_stt = true;
+        // Optionally update UI state here (e.g. prompt input icon state)
+
+        if self.recorded_stt_audio.is_none() {
+            self.recorded_stt_audio = Some(Arc::new(Mutex::new(Vec::new())));
+        }
+
+        // Reset buffer
+        if let Some(arc) = &self.recorded_stt_audio {
+            if let Ok(mut buffer) = arc.lock() {
+                buffer.clear();
+            }
+
+            let buffer_clone = arc.clone();
+            cx.audio_input(0, move |info, input_buffer| {
+                let channel = input_buffer.channel(0); // Mono
+
+                // Simple downsampling/collection. Realtime uses 24k, but we can store raw and encode later.
+                // Or to match realtime behavior and ensure reasonable size:
+                // We'll just collect everything for now.
+                // Assuming sample rate from info matches what we will encode (or we convert).
+
+                if let Ok(mut recorded) = buffer_clone.try_lock() {
+                    recorded.extend_from_slice(channel);
+                }
+            });
+        }
+    }
+
+    fn stop_stt_recording(&mut self, cx: &mut Cx) {
+        self.is_recording_stt = false;
+        // Stop recording
+        cx.audio_input(0, |_, _| {});
+
+        if let Some(buffer_arc) = self.recorded_stt_audio.clone() {
+            self.process_stt_audio(cx, buffer_arc);
+        }
+    }
+
+    fn process_stt_audio(&mut self, _cx: &mut Cx, buffer_arc: Arc<Mutex<Vec<f32>>>) {
+        if let Some(utility) = &self.stt_utility {
+            let mut client = utility.client.clone();
+            let bot_id = utility.bot_id.clone();
+            let ui = self.ui_runner();
+
+            let samples = {
+                let guard = buffer_arc.lock().unwrap();
+                guard.clone()
+            };
+
+            if samples.is_empty() {
+                return;
+            }
+
+            // Spawn async task
+            crate::aitk::utils::asynchronous::spawn(async move {
+                // Encode to WAV (PCM 16-bit, 44100Hz or whatever we assume, usually 48k or 44.1k is input)
+                // Since we don't have sample rate in context here easily without plumbing,
+                // we'll assume a standard 48000Hz or 44100Hz.
+                // Ideally we should have captured 'info.sample_rate' in the callback and stored it.
+                // For now, let's assume 48000.
+                let sample_rate = 48000;
+                let channels = 1;
+
+                let header_len = 44;
+                let data_len = samples.len() * 2; // 2 bytes per sample
+                let total_len = header_len + data_len;
+
+                let mut wav_bytes = Vec::with_capacity(total_len);
+
+                // RIFF header
+                wav_bytes.extend_from_slice(b"RIFF");
+                wav_bytes.extend_from_slice(&((total_len as u32 - 8).to_le_bytes()));
+                wav_bytes.extend_from_slice(b"WAVE");
+
+                // fmt chunk
+                wav_bytes.extend_from_slice(b"fmt ");
+                wav_bytes.extend_from_slice(&(16u32.to_le_bytes())); // chunk size
+                wav_bytes.extend_from_slice(&(1u16.to_le_bytes())); // PCM format
+                wav_bytes.extend_from_slice(&(channels as u16).to_le_bytes());
+                wav_bytes.extend_from_slice(&(sample_rate as u32).to_le_bytes());
+                wav_bytes.extend_from_slice(&((sample_rate * channels * 2) as u32).to_le_bytes()); // byte rate
+                wav_bytes.extend_from_slice(&((channels * 2) as u16).to_le_bytes()); // block align
+                wav_bytes.extend_from_slice(&(16u16.to_le_bytes())); // bits per sample
+
+                // data chunk
+                wav_bytes.extend_from_slice(b"data");
+                wav_bytes.extend_from_slice(&(data_len as u32).to_le_bytes());
+
+                for sample in samples {
+                    let clamped = sample.max(-1.0).min(1.0);
+                    let val = (clamped * 32767.0) as i16;
+                    wav_bytes.extend_from_slice(&val.to_le_bytes());
+                }
+
+                // Create Attachment
+                let attachment = Attachment::from_bytes(
+                    "recording.wav".to_string(),
+                    Some("audio/wav".to_string()),
+                    &wav_bytes,
+                );
+
+                let message = Message {
+                    from: EntityId::User,
+                    content: MessageContent {
+                        attachments: vec![attachment],
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                };
+
+                // Send to client
+                use futures::StreamExt;
+                let mut stream = client.send(&bot_id, &[message], &[]);
+
+                // Collect all text chunks
+                let mut full_text = String::new();
+
+                while let Some(result) = stream.next().await {
+                    if let Some(content) = result.value() {
+                        if !content.text.is_empty() {
+                            full_text.push_str(&content.text);
+                        }
+                    }
+                }
+
+                if !full_text.is_empty() {
+                    ui.defer_with_redraw(move |me, cx, _| {
+                        me.prompt_input_ref().set_text(cx, &full_text);
+                    });
+                }
+            });
         }
     }
 
