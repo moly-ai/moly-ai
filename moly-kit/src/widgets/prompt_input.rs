@@ -97,10 +97,31 @@ live_design! {
         }
     }
 
+    SttButton = <Button> {
+        visible: false
+        width: 28, height: 28
+        text: ""
+        draw_text: {
+            text_style: <THEME_FONT_ICONS> {
+                font_size: 13.
+            }
+            color: #333,
+            color_hover: #111,
+            color_focus: #111
+            color_down: #000
+        }
+        draw_bg: {
+            color_down: #0000
+            border_radius: 7.
+            border_size: 0.
+        }
+    }
+
     SendControls = <View> {
         width: Fit, height: Fit
         align: {x: 0.5, y: 0.5}
         spacing: 10
+        stt = <SttButton> {}
         audio = <AudioButton> {}
         submit = <SubmitButton> {}
     }
@@ -335,6 +356,10 @@ impl PromptInput {
         self.button(ids!(audio)).clicked(actions)
     }
 
+    pub fn stt_pressed(&self, actions: &Actions) -> bool {
+        self.button(ids!(stt)).clicked(actions)
+    }
+
     /// Shorthand to check if [Self::task] is set to [Task::Send].
     pub fn has_send_task(&self) -> bool {
         self.task == Task::Send
@@ -388,6 +413,10 @@ impl PromptInput {
     pub fn set_bot_capabilities(&mut self, cx: &mut Cx, capabilities: Option<BotCapabilities>) {
         self.bot_capabilities = capabilities;
         self.update_button_visibility(cx);
+    }
+
+    pub fn set_stt_visible(&mut self, cx: &mut Cx, visible: bool) {
+        self.button(ids!(stt)).set_visible(cx, visible);
     }
 
     /// Update button visibility based on bot capabilities
