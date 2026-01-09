@@ -6,6 +6,7 @@ use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
 
 const OPEN_AI_KEY: Option<&str> = option_env!("OPEN_AI_KEY");
+const OPEN_AI_STT_KEY: Option<&str> = option_env!("OPEN_AI_STT_KEY");
 const OPEN_AI_IMAGE_KEY: Option<&str> = option_env!("OPEN_AI_IMAGE_KEY");
 const OPEN_AI_REALTIME_KEY: Option<&str> = option_env!("OPEN_AI_REALTIME_KEY");
 const OPEN_ROUTER_KEY: Option<&str> = option_env!("OPEN_ROUTER_KEY");
@@ -316,9 +317,17 @@ impl DemoChat {
         controller.lock().unwrap().dispatch_task(ChatTask::Load);
 
         self.controller = Some(controller.clone());
-        self.chat(ids!(chat))
-            .write()
-            .set_chat_controller(cx, Some(controller));
+        let mut chat = self.chat(ids!(chat));
+        chat.write().set_chat_controller(cx, Some(controller));
+
+        if let Some(key) = OPEN_AI_STT_KEY {
+            let mut client = OpenAiSttClient::new("https://api.openai.com/v1".to_string());
+            let _ = client.set_key(key);
+            chat.write().stt_utility = Some(SttUtility {
+                client: Box::new(client),
+                bot_id: BotId::new("whisper-1", ""),
+            });
+        }
     }
 }
 
