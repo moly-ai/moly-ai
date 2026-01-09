@@ -70,6 +70,14 @@ pub struct Chat {
 
 impl Widget for Chat {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+        // Handle audio devices setup
+        if let Event::AudioDevices(devices) = event {
+            let input = devices.default_input();
+            if !input.is_empty() {
+                cx.use_audio_inputs(&input);
+            }
+        }
+
         self.ui_runner().handle(cx, event, scope, self);
         self.deref.handle_event(cx, event, scope);
 
