@@ -202,16 +202,16 @@ impl Chat {
                 &wav_bytes,
             );
 
-            crate::aitk::utils::asynchronous::spawn(async move {
-                let message = Message {
-                    from: EntityId::User,
-                    content: MessageContent {
-                        attachments: vec![attachment],
-                        ..Default::default()
-                    },
+            let message = Message {
+                from: EntityId::User,
+                content: MessageContent {
+                    attachments: vec![attachment],
                     ..Default::default()
-                };
+                },
+                ..Default::default()
+            };
 
+            crate::aitk::utils::asynchronous::spawn(async move {
                 use futures::{StreamExt, pin_mut};
                 let stream = client.send(&bot_id, &[message], &[]);
 
