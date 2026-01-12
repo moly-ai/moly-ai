@@ -71,7 +71,7 @@ pub struct Chat {
 #[derive(Default)]
 struct SttAudioData {
     data: Vec<f32>,
-    sample_rate: f64,
+    sample_rate: Option<f64>,
 }
 
 impl Widget for Chat {
@@ -151,7 +151,7 @@ impl Chat {
         if let Some(arc) = &self.recorded_stt_audio {
             if let Ok(mut buffer) = arc.lock() {
                 buffer.data.clear();
-                buffer.sample_rate = 0.0;
+                buffer.sample_rate = None;
             }
 
             let buffer_clone = arc.clone();
@@ -159,8 +159,8 @@ impl Chat {
                 let channel = input_buffer.channel(0); // Mono
 
                 if let Ok(mut recorded) = buffer_clone.try_lock() {
-                    if recorded.sample_rate == 0.0 {
-                        recorded.sample_rate = info.sample_rate;
+                    if recorded.sample_rate.is_none() {
+                        recorded.sample_rate = Some(info.sample_rate);
                     }
                     recorded.data.extend_from_slice(channel);
                 }
@@ -195,11 +195,7 @@ impl Chat {
 
             // Spawn async task
             crate::aitk::utils::asynchronous::spawn(async move {
-                let sample_rate = if sample_rate > 0.0 {
-                    sample_rate as u32
-                } else {
-                    48000
-                };
+                let sample_rate = sample_rate.unwrap_or(48000.0) as u32;
                 let channels = 1;
 
                 let header_len = 44;
