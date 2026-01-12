@@ -65,7 +65,13 @@ pub struct Chat {
     is_recording_stt: bool,
 
     #[rust]
-    recorded_stt_audio: Option<Arc<Mutex<Vec<f32>>>>,
+    recorded_stt_audio: Option<Arc<Mutex<SttAudioData>>>,
+}
+
+#[derive(Default)]
+struct SttAudioData {
+    data: Vec<f32>,
+    sample_rate: f64,
 }
 
 impl Widget for Chat {
@@ -88,11 +94,6 @@ impl Widget for Chat {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        self.prompt_input_ref().read_with(|widget| {
-            // Access mutable here via interior mutability not possible directly if method is &mut self
-            // set_stt_visible is &mut self on PromptInput. PromptInputRef has write().
-        });
-
         self.prompt_input_ref()
             .write()
             .set_stt_visible(cx, self.stt_utility.is_some());
@@ -143,26 +144,25 @@ impl Chat {
         // Optionally update UI state here (e.g. prompt input icon state)
 
         if self.recorded_stt_audio.is_none() {
-            self.recorded_stt_audio = Some(Arc::new(Mutex::new(Vec::new())));
+            self.recorded_stt_audio = Some(Arc::new(Mutex::new(SttAudioData::default())));
         }
 
         // Reset buffer
         if let Some(arc) = &self.recorded_stt_audio {
             if let Ok(mut buffer) = arc.lock() {
-                buffer.clear();
+                buffer.data.clear();
+                buffer.sample_rate = 0.0;
             }
 
             let buffer_clone = arc.clone();
             cx.audio_input(0, move |info, input_buffer| {
                 let channel = input_buffer.channel(0); // Mono
 
-                // Simple downsampling/collection. Realtime uses 24k, but we can store raw and encode later.
-                // Or to match realtime behavior and ensure reasonable size:
-                // We'll just collect everything for now.
-                // Assuming sample rate from info matches what we will encode (or we convert).
-
                 if let Ok(mut recorded) = buffer_clone.try_lock() {
-                    recorded.extend_from_slice(channel);
+                    if recorded.sample_rate == 0.0 {
+                        recorded.sample_rate = info.sample_rate;
+                    }
+                    recorded.data.extend_from_slice(channel);
                 }
             });
         }
@@ -178,15 +178,15 @@ impl Chat {
         }
     }
 
-    fn process_stt_audio(&mut self, _cx: &mut Cx, buffer_arc: Arc<Mutex<Vec<f32>>>) {
+    fn process_stt_audio(&mut self, _cx: &mut Cx, buffer_arc: Arc<Mutex<SttAudioData>>) {
         if let Some(utility) = &self.stt_utility {
             let mut client = utility.client.clone();
             let bot_id = utility.bot_id.clone();
             let ui = self.ui_runner();
 
-            let samples = {
+            let (samples, sample_rate) = {
                 let guard = buffer_arc.lock().unwrap();
-                guard.clone()
+                (guard.data.clone(), guard.sample_rate)
             };
 
             if samples.is_empty() {
@@ -195,12 +195,11 @@ impl Chat {
 
             // Spawn async task
             crate::aitk::utils::asynchronous::spawn(async move {
-                // Encode to WAV (PCM 16-bit, 44100Hz or whatever we assume, usually 48k or 44.1k is input)
-                // Since we don't have sample rate in context here easily without plumbing,
-                // we'll assume a standard 48000Hz or 44100Hz.
-                // Ideally we should have captured 'info.sample_rate' in the callback and stored it.
-                // For now, let's assume 48000.
-                let sample_rate = 48000;
+                let sample_rate = if sample_rate > 0.0 {
+                    sample_rate as u32
+                } else {
+                    48000
+                };
                 let channels = 1;
 
                 let header_len = 44;
