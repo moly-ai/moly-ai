@@ -193,49 +193,16 @@ impl Chat {
                 return;
             }
 
-            // Spawn async task
+            let sample_rate = sample_rate.unwrap_or(48000.0) as u32;
+            let wav_bytes = crate::utils::audio::build_wav(&samples, sample_rate, 1);
+
+            let attachment = Attachment::from_bytes(
+                "recording.wav".to_string(),
+                Some("audio/wav".to_string()),
+                &wav_bytes,
+            );
+
             crate::aitk::utils::asynchronous::spawn(async move {
-                let sample_rate = sample_rate.unwrap_or(48000.0) as u32;
-                let channels = 1;
-
-                let header_len = 44;
-                let data_len = samples.len() * 2; // 2 bytes per sample
-                let total_len = header_len + data_len;
-
-                let mut wav_bytes = Vec::with_capacity(total_len);
-
-                // RIFF header
-                wav_bytes.extend_from_slice(b"RIFF");
-                wav_bytes.extend_from_slice(&((total_len as u32 - 8).to_le_bytes()));
-                wav_bytes.extend_from_slice(b"WAVE");
-
-                // fmt chunk
-                wav_bytes.extend_from_slice(b"fmt ");
-                wav_bytes.extend_from_slice(&(16u32.to_le_bytes())); // chunk size
-                wav_bytes.extend_from_slice(&(1u16.to_le_bytes())); // PCM format
-                wav_bytes.extend_from_slice(&(channels as u16).to_le_bytes());
-                wav_bytes.extend_from_slice(&(sample_rate as u32).to_le_bytes());
-                wav_bytes.extend_from_slice(&((sample_rate * channels * 2) as u32).to_le_bytes()); // byte rate
-                wav_bytes.extend_from_slice(&((channels * 2) as u16).to_le_bytes()); // block align
-                wav_bytes.extend_from_slice(&(16u16.to_le_bytes())); // bits per sample
-
-                // data chunk
-                wav_bytes.extend_from_slice(b"data");
-                wav_bytes.extend_from_slice(&(data_len as u32).to_le_bytes());
-
-                for sample in samples {
-                    let clamped = sample.max(-1.0).min(1.0);
-                    let val = (clamped * 32767.0) as i16;
-                    wav_bytes.extend_from_slice(&val.to_le_bytes());
-                }
-
-                // Create Attachment
-                let attachment = Attachment::from_bytes(
-                    "recording.wav".to_string(),
-                    Some("audio/wav".to_string()),
-                    &wav_bytes,
-                );
-
                 let message = Message {
                     from: EntityId::User,
                     content: MessageContent {
@@ -245,24 +212,18 @@ impl Chat {
                     ..Default::default()
                 };
 
-                // Send to client
-                use futures::StreamExt;
-                let mut stream = client.send(&bot_id, &[message], &[]);
+                use futures::{StreamExt, pin_mut};
+                let stream = client.send(&bot_id, &[message], &[]);
 
-                // Collect all text chunks
-                let mut full_text = String::new();
+                let filtered = stream
+                    .filter_map(|r| async move { r.value().map(|c| c.text.clone()) })
+                    .filter(|text| futures::future::ready(!text.is_empty()));
+                pin_mut!(filtered);
+                let text = filtered.next().await;
 
-                while let Some(result) = stream.next().await {
-                    if let Some(content) = result.value() {
-                        if !content.text.is_empty() {
-                            full_text.push_str(&content.text);
-                        }
-                    }
-                }
-
-                if !full_text.is_empty() {
+                if let Some(text) = text {
                     ui.defer_with_redraw(move |me, cx, _| {
-                        me.prompt_input_ref().set_text(cx, &full_text);
+                        me.prompt_input_ref().set_text(cx, &text);
                     });
                 }
             });
