@@ -155,6 +155,9 @@ pub struct ChatView {
 
     #[rust]
     initial_bot_synced: bool,
+
+    #[rust]
+    prev_stt_config: Option<String>,
 }
 
 impl LiveHook for ChatView {
@@ -198,6 +201,7 @@ impl Drop for ChatView {
 impl Widget for ChatView {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.bind_bot_context(scope);
+        self.configure_stt(scope, cx);
 
         self.ui_runner().handle(cx, event, scope, self);
         self.view.handle_event(cx, event, scope);
@@ -497,6 +501,33 @@ impl ChatView {
     pub fn unbind_bot_context(&mut self) {
         if let Some(mut bot_context) = self.bot_context.take() {
             bot_context.remove_chat_controller(&self.chat_controller);
+        }
+    }
+
+    /// Configures the STT utility from Store preferences.
+    ///
+    /// STT configuration is independent of bot_context since it's a utility
+    /// used by the chat interface, not a conversational bot.
+    ///
+    /// Configuration is only updated when settings change (detected via hash).
+    fn configure_stt(&mut self, scope: &mut Scope, cx: &mut Cx) {
+        let store = scope.data.get_mut::<Store>().unwrap();
+
+        // Create hash of current STT configuration for change detection
+        let current_stt_hash = format!(
+            "{}:{}:{}:{}",
+            store.preferences.stt_utility.enabled,
+            store.preferences.stt_utility.url,
+            store.preferences.stt_utility.api_key.as_deref().unwrap_or(""),
+            store.preferences.stt_utility.model_name
+        );
+
+        // Only reconfigure if settings changed
+        if self.prev_stt_config.as_ref() != Some(&current_stt_hash) {
+            self.prev_stt_config = Some(current_stt_hash);
+            self.chat(ids!(chat)).write().stt_utility = store.create_stt_utility();
+            // Redraw to update UI (STT button visibility)
+            self.redraw(cx);
         }
     }
 

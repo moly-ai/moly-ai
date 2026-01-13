@@ -21,6 +21,8 @@ pub struct Preferences {
     pub providers_preferences: Vec<ProviderPreferences>,
     #[serde(default)]
     pub mcp_servers_config: McpServersConfig,
+    #[serde(default)]
+    pub stt_utility: SttUtilityPreferences,
 }
 
 impl Default for Preferences {
@@ -30,6 +32,7 @@ impl Default for Preferences {
             downloaded_files_dir: default_model_downloads_dir().to_path_buf(),
             providers_preferences: vec![],
             mcp_servers_config: McpServersConfig::new(),
+            stt_utility: SttUtilityPreferences::default(),
         }
     }
 }
@@ -198,6 +201,15 @@ impl Preferences {
         self.mcp_servers_config.dangerous_mode_enabled
     }
 
+    pub fn update_stt_utility(&mut self, config: SttUtilityPreferences) {
+        self.stt_utility = config;
+        self.save();
+    }
+
+    pub fn get_stt_utility(&self) -> &SttUtilityPreferences {
+        &self.stt_utility
+    }
+
     /// Migrate providers without IDs by generating them from URLs
     fn migrate_provider_ids(&mut self) {
         let mut needs_save = false;
@@ -290,4 +302,23 @@ impl ProviderPreferences {
 
 fn default_model_downloads_dir() -> &'static Path {
     Path::new("model_downloads")
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SttUtilityPreferences {
+    pub enabled: bool,
+    pub url: String,
+    pub api_key: Option<String>,
+    pub model_name: String,
+}
+
+impl Default for SttUtilityPreferences {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            url: "https://api.openai.com/v1".to_string(),
+            api_key: None,
+            model_name: "whisper-1".to_string(),
+        }
+    }
 }

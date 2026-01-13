@@ -16,6 +16,7 @@ use chrono::{DateTime, Utc};
 use makepad_widgets::{Action, ActionDefaultRef, DefaultNone};
 use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
+use moly_kit::widgets::chat::SttUtility;
 
 use super::providers::{Provider, ProviderConnectionStatus};
 use moly_protocol::data::{Author, File, FileId, Model, ModelId, PendingDownload};
@@ -540,6 +541,29 @@ impl Store {
         if self.bot_context.is_some() {
             self.bot_context = None;
         }
+    }
+
+    /// Creates an STT utility from preferences if enabled and configured
+    pub fn create_stt_utility(&self) -> Option<SttUtility> {
+        let stt_prefs = &self.preferences.stt_utility;
+
+        if !stt_prefs.enabled {
+            return None;
+        }
+
+        if stt_prefs.url.is_empty() || stt_prefs.model_name.is_empty() {
+            return None;
+        }
+
+        let mut client = OpenAiSttClient::new(stt_prefs.url.clone());
+        if let Some(ref key) = stt_prefs.api_key {
+            let _ = client.set_key(key);
+        }
+
+        Some(SttUtility {
+            client: Box::new(client),
+            bot_id: BotId::new(&stt_prefs.model_name, ""),
+        })
     }
 }
 
