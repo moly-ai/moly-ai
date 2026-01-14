@@ -21,17 +21,6 @@ live_design! {
     UTILITIES_MODAL_WIDTH = 500
     UTILITIES_MODAL_HEIGHT = 500
 
-    FormGroup = <View> {
-        width: Fill, height: Fit
-        flow: Down
-        spacing: 5
-
-        label = <ModalLabel> {}
-        input = <View> {
-            width: Fill, height: Fit
-        }
-    }
-
     ModalLabel = <Label> {
         width: Fill, height: Fit
         draw_text: {
@@ -102,7 +91,7 @@ live_design! {
             }
         }
 
-        draw_select: {
+        draw_selection: {
             instance hover: 0.0
             instance focus: 0.0
             uniform border_radius: 2.0
@@ -121,6 +110,17 @@ live_design! {
         }
 
         padding: {top: 11, right: 10, bottom: 11, left: 10}
+    }
+
+    FormGroup = <View> {
+        width: Fill, height: Fit
+        flow: Down
+        spacing: 5
+
+        label = <ModalLabel> {}
+        input = <View> {
+            width: Fill, height: Fit
+        }
     }
 
     pub UtilitiesModal = {{UtilitiesModal}} <RoundedView> {
