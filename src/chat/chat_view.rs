@@ -507,16 +507,18 @@ impl ChatView {
 
     fn configure_stt(&mut self, scope: &mut Scope, cx: &mut Cx) {
         let store = scope.data.get_mut::<Store>().unwrap();
-        if let Some(stt_config) = self.stt_config.pull(&store.preferences.stt_config) {
-            if !stt_config.enabled || stt_config.url.is_empty() {
+        if let Some(stt_config) = self.stt_config.pull(store.preferences.stt_config()) {
+            if !stt_config.enabled || stt_config.url.is_empty() || stt_config.model_name.is_empty()
+            {
                 self.chat(ids!(chat)).write().stt_utility = None;
                 self.redraw(cx);
                 return;
             }
 
             let mut stt_client = OpenAiSttClient::new(stt_config.url.clone());
-            if let Some(api_key) = stt_config.api_key.as_deref() {
-                let _ = stt_client.set_key(api_key);
+
+            if !stt_config.api_key.is_empty() {
+                let _ = stt_client.set_key(&stt_config.api_key);
             }
 
             let stt_utility = SttUtility {

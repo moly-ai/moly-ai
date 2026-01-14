@@ -211,29 +211,29 @@ impl WidgetMatchEvent for UtilitiesModal {
         }
 
         let store = scope.data.get_mut::<Store>().unwrap();
-        let stt_config = &mut store.preferences.stt_config;
+        let prefs = &mut store.preferences;
 
         if let Some(value) = self.check_box(ids!(enabled_toggle)).changed(actions) {
-            stt_config.update_and_notify(|config| {
+            prefs.update_stt_config(|config| {
                 config.enabled = value;
             });
         }
 
         if let Some(value) = self.text_input(ids!(url_input)).changed(actions) {
             ::log::debug!("STT URL changed to {}", value);
-            stt_config.update_and_notify(|config| {
+            prefs.update_stt_config(|config| {
                 config.url = value;
             });
         }
 
         if let Some(value) = self.text_input(ids!(api_key_input)).changed(actions) {
-            stt_config.update_and_notify(|config| {
-                config.api_key = if value.is_empty() { None } else { Some(value) };
+            prefs.update_stt_config(|config| {
+                config.api_key = value;
             });
         }
 
         if let Some(value) = self.text_input(ids!(model_input)).changed(actions) {
-            stt_config.update_and_notify(|config| {
+            prefs.update_stt_config(|config| {
                 config.model_name = value;
             });
         }
@@ -243,16 +243,15 @@ impl WidgetMatchEvent for UtilitiesModal {
 impl UtilitiesModal {
     fn pull(&mut self, cx: &mut Cx, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
-        if let Some(stt_config) = self.stt_config.pull(&store.preferences.stt_config) {
+        if let Some(stt_config) = self.stt_config.pull(store.preferences.stt_config()) {
             self.check_box(ids!(enabled_toggle))
                 .set_active(cx, stt_config.enabled);
 
             self.text_input(ids!(url_input))
                 .set_text(cx, &stt_config.url);
 
-            if let Some(ref api_key) = stt_config.api_key {
-                self.text_input(ids!(api_key_input)).set_text(cx, api_key);
-            }
+            self.text_input(ids!(api_key_input))
+                .set_text(cx, &stt_config.api_key);
 
             self.text_input(ids!(model_input))
                 .set_text(cx, &stt_config.model_name);

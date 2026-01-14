@@ -23,7 +23,7 @@ pub struct Preferences {
     #[serde(default)]
     pub mcp_servers_config: McpServersConfig,
     #[serde(default)]
-    pub stt_config: Versioned<SttConfig>,
+    stt_config: Versioned<SttConfig>,
 }
 
 impl Default for Preferences {
@@ -66,6 +66,18 @@ impl Preferences {
                 Err(e) => log::error!("Failed to write preferences file: {:?}", e),
             }
         });
+    }
+
+    pub fn stt_config(&self) -> &Versioned<SttConfig> {
+        &self.stt_config
+    }
+
+    pub fn update_stt_config<F>(&mut self, update_fn: F)
+    where
+        F: FnOnce(&mut SttConfig),
+    {
+        self.stt_config.update_and_notify(update_fn);
+        self.save();
     }
 
     pub fn set_current_chat_model(&mut self, bot_id: Option<BotId>) {
@@ -300,7 +312,7 @@ fn default_model_downloads_dir() -> &'static Path {
 pub struct SttConfig {
     pub enabled: bool,
     pub url: String,
-    pub api_key: Option<String>,
+    pub api_key: String,
     pub model_name: String,
 }
 
@@ -309,7 +321,7 @@ impl Default for SttConfig {
         Self {
             enabled: false,
             url: "https://api.openai.com/v1".to_string(),
-            api_key: None,
+            api_key: String::new(),
             model_name: "whisper-1".to_string(),
         }
     }
