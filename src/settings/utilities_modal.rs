@@ -18,103 +18,19 @@ live_design! {
 
     ICON_CLOSE = dep("crate://self/resources/icons/close.svg")
 
-    ModalLabel = <Label> {
-        width: Fill, height: Fit
-        draw_text: {
-            wrap: Word
-            text_style: <REGULAR_FONT>{font_size: 9},
-            color: #999
-        }
-    }
-
-    ModalTextInput = <TextInput> {
-        width: Fill, height: Fit
-
-        draw_bg: {
-            color: #fff
-            instance radius: 2.0
-            instance border_width: 0.0
-            instance border_color: #D0D5DD
-            instance inset: vec4(0.0, 0.0, 0.0, 0.0)
-
-            fn get_color(self) -> vec4 {
-                return self.color
-            }
-
-            fn get_border_color(self) -> vec4 {
-                return self.border_color
-            }
-
-            fn pixel(self) -> vec4 {
-                let sdf = Sdf2d::viewport(self.pos * self.rect_size)
-                sdf.box(
-                    self.inset.x + self.border_width,
-                    self.inset.y + self.border_width,
-                    self.rect_size.x - (self.inset.x + self.inset.z + self.border_width * 2.0),
-                    self.rect_size.y - (self.inset.y + self.inset.w + self.border_width * 2.0),
-                    max(1.0, self.radius)
-                )
-                sdf.fill_keep(self.get_color())
-                sdf.stroke(
-                    self.get_border_color(),
-                    self.border_width
-                )
-                return sdf.result;
-            }
-        }
-
-        draw_text: {
-            text_style: <REGULAR_FONT>{font_size: 10},
-
-            fn get_color(self) -> vec4 {
-                return #000
-            }
-        }
-
-        draw_cursor: {
-            instance focus: 0.0
-            uniform border_radius: 0.5
-            fn pixel(self) -> vec4 {
-                let sdf = Sdf2d::viewport(self.pos * self.rect_size);
-                sdf.box(
-                    0.,
-                    0.,
-                    self.rect_size.x,
-                    self.rect_size.y,
-                    self.border_radius
-                )
-                sdf.fill(mix(#fff, #bbb, self.focus));
-                return sdf.result
-            }
-        }
-
-        draw_selection: {
-            instance hover: 0.0
-            instance focus: 0.0
-            uniform border_radius: 2.0
-            fn pixel(self) -> vec4 {
-                let sdf = Sdf2d::viewport(self.pos * self.rect_size);
-                sdf.box(
-                    0.,
-                    0.,
-                    self.rect_size.x,
-                    self.rect_size.y,
-                    self.border_radius
-                )
-                sdf.fill(mix(#eee, #ddd, self.focus));
-                return sdf.result
-            }
-        }
-
-        padding: {top: 11, right: 10, bottom: 11, left: 10}
-    }
-
     FormGroup = <View> {
         width: Fill, height: Fit
         flow: Down
         spacing: 5
 
-        label = <ModalLabel> {}
+        label = <Label> {
+            width: Fill, height: Fit
+            draw_text: {
+                wrap: Word
+                text_style: <REGULAR_FONT>{font_size: 9},
+                color: #999
+            }
+        }
         input = <View> {
             width: Fill, height: Fit
         }
@@ -127,14 +43,11 @@ live_design! {
         show_bg: true
         draw_bg: {
             color: #fff
+            border_radius: 3.0
         }
 
         padding: 25
-        spacing: 20
-
-        draw_bg: {
-            border_radius: 3.0
-        }
+        spacing: 10
 
         header = <View> {
             width: Fill, height: Fit
@@ -165,21 +78,13 @@ live_design! {
                         return #000;
                     }
                 }
-                draw_bg: {
-                    instance pressed: 0.0
-                    instance hover: 0.0
-                    fn pixel(self) -> vec4 {
-                        let sdf = Sdf2d::viewport(self.pos * self.rect_size);
-                        return sdf.result
-                    }
-                }
             }
         }
 
         body = <View> {
             width: Fill, height: Fit
             flow: Down
-            spacing: 20
+            spacing: 10
 
             <Label> {
                 width: Fill, height: Fit
@@ -194,10 +99,6 @@ live_design! {
             enabled_toggle = <CheckBox> {
                 width: Fill, height: Fit
                 label_walk: {margin: {left: 20}}
-                // draw_check: {
-                //     check_type: Toggle,
-                //     color_active: #0
-                // }
 
                 draw_text: {
                     text_style: <REGULAR_FONT>{font_size: 10},
@@ -209,35 +110,71 @@ live_design! {
             }
 
             url_group = <FormGroup> {
-                label = <ModalLabel> {
+                label = {
                     text: "API Host"
                 }
                 input = {
-                    url_input2 = <ModalTextInput> {
+                    url_input = <MolyTextInput> {
+                        width: Fill, height: Fit
                         empty_text: "https://api.openai.com/v1"
+                        padding: {top: 10, bottom: 10, left: 10, right: 10}
+                        draw_bg: {
+                            color: #fff
+                            border_size: 1.0
+                            border_color_1: #D0D5DD
+                            border_radius: 2.0
+                        }
+                        draw_text: {
+                            text_style: <REGULAR_FONT>{font_size: 10},
+                            color: #000
+                        }
                     }
                 }
             }
 
             api_key_group = <FormGroup> {
-                label = <ModalLabel> {
+                label = {
                     text: "API Key (optional)"
                 }
                 input = {
-                    api_key_input = <ModalTextInput> {
+                    api_key_input = <MolyTextInput> {
+                        width: Fill, height: Fit
                         is_password: true
                         empty_text: "sk-..."
+                        padding: {top: 10, bottom: 10, left: 10, right: 10}
+                        draw_bg: {
+                            color: #fff
+                            border_size: 1.0
+                            border_color_1: #D0D5DD
+                            border_radius: 2.0
+                        }
+                        draw_text: {
+                            text_style: <REGULAR_FONT>{font_size: 10},
+                            color: #000
+                        }
                     }
                 }
             }
 
             model_group = <FormGroup> {
-                label = <ModalLabel> {
+                label = {
                     text: "Model Name"
                 }
                 input = {
-                    model_input = <ModalTextInput> {
+                    model_input = <MolyTextInput> {
+                        width: Fill, height: Fit
                         empty_text: "whisper-1"
+                        padding: {top: 10, bottom: 10, left: 10, right: 10}
+                         draw_bg: {
+                            color: #fff
+                            border_size: 1.0
+                            border_color_1: #D0D5DD
+                            border_radius: 2.0
+                        }
+                         draw_text: {
+                            text_style: <REGULAR_FONT>{font_size: 10},
+                            color: #000
+                        }
                     }
                 }
             }
@@ -282,7 +219,7 @@ impl WidgetMatchEvent for UtilitiesModal {
             });
         }
 
-        if let Some(value) = self.text_input(ids!(url_input2)).changed(actions) {
+        if let Some(value) = self.text_input(ids!(url_input)).changed(actions) {
             ::log::debug!("STT URL changed to {}", value);
             stt_config.update_and_notify(|config| {
                 config.url = value;
@@ -310,7 +247,7 @@ impl UtilitiesModal {
             self.check_box(ids!(enabled_toggle))
                 .set_active(cx, stt_config.enabled);
 
-            self.text_input(ids!(url_input2))
+            self.text_input(ids!(url_input))
                 .set_text(cx, &stt_config.url);
 
             if let Some(ref api_key) = stt_config.api_key {
