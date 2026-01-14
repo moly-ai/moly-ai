@@ -217,7 +217,7 @@ mod tests {
         assert_eq!(std::mem::size_of::<Version>(), std::mem::size_of::<u64>());
         assert_eq!(
             std::mem::size_of::<Option<Version>>(),
-            std::mem::size_of::<u64>()
+            std::mem::size_of::<Version>()
         );
     }
 
