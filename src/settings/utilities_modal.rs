@@ -1,7 +1,6 @@
-use makepad_widgets::*;
-
-use crate::data::preferences::SttUtilityPreferences;
 use crate::data::store::Store;
+use crate::shared::utils::version::{Pull, Version};
+use makepad_widgets::*;
 
 #[derive(Clone, DefaultNone, Debug)]
 pub enum UtilitiesModalAction {
@@ -173,49 +172,6 @@ live_design! {
                     }
                 }
             }
-
-            save_button = <MolyButton> {
-                width: Fill, height: Fit
-                margin: {top: 10}
-                padding: {top: 14, bottom: 14, left: 10, right: 10}
-
-                draw_bg: {
-                    instance background_color: #099250
-                    instance border_color: #099250
-                    instance border_width: 1.2
-                    instance radius: 3.0
-
-                    fn get_bg_color(self) -> vec4 {
-                        return self.background_color
-                    }
-
-                    fn pixel(self) -> vec4 {
-                        let sdf = Sdf2d::viewport(self.pos * self.rect_size)
-                        sdf.box(
-                            1,
-                            1,
-                            self.rect_size.x - 2,
-                            self.rect_size.y - 2,
-                            self.radius
-                        )
-                        sdf.fill_keep(self.get_bg_color())
-                        sdf.stroke(
-                            self.border_color,
-                            self.border_width
-                        )
-                        return sdf.result
-                    }
-                }
-
-                draw_text: {
-                    text_style: <REGULAR_FONT>{font_size: 10},
-                    fn get_color(self) -> vec4 {
-                        return #fff
-                    }
-                }
-
-                text: "Save"
-            }
         }
     }
 
@@ -328,21 +284,17 @@ pub struct UtilitiesModal {
     view: View,
 
     #[rust]
-    initialized: bool,
+    stt_config: Option<Version>,
 }
 
 impl Widget for UtilitiesModal {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.view.handle_event(cx, event, scope);
         self.widget_match_event(cx, event, scope);
+        self.pull(cx, scope);
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        if !self.initialized {
-            self.initialized = true;
-            self.load_settings(scope, cx);
-        }
-
         self.view.draw_walk(cx, scope, walk)
     }
 }
@@ -353,51 +305,47 @@ impl WidgetMatchEvent for UtilitiesModal {
             cx.action(UtilitiesModalAction::ModalDismissed);
         }
 
-        if self.button(ids!(save_button)).clicked(actions) {
-            self.save_settings(scope, cx);
-            cx.action(UtilitiesModalAction::ModalDismissed);
+        let store = scope.data.get_mut::<Store>().unwrap();
+        let stt_config = &mut store.preferences.stt_config;
+
+        if let Some(value) = self.check_box(ids!(enabled_toggle)).changed(actions) {
+            stt_config.update_and_notify(|config| {
+                config.enabled = value;
+            });
+        }
+
+        if let Some(value) = self.text_input(ids!(url_input)).changed(actions) {
+            stt_config.update_and_notify(|config| {
+                config.url = value;
+            });
+        }
+
+        if let Some(value) = self.text_input(ids!(api_key_input)).changed(actions) {
+            stt_config.update_and_notify(|config| {
+                config.api_key = if value.is_empty() { None } else { Some(value) };
+            });
         }
     }
 }
 
 impl UtilitiesModal {
-    fn load_settings(&mut self, scope: &mut Scope, cx: &mut Cx) {
+    fn pull(&mut self, cx: &mut Cx, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
-        let stt_prefs = store.preferences.get_stt_utility();
+        if let Some(stt_config) = self.stt_config.pull(&store.preferences.stt_config) {
+            self.check_box(ids!(enabled_toggle))
+                .set_active(cx, stt_config.enabled);
 
-        self.check_box(ids!(enabled_toggle))
-            .set_active(cx, stt_prefs.enabled);
+            self.text_input(ids!(url_input))
+                .set_text(cx, &stt_config.url);
 
-        self.text_input(ids!(url_input))
-            .set_text(cx, &stt_prefs.url);
+            if let Some(ref api_key) = stt_config.api_key {
+                self.text_input(ids!(api_key_input)).set_text(cx, api_key);
+            }
 
-        if let Some(ref api_key) = stt_prefs.api_key {
-            self.text_input(ids!(api_key_input)).set_text(cx, api_key);
+            self.text_input(ids!(model_input))
+                .set_text(cx, &stt_config.model_name);
+
+            self.redraw(cx);
         }
-
-        self.text_input(ids!(model_input))
-            .set_text(cx, &stt_prefs.model_name);
-    }
-
-    fn save_settings(&mut self, scope: &mut Scope, cx: &mut Cx) {
-        let enabled = self.check_box(ids!(enabled_toggle)).active(cx);
-        let url = self.text_input(ids!(url_input)).text();
-        let api_key_text = self.text_input(ids!(api_key_input)).text();
-        let api_key = if api_key_text.is_empty() {
-            None
-        } else {
-            Some(api_key_text)
-        };
-        let model_name = self.text_input(ids!(model_input)).text();
-
-        let config = SttUtilityPreferences {
-            enabled,
-            url,
-            api_key,
-            model_name,
-        };
-
-        let store = scope.data.get_mut::<Store>().unwrap();
-        store.preferences.update_stt_utility(config);
     }
 }

@@ -11,6 +11,7 @@ use crate::shared::utils::attachments::{
     delete_attachment, generate_persistence_key, set_persistence_key_and_reader,
     write_attachment_to_key,
 };
+use crate::shared::utils::version::{Pull, Version};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 
@@ -157,7 +158,7 @@ pub struct ChatView {
     initial_bot_synced: bool,
 
     #[rust]
-    prev_stt_config: Option<String>,
+    stt_config: Option<Version>,
 }
 
 impl LiveHook for ChatView {
@@ -504,29 +505,27 @@ impl ChatView {
         }
     }
 
-    /// Configures the STT utility from Store preferences.
-    ///
-    /// STT configuration is independent of bot_context since it's a utility
-    /// used by the chat interface, not a conversational bot.
-    ///
-    /// Configuration is only updated when settings change (detected via hash).
     fn configure_stt(&mut self, scope: &mut Scope, cx: &mut Cx) {
         let store = scope.data.get_mut::<Store>().unwrap();
+        if let Some(stt_config) = self.stt_config.pull(&store.preferences.stt_config) {
+            if !stt_config.enabled || stt_config.url.is_empty() {
+                self.chat(ids!(chat)).write().stt_utility = None;
+                self.redraw(cx);
+                return;
+            }
 
-        // Create hash of current STT configuration for change detection
-        let current_stt_hash = format!(
-            "{}:{}:{}:{}",
-            store.preferences.stt_utility.enabled,
-            store.preferences.stt_utility.url,
-            store.preferences.stt_utility.api_key.as_deref().unwrap_or(""),
-            store.preferences.stt_utility.model_name
-        );
+            let mut stt_client = OpenAiSttClient::new(stt_config.url.clone());
+            if let Some(api_key) = stt_config.api_key.as_deref() {
+                let _ = stt_client.set_key(api_key);
+            }
 
-        // Only reconfigure if settings changed
-        if self.prev_stt_config.as_ref() != Some(&current_stt_hash) {
-            self.prev_stt_config = Some(current_stt_hash);
-            self.chat(ids!(chat)).write().stt_utility = store.create_stt_utility();
-            // Redraw to update UI (STT button visibility)
+            let stt_utility = SttUtility {
+                client: Box::new(stt_client),
+                bot_id: BotId::new(&stt_config.model_name, &stt_config.url),
+            };
+
+            self.chat(ids!(chat)).write().stt_utility = Some(stt_utility);
+
             self.redraw(cx);
         }
     }

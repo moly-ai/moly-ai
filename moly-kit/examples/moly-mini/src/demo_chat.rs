@@ -325,7 +325,7 @@ impl DemoChat {
             let _ = client.set_key(key);
             chat.write().stt_utility = Some(SttUtility {
                 client: Box::new(client),
-                bot_id: BotId::new("whisper-1", ""),
+                bot_id: BotId::new("gpt-4o-transcribe", ""),
             });
         }
     }

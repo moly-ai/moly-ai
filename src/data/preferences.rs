@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 
 use crate::data::providers::ProviderId;
 use crate::shared::utils::filesystem;
+use crate::shared::utils::version::Versioned;
 
 use super::mcp_servers::McpServersConfig;
 use super::providers::{Provider, ProviderType};
@@ -22,7 +23,7 @@ pub struct Preferences {
     #[serde(default)]
     pub mcp_servers_config: McpServersConfig,
     #[serde(default)]
-    pub stt_utility: SttUtilityPreferences,
+    pub stt_config: Versioned<SttConfig>,
 }
 
 impl Default for Preferences {
@@ -32,7 +33,7 @@ impl Default for Preferences {
             downloaded_files_dir: default_model_downloads_dir().to_path_buf(),
             providers_preferences: vec![],
             mcp_servers_config: McpServersConfig::new(),
-            stt_utility: SttUtilityPreferences::default(),
+            stt_config: Versioned::default(),
         }
     }
 }
@@ -201,15 +202,6 @@ impl Preferences {
         self.mcp_servers_config.dangerous_mode_enabled
     }
 
-    pub fn update_stt_utility(&mut self, config: SttUtilityPreferences) {
-        self.stt_utility = config;
-        self.save();
-    }
-
-    pub fn get_stt_utility(&self) -> &SttUtilityPreferences {
-        &self.stt_utility
-    }
-
     /// Migrate providers without IDs by generating them from URLs
     fn migrate_provider_ids(&mut self) {
         let mut needs_save = false;
@@ -305,14 +297,14 @@ fn default_model_downloads_dir() -> &'static Path {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct SttUtilityPreferences {
+pub struct SttConfig {
     pub enabled: bool,
     pub url: String,
     pub api_key: Option<String>,
     pub model_name: String,
 }
 
-impl Default for SttUtilityPreferences {
+impl Default for SttConfig {
     fn default() -> Self {
         Self {
             enabled: false,
