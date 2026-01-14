@@ -52,6 +52,16 @@ impl Widget for StandardMessageContent {
     }
 }
 
+/// Converts LaTeX bracket math delimiters to dollar-sign delimiters.
+/// - `\(...\)` → `$...$` (inline math)
+/// - `\[...\]` → `$$...$$` (display math)
+fn convert_math_delimiters(text: &str) -> String {
+    text.replace(r"\(", "$")
+        .replace(r"\)", "$")
+        .replace(r"\[", "$$")
+        .replace(r"\]", "$$")
+}
+
 impl StandardMessageContent {
     fn set_content_impl(
         &mut self,
@@ -92,12 +102,12 @@ impl StandardMessageContent {
 
         if metadata.is_writing() {
             let text_with_typing = format!("{} {}", content.text, TYPING_INDICATOR);
-            markdown.set_text(cx, &text_with_typing);
+            markdown.set_text(cx, &convert_math_delimiters(&text_with_typing));
         } else if !content.tool_calls.is_empty() {
             let tool_calls_text = Self::generate_tool_calls_text(content);
-            markdown.set_text(cx, &tool_calls_text);
+            markdown.set_text(cx, &convert_math_delimiters(&tool_calls_text));
         } else {
-            markdown.set_text(cx, &content.text);
+            markdown.set_text(cx, &convert_math_delimiters(&content.text));
         }
     }
 
