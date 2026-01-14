@@ -18,9 +18,6 @@ live_design! {
 
     ICON_CLOSE = dep("crate://self/resources/icons/close.svg")
 
-    UTILITIES_MODAL_WIDTH = 500
-    UTILITIES_MODAL_HEIGHT = 500
-
     ModalLabel = <Label> {
         width: Fill, height: Fit
         draw_text: {
@@ -125,8 +122,8 @@ live_design! {
 
     pub UtilitiesModal = {{UtilitiesModal}} <RoundedView> {
         flow: Down
-        width: (UTILITIES_MODAL_WIDTH)
-        height: (UTILITIES_MODAL_HEIGHT)
+        width: 500
+        height: Fit
         show_bg: true
         draw_bg: {
             color: #fff
