@@ -22,160 +22,6 @@ live_design! {
     UTILITIES_MODAL_HEIGHT = 500
 
     FormGroup = <View> {
-        flow: Down
-        height: Fit
-        spacing: 10
-        align: {x: 0.0, y: 0.5}
-    }
-
-    ModalTextInput = <MolyTextInput> {
-        draw_bg: {
-            border_size: 1.0
-            border_color: #ddd
-        }
-        draw_text: {
-            text_style: <REGULAR_FONT>{font_size: 12},
-            color: #000
-            color_hover: #000
-            color_focus: #000
-            color_empty: #98A2B3
-            color_empty_focus: #98A2B3
-        }
-        width: Fill, height: Fit
-    }
-
-    ModalLabel = <Label> {
-        draw_text: {
-            text_style: <REGULAR_FONT>{font_size: 12},
-            color: #000
-        }
-    }
-
-    pub UtilitiesModal = {{UtilitiesModal}} <RoundedView> {
-        flow: Down
-        width: (UTILITIES_MODAL_WIDTH)
-        height: (UTILITIES_MODAL_HEIGHT)
-        show_bg: true
-        draw_bg: {
-            color: #fff
-        }
-
-        padding: 25
-        spacing: 20
-
-        draw_bg: {
-            border_radius: 3.0
-        }
-
-        header = <View> {
-            width: Fill, height: Fit
-            flow: Right
-            spacing: 10
-            align: {x: 0.0, y: 0.5}
-
-            title = <View> {
-                width: Fill, height: Fit
-
-                title_label = <Label> {
-                    width: Fill, height: Fit
-                    draw_text: {
-                        wrap: Word
-                        text_style: <BOLD_FONT>{font_size: 13},
-                        color: #000
-                    }
-                    text: "Utilities"
-                }
-            }
-
-            close_button = <MolyButton> {
-                width: Fit, height: Fit
-                icon_walk: {width: 14, height: Fit}
-                draw_icon: {
-                    svg_file: (ICON_CLOSE),
-                    fn get_color(self) -> vec4 {
-                        return #000;
-                    }
-                }
-                draw_bg: {
-                    instance pressed: 0.0
-                    instance hover: 0.0
-                    fn pixel(self) -> vec4 {
-                        let sdf = Sdf2d::viewport(self.pos * self.rect_size);
-                        return sdf.result
-                    }
-                }
-            }
-        }
-
-        body = <View> {
-            width: Fill, height: Fit
-            flow: Down
-            spacing: 20
-
-            <Label> {
-                width: Fill, height: Fit
-                draw_text: {
-                    wrap: Word
-                    text_style: <BOLD_FONT>{font_size: 11},
-                    color: #666
-                }
-                text: "Speech to Text (STT)"
-            }
-
-            enabled_toggle = <CheckBox> {
-                width: Fill, height: Fit
-                label_walk: {margin: {left: 20}}
-                // draw_check: {
-                //     check_type: Toggle,
-                //     color_active: #0
-                // }
-
-                draw_text: {
-                    text_style: <REGULAR_FONT>{font_size: 10},
-                    fn get_color(self) -> vec4 {
-                        return #000
-                    }
-                }
-                text: "Enable STT"
-            }
-
-            url_group = <FormGroup> {
-                label = <ModalLabel> {
-                    text: "API Host"
-                }
-                input = <ModalTextInput> {
-                    url_input = <ModalTextInput> {
-                        empty_text: "https://api.openai.com/v1"
-                    }
-                }
-            }
-
-            api_key_group = <FormGroup> {
-                label = <ModalLabel> {
-                    text: "API Key (optional)"
-                }
-                input = <ModalTextInput> {
-                    api_key_input = <ModalTextInput> {
-                        is_password: true
-                        empty_text: "sk-..."
-                    }
-                }
-            }
-
-            model_group = <FormGroup> {
-                label = <ModalLabel> {
-                    text: "Model Name"
-                }
-                input = <ModalTextInput> {
-                    model_input = <ModalTextInput> {
-                        empty_text: "whisper-1"
-                    }
-                }
-            }
-        }
-    }
-
-    FormGroup = <View> {
         width: Fill, height: Fit
         flow: Down
         spacing: 5
@@ -276,6 +122,131 @@ live_design! {
 
         padding: {top: 11, right: 10, bottom: 11, left: 10}
     }
+
+    pub UtilitiesModal = {{UtilitiesModal}} <RoundedView> {
+        flow: Down
+        width: (UTILITIES_MODAL_WIDTH)
+        height: (UTILITIES_MODAL_HEIGHT)
+        show_bg: true
+        draw_bg: {
+            color: #fff
+        }
+
+        padding: 25
+        spacing: 20
+
+        draw_bg: {
+            border_radius: 3.0
+        }
+
+        header = <View> {
+            width: Fill, height: Fit
+            flow: Right
+            spacing: 10
+            align: {x: 0.0, y: 0.5}
+
+            title = <View> {
+                width: Fill, height: Fit
+
+                title_label = <Label> {
+                    width: Fill, height: Fit
+                    draw_text: {
+                        wrap: Word
+                        text_style: <BOLD_FONT>{font_size: 13},
+                        color: #000
+                    }
+                    text: "Utilities"
+                }
+            }
+
+            close_button = <MolyButton> {
+                width: Fit, height: Fit
+                icon_walk: {width: 14, height: Fit}
+                draw_icon: {
+                    svg_file: (ICON_CLOSE),
+                    fn get_color(self) -> vec4 {
+                        return #000;
+                    }
+                }
+                draw_bg: {
+                    instance pressed: 0.0
+                    instance hover: 0.0
+                    fn pixel(self) -> vec4 {
+                        let sdf = Sdf2d::viewport(self.pos * self.rect_size);
+                        return sdf.result
+                    }
+                }
+            }
+        }
+
+        body = <View> {
+            width: Fill, height: Fit
+            flow: Down
+            spacing: 20
+
+            <Label> {
+                width: Fill, height: Fit
+                draw_text: {
+                    wrap: Word
+                    text_style: <BOLD_FONT>{font_size: 11},
+                    color: #666
+                }
+                text: "Speech to Text (STT)"
+            }
+
+            enabled_toggle = <CheckBox> {
+                width: Fill, height: Fit
+                label_walk: {margin: {left: 20}}
+                // draw_check: {
+                //     check_type: Toggle,
+                //     color_active: #0
+                // }
+
+                draw_text: {
+                    text_style: <REGULAR_FONT>{font_size: 10},
+                    fn get_color(self) -> vec4 {
+                        return #000
+                    }
+                }
+                text: "Enable STT"
+            }
+
+            url_group = <FormGroup> {
+                label = <ModalLabel> {
+                    text: "API Host"
+                }
+                input = {
+                    url_input2 = <ModalTextInput> {
+                        empty_text: "https://api.openai.com/v1"
+                    }
+                }
+            }
+
+            api_key_group = <FormGroup> {
+                label = <ModalLabel> {
+                    text: "API Key (optional)"
+                }
+                input = {
+                    api_key_input = <ModalTextInput> {
+                        is_password: true
+                        empty_text: "sk-..."
+                    }
+                }
+            }
+
+            model_group = <FormGroup> {
+                label = <ModalLabel> {
+                    text: "Model Name"
+                }
+                input = {
+                    model_input = <ModalTextInput> {
+                        empty_text: "whisper-1"
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 #[derive(Live, Widget, LiveHook)]
@@ -314,7 +285,8 @@ impl WidgetMatchEvent for UtilitiesModal {
             });
         }
 
-        if let Some(value) = self.text_input(ids!(url_input)).changed(actions) {
+        if let Some(value) = self.text_input(ids!(url_input2)).changed(actions) {
+            ::log::debug!("STT URL changed to {}", value);
             stt_config.update_and_notify(|config| {
                 config.url = value;
             });
@@ -323,6 +295,12 @@ impl WidgetMatchEvent for UtilitiesModal {
         if let Some(value) = self.text_input(ids!(api_key_input)).changed(actions) {
             stt_config.update_and_notify(|config| {
                 config.api_key = if value.is_empty() { None } else { Some(value) };
+            });
+        }
+
+        if let Some(value) = self.text_input(ids!(model_input)).changed(actions) {
+            stt_config.update_and_notify(|config| {
+                config.model_name = value;
             });
         }
     }
@@ -335,7 +313,7 @@ impl UtilitiesModal {
             self.check_box(ids!(enabled_toggle))
                 .set_active(cx, stt_config.enabled);
 
-            self.text_input(ids!(url_input))
+            self.text_input(ids!(url_input2))
                 .set_text(cx, &stt_config.url);
 
             if let Some(ref api_key) = stt_config.api_key {
