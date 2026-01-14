@@ -38,7 +38,6 @@ impl Version {
     /// This is called automatically by [`Versioned<T>`] when its data is changed.
     /// This method may not be relevant if you are already using [`Versioned<T>`].
     pub fn bump(&mut self) {
-        ::log::debug!("Bumping version from {}", self.0);
         self.0 = NonZeroU64::new(self.0.get().wrapping_add(1)).unwrap();
     }
 }

@@ -220,7 +220,6 @@ impl WidgetMatchEvent for UtilitiesModal {
         }
 
         if let Some(value) = self.text_input(ids!(url_input)).changed(actions) {
-            ::log::debug!("STT URL changed to {}", value);
             prefs.update_stt_config(|config| {
                 config.url = value;
             });
