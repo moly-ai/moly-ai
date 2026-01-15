@@ -140,7 +140,7 @@ impl AttachmentView {
                 if self.attachment.is_image() {
                     icon.set_text(cx, "\u{f03e}");
                     self.try_load_preview();
-                } else if self.attachment.is_text() {
+                } else if is_text_attachment(&self.attachment) {
                     icon.set_text(cx, "\u{f15c}");
                     self.try_load_text_preview();
                 } else {
@@ -301,9 +301,18 @@ fn preview_color() -> Vec4 {
     hex_rgb_color(0x00a63e)
 }
 
+/// Check if an attachment is a text file based on its content type.
+pub fn is_text_attachment(attachment: &Attachment) -> bool {
+    attachment
+        .content_type
+        .as_deref()
+        .map(|ct| ct.starts_with("text/"))
+        .unwrap_or(false)
+}
+
 /// If this widget could generate a preview for the attachment.
 pub fn can_preview(attachment: &Attachment) -> bool {
     attachment.is_available()
         && (crate::widgets::image_view::can_load(attachment.content_type_or_octet_stream())
-            || attachment.is_text())
+            || is_text_attachment(attachment))
 }

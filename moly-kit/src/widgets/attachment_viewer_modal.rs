@@ -2,7 +2,7 @@ use makepad_widgets::*;
 
 use crate::aitk::protocol::*;
 use crate::utils::makepad::events::EventExt;
-use crate::widgets::attachment_view::AttachmentViewWidgetExt;
+use crate::widgets::attachment_view::{AttachmentViewWidgetExt, is_text_attachment};
 use crate::widgets::moly_modal::{MolyModalRef, MolyModalWidgetExt};
 
 live_design! {
@@ -91,9 +91,9 @@ impl Widget for AttachmentViewerModal {
 impl AttachmentViewerModal {
     pub fn open(&mut self, cx: &mut Cx, attachment: Attachment) {
         self.current_attachment = Some(attachment.clone());
-        self.modal_ref().open(cx);
+        self.modal_ref().open_as_dialog(cx);
 
-        if attachment.is_text() {
+        if is_text_attachment(&attachment) {
             self.view(ids!(attachment)).set_visible(cx, false);
             self.view(ids!(text_viewer)).set_visible(cx, true);
             self.load_text_content(attachment);
