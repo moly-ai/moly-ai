@@ -41,6 +41,18 @@ live_design! {
             image = <ImageView> {contain: true}
         }
 
+        text_preview_wrapper = <View> {
+            padding: 8,
+            text_preview = <Label> {
+                text: "",
+                draw_text: {
+                    color: #333,
+                    text_style: {font_size: 9, line_spacing: 1.3},
+                    wrap: Word
+                }
+            }
+        }
+
         tag_wrapper = <View> {
             visible: false,
             align: {x: 1}
@@ -101,6 +113,7 @@ impl AttachmentView {
 
             self.icon_wrapper_ref().set_visible(cx, true);
             self.image_wrapper_ref().set_visible(cx, false);
+            self.text_preview_wrapper_ref().set_visible(cx, false);
 
             tag_label.set_text(
                 cx,
@@ -127,6 +140,9 @@ impl AttachmentView {
                 if self.attachment.is_image() {
                     icon.set_text(cx, "\u{f03e}");
                     self.try_load_preview();
+                } else if self.attachment.is_text() {
+                    icon.set_text(cx, "\u{f15c}");
+                    self.try_load_text_preview();
                 } else {
                     icon.set_text(cx, "\u{f15b}");
                 }
@@ -168,6 +184,10 @@ impl AttachmentView {
 
     fn tag_bg_ref(&self) -> ViewRef {
         self.view(ids!(tag_bg))
+    }
+
+    fn text_preview_wrapper_ref(&self) -> ViewRef {
+        self.view(ids!(text_preview_wrapper))
     }
 
     fn try_load_preview(&mut self) {
@@ -222,6 +242,48 @@ impl AttachmentView {
             let _ = future.await;
         });
     }
+
+    fn try_load_text_preview(&mut self) {
+        let ui = self.ui_runner();
+        let attachment = self.attachment.clone();
+
+        let future = async move {
+            let Ok(content) = attachment.read().await else {
+                ::log::error!(
+                    "Failed to read text attachment {} for preview",
+                    attachment.name
+                );
+                return;
+            };
+
+            let text = String::from_utf8_lossy(&content);
+            let preview_text = text
+                .lines()
+                .take(4)
+                .collect::<Vec<_>>()
+                .join("\n");
+
+            ui.defer_with_redraw(move |me, cx, _| {
+                me.label(ids!(text_preview)).set_text(cx, &preview_text);
+                me.icon_wrapper_ref().set_visible(cx, false);
+                me.text_preview_wrapper_ref().set_visible(cx, true);
+                me.tag_bg_ref().apply_over(
+                    cx,
+                    live! {
+                        draw_bg: {
+                            color: (preview_color()),
+                        }
+                    },
+                );
+            });
+        };
+
+        let (future, abort_on_drop) = abort_on_drop(future);
+        self.abort_on_drop = Some(abort_on_drop);
+        spawn(async move {
+            let _ = future.await;
+        });
+    }
 }
 
 /// Red-ish to catch the attention.
@@ -242,5 +304,6 @@ fn preview_color() -> Vec4 {
 /// If this widget could generate a preview for the attachment.
 pub fn can_preview(attachment: &Attachment) -> bool {
     attachment.is_available()
-        && crate::widgets::image_view::can_load(attachment.content_type_or_octet_stream())
+        && (crate::widgets::image_view::can_load(attachment.content_type_or_octet_stream())
+            || attachment.is_text())
 }
