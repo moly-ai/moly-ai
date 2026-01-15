@@ -1,0 +1,61 @@
+name: Claude CI Auto-Fix
+
+on:
+  workflow_run:
+    workflows: ["Checks"]
+    types:
+      - completed
+
+jobs:
+  auto-fix:
+    if: |
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 1
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.89
+          components: rustfmt
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Get PR number
+        id: pr
+        run: |
+          PR_NUMBER=$(gh pr list --head ${{ github.event.workflow_run.head_branch }} --json number --jq '.[0].number')
+          echo "number=$PR_NUMBER" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Run Claude Code to fix CI failures
+        if: steps.pr.outputs.number != ''
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
+          prompt: |
+            The CI checks have failed for this PR. Please:
+            1. Check the CI workflow results to see what failed
+            2. Run `cargo fmt --all` to fix formatting issues
+            3. Run `cargo check --all-features` to identify compilation errors
+            4. Fix any issues found
+            5. Run the tests if needed with `cargo test --all-features`
+            6. Commit and push the fixes
+
+            PR: ${{ github.repository }}/pull/${{ steps.pr.outputs.number }}

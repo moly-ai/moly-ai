@@ -30,6 +30,15 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.89
+          components: rustfmt
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
@@ -40,8 +49,14 @@ jobs:
           additional_permissions: |
             actions: read
 
-          # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
-          # prompt: 'Update the pull request description to include a summary of changes.'
+          # Additional instructions for Claude
+          system_prompt: |
+            Before making any commits, you MUST:
+            1. Run `cargo fmt --all` to format the code
+            2. Run `cargo check --all-features` to verify compilation
+            3. Fix any formatting or compilation errors before committing
+
+            When CI checks fail on a PR, check the error output and fix the issues.
 
           # Optional: Add claude_args to customize behavior and configuration
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
