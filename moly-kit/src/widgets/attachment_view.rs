@@ -41,6 +41,35 @@ live_design! {
             image = <ImageView> {contain: true}
         }
 
+        text_preview_wrapper = <View> {
+            width: Fill,
+            height: Fill,
+            padding: 8,
+            text_preview = <Label> {
+                text: "",
+                draw_text: {
+                    color: #333,
+                    text_style: {font_size: 9, line_spacing: 1.3},
+                    wrap: Word
+                }
+            }
+        }
+
+        text_full_wrapper = <View> {
+            width: Fill,
+            height: Fill,
+            scroll_bars: {show_scroll_x: true, show_scroll_y: true}
+            text_full = <Label> {
+                text: "",
+                padding: 16,
+                draw_text: {
+                    color: #333,
+                    text_style: {font_size: 11, line_spacing: 1.4},
+                    wrap: Word
+                }
+            }
+        }
+
         tag_wrapper = <View> {
             visible: false,
             align: {x: 1}
@@ -65,6 +94,15 @@ live_design! {
     }
 }
 
+/// Display mode for text attachments
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TextDisplayMode {
+    /// Show a preview (first few lines) - used in message thumbnails
+    Preview,
+    /// Show full content with scrolling - used in modal viewer
+    Full,
+}
+
 #[derive(Live, Widget, LiveHook)]
 pub struct AttachmentView {
     #[deref]
@@ -75,6 +113,9 @@ pub struct AttachmentView {
 
     #[rust]
     abort_on_drop: Option<AbortOnDropHandle>,
+
+    #[rust]
+    text_display_mode: TextDisplayMode,
 }
 
 impl Widget for AttachmentView {
@@ -88,7 +129,18 @@ impl Widget for AttachmentView {
     }
 }
 
+impl Default for TextDisplayMode {
+    fn default() -> Self {
+        TextDisplayMode::Preview
+    }
+}
+
 impl AttachmentView {
+    /// Set the text display mode for text attachments
+    pub fn set_text_display_mode(&mut self, mode: TextDisplayMode) {
+        self.text_display_mode = mode;
+    }
+
     pub fn set_attachment(&mut self, cx: &mut Cx, attachment: Attachment) {
         // Only trigger stuff if attachment has changed.
         if self.attachment != attachment {
@@ -101,6 +153,8 @@ impl AttachmentView {
 
             self.icon_wrapper_ref().set_visible(cx, true);
             self.image_wrapper_ref().set_visible(cx, false);
+            self.text_preview_wrapper_ref().set_visible(cx, false);
+            self.text_full_wrapper_ref().set_visible(cx, false);
 
             tag_label.set_text(
                 cx,
@@ -126,7 +180,10 @@ impl AttachmentView {
             if self.attachment.is_available() {
                 if self.attachment.is_image() {
                     icon.set_text(cx, "\u{f03e}");
-                    self.try_load_preview();
+                    self.try_load_image_preview();
+                } else if is_text_attachment(&self.attachment) {
+                    icon.set_text(cx, "\u{f15c}");
+                    self.try_load_text();
                 } else {
                     icon.set_text(cx, "\u{f15b}");
                 }
@@ -170,7 +227,15 @@ impl AttachmentView {
         self.view(ids!(tag_bg))
     }
 
-    fn try_load_preview(&mut self) {
+    fn text_preview_wrapper_ref(&self) -> ViewRef {
+        self.view(ids!(text_preview_wrapper))
+    }
+
+    fn text_full_wrapper_ref(&self) -> ViewRef {
+        self.view(ids!(text_full_wrapper))
+    }
+
+    fn try_load_image_preview(&mut self) {
         // Not even try if not a supported image.
         if !crate::widgets::image_view::can_load(self.attachment.content_type_or_octet_stream()) {
             return;
@@ -222,6 +287,61 @@ impl AttachmentView {
             let _ = future.await;
         });
     }
+
+    fn try_load_text(&mut self) {
+        let ui = self.ui_runner();
+        let attachment = self.attachment.clone();
+        let display_mode = self.text_display_mode;
+
+        let future = async move {
+            let Ok(content) = attachment.read().await else {
+                ::log::error!(
+                    "Failed to read text attachment {} for preview",
+                    attachment.name
+                );
+                return;
+            };
+
+            let text = String::from_utf8_lossy(&content).into_owned();
+
+            ui.defer_with_redraw(move |me, cx, _| {
+                match display_mode {
+                    TextDisplayMode::Preview => {
+                        // Show first 4 lines for thumbnail preview
+                        let preview_text = text
+                            .lines()
+                            .take(4)
+                            .collect::<Vec<_>>()
+                            .join("\n");
+                        me.label(ids!(text_preview)).set_text(cx, &preview_text);
+                        me.icon_wrapper_ref().set_visible(cx, false);
+                        me.text_preview_wrapper_ref().set_visible(cx, true);
+                    }
+                    TextDisplayMode::Full => {
+                        // Show full content with scrolling for modal
+                        me.label(ids!(text_full)).set_text(cx, &text);
+                        me.icon_wrapper_ref().set_visible(cx, false);
+                        me.text_full_wrapper_ref().set_visible(cx, true);
+                    }
+                }
+
+                me.tag_bg_ref().apply_over(
+                    cx,
+                    live! {
+                        draw_bg: {
+                            color: (preview_color()),
+                        }
+                    },
+                );
+            });
+        };
+
+        let (future, abort_on_drop) = abort_on_drop(future);
+        self.abort_on_drop = Some(abort_on_drop);
+        spawn(async move {
+            let _ = future.await;
+        });
+    }
 }
 
 /// Red-ish to catch the attention.
@@ -239,8 +359,18 @@ fn preview_color() -> Vec4 {
     hex_rgb_color(0x00a63e)
 }
 
+/// Check if an attachment is a text file based on its content type.
+pub fn is_text_attachment(attachment: &Attachment) -> bool {
+    attachment
+        .content_type
+        .as_deref()
+        .map(|ct| ct.starts_with("text/"))
+        .unwrap_or(false)
+}
+
 /// If this widget could generate a preview for the attachment.
 pub fn can_preview(attachment: &Attachment) -> bool {
     attachment.is_available()
-        && crate::widgets::image_view::can_load(attachment.content_type_or_octet_stream())
+        && (crate::widgets::image_view::can_load(attachment.content_type_or_octet_stream())
+            || is_text_attachment(attachment))
 }

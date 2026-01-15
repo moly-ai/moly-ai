@@ -2,7 +2,7 @@ use makepad_widgets::*;
 
 use crate::aitk::protocol::*;
 use crate::utils::makepad::events::EventExt;
-use crate::widgets::attachment_view::AttachmentViewWidgetExt;
+use crate::widgets::attachment_view::{AttachmentViewWidgetExt, is_text_attachment, TextDisplayMode};
 use crate::widgets::moly_modal::{MolyModalRef, MolyModalWidgetExt};
 
 live_design! {
@@ -33,7 +33,10 @@ live_design! {
                         save = <Button> {text: "Save"}
                         close = <Button> {text: "X"}
                     }
-                    attachment = <AttachmentView> {}
+                    attachment = <AttachmentView> {
+                        width: Fill,
+                        height: Fill,
+                    }
                 }
             }
         }
@@ -44,6 +47,9 @@ live_design! {
 pub struct AttachmentViewerModal {
     #[deref]
     deref: View,
+
+    #[rust]
+    current_attachment: Option<Attachment>,
 }
 
 impl Widget for AttachmentViewerModal {
@@ -55,11 +61,9 @@ impl Widget for AttachmentViewerModal {
         self.deref.handle_event(cx, event, scope);
 
         if self.button(ids!(modal.save)).clicked(event.actions()) {
-            self.attachment_view(ids!(attachment))
-                .borrow()
-                .unwrap()
-                .get_attachment()
-                .save();
+            if let Some(attachment) = &self.current_attachment {
+                attachment.save();
+            }
         }
 
         if self.button(ids!(modal.close)).clicked(event.actions()) {
@@ -70,11 +74,18 @@ impl Widget for AttachmentViewerModal {
 
 impl AttachmentViewerModal {
     pub fn open(&mut self, cx: &mut Cx, attachment: Attachment) {
-        self.modal_ref().open(cx);
-        self.attachment_view(ids!(attachment))
-            .borrow_mut()
-            .unwrap()
-            .set_attachment(cx, attachment);
+        self.current_attachment = Some(attachment.clone());
+        self.modal_ref().open_as_dialog(cx);
+
+        let mut attachment_view = self.attachment_view(ids!(attachment));
+        let mut attachment_view_mut = attachment_view.borrow_mut().unwrap();
+
+        // Set display mode based on attachment type
+        if is_text_attachment(&attachment) {
+            attachment_view_mut.set_text_display_mode(TextDisplayMode::Full);
+        }
+
+        attachment_view_mut.set_attachment(cx, attachment);
     }
 
     pub fn close(&mut self, cx: &mut Cx) {
