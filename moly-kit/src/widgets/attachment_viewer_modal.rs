@@ -2,7 +2,7 @@ use makepad_widgets::*;
 
 use crate::aitk::protocol::*;
 use crate::utils::makepad::events::EventExt;
-use crate::widgets::attachment_view::{AttachmentViewWidgetExt, is_text_attachment};
+use crate::widgets::attachment_view::{AttachmentViewWidgetExt, is_text_attachment, TextDisplayMode};
 use crate::widgets::moly_modal::{MolyModalRef, MolyModalWidgetExt};
 
 live_design! {
@@ -33,25 +33,9 @@ live_design! {
                         save = <Button> {text: "Save"}
                         close = <Button> {text: "X"}
                     }
-                    attachment = <AttachmentView> {}
-                    text_viewer = <View> {
-                        visible: false,
+                    attachment = <AttachmentView> {
                         width: Fill,
                         height: Fill,
-                        text_scroll = <View> {
-                            width: Fill,
-                            height: Fill,
-                            scroll_bars: {show_scroll_x: true, show_scroll_y: true}
-                            text_content = <Label> {
-                                text: "",
-                                padding: 16,
-                                draw_text: {
-                                    color: #333,
-                                    text_style: {font_size: 11, line_spacing: 1.4},
-                                    wrap: Word
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -93,33 +77,15 @@ impl AttachmentViewerModal {
         self.current_attachment = Some(attachment.clone());
         self.modal_ref().open_as_dialog(cx);
 
+        let mut attachment_view = self.attachment_view(ids!(attachment));
+        let mut attachment_view_mut = attachment_view.borrow_mut().unwrap();
+
+        // Set display mode based on attachment type
         if is_text_attachment(&attachment) {
-            self.view(ids!(attachment)).set_visible(cx, false);
-            self.view(ids!(text_viewer)).set_visible(cx, true);
-            self.load_text_content(attachment);
-        } else {
-            self.view(ids!(attachment)).set_visible(cx, true);
-            self.view(ids!(text_viewer)).set_visible(cx, false);
-            self.attachment_view(ids!(attachment))
-                .borrow_mut()
-                .unwrap()
-                .set_attachment(cx, attachment);
+            attachment_view_mut.set_text_display_mode(TextDisplayMode::Full);
         }
-    }
 
-    fn load_text_content(&mut self, attachment: Attachment) {
-        let ui = self.ui_runner();
-        crate::aitk::utils::asynchronous::spawn(async move {
-            let Ok(content) = attachment.read().await else {
-                ::log::error!("Failed to read text attachment {}", attachment.name);
-                return;
-            };
-
-            let text = String::from_utf8_lossy(&content).into_owned();
-            ui.defer_with_redraw(move |me, cx, _| {
-                me.label(ids!(text_content)).set_text(cx, &text);
-            });
-        });
+        attachment_view_mut.set_attachment(cx, attachment);
     }
 
     pub fn close(&mut self, cx: &mut Cx) {
