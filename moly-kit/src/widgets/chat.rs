@@ -333,22 +333,35 @@ impl Chat {
                 .unwrap_or(false)
         {
             let text = prompt.text();
-            let attachments = prompt
+            let mut attachments = prompt
                 .read()
                 .attachment_list_ref()
                 .read()
                 .attachments
                 .clone();
 
-            if !text.is_empty() || !attachments.is_empty() {
+            const LONG_TEXT_THRESHOLD: usize = 2000;
+            let (final_text, final_attachments) = if text.len() > LONG_TEXT_THRESHOLD {
+                let text_attachment = Attachment::from_bytes(
+                    "pasted-text.txt".into(),
+                    Some("text/plain".into()),
+                    text.as_bytes(),
+                );
+                attachments.push(text_attachment);
+                (String::new(), attachments)
+            } else {
+                (text, attachments)
+            };
+
+            if !final_text.is_empty() || !final_attachments.is_empty() {
                 chat_controller
                     .lock()
                     .unwrap()
                     .dispatch_mutation(VecMutation::Push(Message {
                         from: EntityId::User,
                         content: MessageContent {
-                            text,
-                            attachments,
+                            text: final_text,
+                            attachments: final_attachments,
                             ..Default::default()
                         },
                         ..Default::default()
