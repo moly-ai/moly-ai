@@ -1,6 +1,12 @@
 //! Versioned data for fast change detection.
 //!
 //! Start reading at [`Versioned<T>`].
+//!
+//! The combination of [`Version`] and [`Versioned<T>`] is useful when dealing with
+//! data inside Moly's Store, as this allows fast and lightweight change detection
+//! against a single source of truth, and controlled data binding, where the store
+//! holds the [`Versioned<T>`] data, and widgets/components can hold an [`Option<Version>`],
+//! pulling new data when the source version is different, and pushing new data on input.
 
 use makepad_widgets::SignalToUI;
 use serde::{Deserialize, Serialize};
