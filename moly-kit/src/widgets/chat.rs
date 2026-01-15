@@ -81,8 +81,10 @@ impl Chat {
 
     fn handle_prompt_input(&mut self, cx: &mut Cx, event: &Event) {
         // Check for text changes (including paste) and convert long text to attachment
-        if let Some(new_text) = self.prompt_input_ref().read().text_input_ref().changed(event.actions()) {
-            const LONG_TEXT_THRESHOLD: usize = 2000;
+        const LONG_TEXT_THRESHOLD: usize = 2000;
+        let new_text = self.prompt_input_ref().read().text_input_ref().changed(event.actions());
+
+        if let Some(new_text) = new_text {
             if new_text.len() > LONG_TEXT_THRESHOLD {
                 let text_attachment = Attachment::from_bytes(
                     "pasted-text.txt".into(),
