@@ -71,7 +71,6 @@ dependencies = [
 [[package]]
 name = "aitk"
 version = "0.1.0"
-source = "git+https://github.com/moly-ai/aitk?rev=7c20045b#7c20045b777311e7ad774e90d819ecca0b885644"
 dependencies = [
  "async-stream",
  "base64",
@@ -3966,6 +3965,7 @@ dependencies = [
  "hyper-util",
  "js-sys",
  "log",
+ "mime_guess",
  "percent-encoding",
  "pin-project-lite",
  "quinn",

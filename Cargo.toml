@@ -178,5 +178,5 @@ codegen-units = 1 # Reduce number of codegen units to increase optimizations
 panic = 'abort'   # Abort on panic
 strip = true
 
-# [patch.'https://github.com/moly-ai/aitk']
-# aitk = { path = "../aitk" }
+[patch.'https://github.com/moly-ai/aitk']
+aitk = { path = "../aitk" }
