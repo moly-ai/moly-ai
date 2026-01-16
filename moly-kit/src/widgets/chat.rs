@@ -105,15 +105,18 @@ impl Chat {
     }
 
     fn handle_prompt_input(&mut self, cx: &mut Cx, event: &Event) {
-        if self.prompt_input_ref().read().submitted(event.actions()) {
+        let submitted = self.prompt_input_ref().read().submitted(event.actions());
+        if submitted {
             self.handle_submit(cx);
         }
 
-        if self.prompt_input_ref().read().call_pressed(event.actions()) {
+        let call_pressed = self.prompt_input_ref().read().call_pressed(event.actions());
+        if call_pressed {
             self.handle_call(cx);
         }
 
-        if self.prompt_input_ref().read().stt_pressed(event.actions()) {
+        let stt_pressed = self.prompt_input_ref().read().stt_pressed(event.actions());
+        if stt_pressed {
             self.prompt_input_ref().set_visible(cx, false);
             self.stt_input_ref().set_visible(cx, true);
             self.stt_input_ref().write().start_recording(cx);
@@ -122,7 +125,19 @@ impl Chat {
     }
 
     fn handle_stt_input_actions(&mut self, cx: &mut Cx, event: &Event) {
-        if let Some(transcription) = self.stt_input_ref().read().transcribed(event.actions()) {
+        // Most of the methods in the STT input return references, but since Makepad's
+        // widgets are RefCells, and `if` (and `if let`) statetments extend the lifetime
+        // of the values in their expressions, the program may crash under certain
+        // situations (difficult to explain since Makepad may borrow widgets even when
+        // querying). That's why values are stored in variables before the `if` expressions.
+
+        let transcription = self
+            .stt_input_ref()
+            .read()
+            .transcribed(event.actions())
+            .map(|s| s.to_string());
+
+        if let Some(transcription) = transcription {
             self.stt_input_ref().set_visible(cx, false);
             self.prompt_input_ref().set_visible(cx, true);
 
@@ -132,13 +147,14 @@ impl Chat {
             {
                 text.push(' ');
             }
-            text.push_str(transcription);
+            text.push_str(&transcription);
             self.prompt_input_ref().set_text(cx, &text);
 
             self.prompt_input_ref().redraw(cx);
         }
 
-        if self.stt_input_ref().read().cancelled(event.actions()) {
+        let cancelled = self.stt_input_ref().read().cancelled(event.actions());
+        if cancelled {
             self.stt_input_ref().set_visible(cx, false);
             self.prompt_input_ref().set_visible(cx, true);
             self.prompt_input_ref().redraw(cx);

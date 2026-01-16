@@ -2,6 +2,7 @@ use makepad_widgets::*;
 
 use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
+use moly_kit::widgets::stt_input::SttInputWidgetExt;
 
 use crate::data::chats::chat::ChatId;
 use crate::data::deep_inquire_client::DeepInquireCustomContent;
@@ -299,7 +300,7 @@ impl Widget for ChatView {
                     padding: {bottom: 50, left: 20, right: 20}
                 },
             );
-            self.chat(ids!(chat)).read().stt_input_ref().apply_over(
+            self.stt_input(ids!(chat.stt_input)).apply_over(
                 cx,
                 live! {
                     margin: {bottom: 50, left: 20, right: 20}
@@ -312,7 +313,7 @@ impl Widget for ChatView {
                     padding: {left: 10, right: 10, top: 8, bottom: 8}
                 },
             );
-            self.chat(ids!(chat)).read().stt_input_ref().apply_over(
+            self.stt_input(ids!(chat.stt_input)).apply_over(
                 cx,
                 live! {
                     margin: {left: 10, right: 10, top: 8, bottom: 8}
