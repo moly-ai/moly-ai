@@ -18,6 +18,24 @@ live_design! {
 
     ICON_CLOSE = dep("crate://self/resources/icons/close.svg")
 
+    IconButton = <Button> {
+        width: Fit, height: Fit
+        draw_text: {
+            text_style: <THEME_FONT_ICONS> {
+                font_size: 14.
+            }
+            color: #5,
+            color_hover: #2,
+            color_focus: #2
+            color_down: #5
+        }
+        draw_bg: {
+            color_down: #0000
+            border_radius: 7.
+            border_size: 0.
+        }
+    }
+
     FormGroup = <View> {
         width: Fill, height: Fit
         flow: Down
@@ -148,11 +166,15 @@ live_design! {
                     text: "API Key (optional)"
                 }
                 input = {
+                    flow: Right
+                    spacing: 5
+                    align: {x: 0.0, y: 0.5}
+
                     api_key_input = <MolyTextInput> {
-                        width: Fill, height: Fit
+                        width: Fill, height: 30
                         is_password: true
                         empty_text: "sk-..."
-                        padding: {top: 10, bottom: 10, left: 10, right: 10}
+                        padding: {top: 6, bottom: 6, left: 10, right: 10}
                         draw_bg: {
                             color: #fff
                             border_size: 1.0
@@ -163,6 +185,10 @@ live_design! {
                             text_style: <REGULAR_FONT>{font_size: 10},
                             color: #000
                         }
+                    }
+
+                    toggle_key_visibility = <IconButton> {
+                        text: "" // fa-eye
                     }
                 }
             }
@@ -176,13 +202,13 @@ live_design! {
                         width: Fill, height: Fit
                         empty_text: "whisper-1"
                         padding: {top: 10, bottom: 10, left: 10, right: 10}
-                         draw_bg: {
+                        draw_bg: {
                             color: #fff
                             border_size: 1.0
                             border_color_1: #D0D5DD
                             border_radius: 2.0
                         }
-                         draw_text: {
+                        draw_text: {
                             text_style: <REGULAR_FONT>{font_size: 10},
                             color: #000
                         }
@@ -240,6 +266,17 @@ impl WidgetMatchEvent for UtilitiesModal {
             prefs.update_stt_config(|config| {
                 config.api_key = value;
             });
+        }
+
+        if self.button(ids!(toggle_key_visibility)).clicked(actions) {
+            let api_key_input = self.text_input(ids!(api_key_input));
+            api_key_input.set_is_password(cx, !api_key_input.is_password());
+            if api_key_input.is_password() {
+                self.button(ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye-slash
+            } else {
+                self.button(ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye
+            }
+            self.redraw(cx);
         }
 
         if let Some(value) = self.text_input(ids!(model_input)).changed(actions) {
