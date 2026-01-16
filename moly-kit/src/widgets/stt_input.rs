@@ -1,8 +1,6 @@
 use crate::aitk::protocol::{Attachment, BotClient, BotId, EntityId, Message, MessageContent};
-use crate::aitk::utils::asynchronous::{AbortOnDropHandle, abort_on_drop, spawn};
-use crate::prelude::*;
+use crate::aitk::utils::asynchronous::{AbortOnDropHandle, spawn_abort_on_drop};
 use crate::utils::makepad::events::EventExt;
-use aitk::utils::asynchronous::spawn_abort_on_drop;
 use makepad_widgets::*;
 use std::sync::{Arc, Mutex};
 
@@ -19,15 +17,65 @@ live_design! {
 
     HorizontalFiller = <View>{width: Fill, height: 0}
 
-    pub SttInput = {{SttInput}} {
+    IconButton = <Button> {
+        width: Fit, height: Fit
+        padding: {top: 6, bottom: 6, left: 8, right: 8}
+        draw_text: {
+            text_style: <THEME_FONT_ICONS> {
+                font_size: 13.
+            }
+        }
+        draw_bg: {
+            border_radius: 8.
+            border_size: 0.
+        }
+    }
+
+    pub SttInput = {{SttInput}} <RoundedView> {
         flow: Right,
+        height: 50,
         align: {y: 0.5},
         spacing: 10,
-        cancel = <Button> { text: "Cancel" }
+        padding: 10,
+        draw_bg: {
+            border_radius: 12,
+            border_color: #8888,
+            border_size: 1.0,
+        }
+
+        cancel = <IconButton> {
+            text: "", // fa-xmark, unicode f00d
+            draw_text: {
+                color: #000,
+                color_hover: #000,
+                color_down: #000,
+                color_focus: #000,
+            }
+            draw_bg: {
+                color: #fff
+                color_hover: #fff
+                color_down: #fff
+                color_focus: #fff
+            }
+        }
         <HorizontalFiller> {}
-        status = <Label> { text: "Recording..." }
+        status = <Label> { text: "Recording...", draw_text: { color: #000, text_style: {font_size: 11}  } }
         <HorizontalFiller> {}
-        confirm = <Button> { text: "Confirm" }
+        confirm = <IconButton> {
+            text: "", // fa-check, unicode f00c
+            draw_text: {
+                color: #fff,
+                color_hover: #fff,
+                color_down: #fff,
+                color_focus: #fff,
+            }
+            draw_bg: {
+                color: #000
+                color_hover: #000
+                color_down: #000
+                color_focus: #000
+            }
+        }
     }
 }
 
