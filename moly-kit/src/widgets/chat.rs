@@ -127,10 +127,19 @@ impl Chat {
         if let Some(actions) = event.actions().find_widget_action(widget_uid) {
             if let Some(action) = actions.downcast_ref::<SttInputAction>() {
                 match action {
-                    SttInputAction::Transcribed(text) => {
+                    SttInputAction::Transcribed(transcription) => {
                         self.stt_input_ref().set_visible(cx, false);
                         self.prompt_input_ref().set_visible(cx, true);
+
+                        let mut text = self.prompt_input_ref().text();
+                        if let Some(last) = text.as_bytes().last()
+                            && *last != b' '
+                        {
+                            text.push(' ');
+                        }
+                        text.push_str(transcription);
                         self.prompt_input_ref().set_text(cx, &text);
+
                         self.prompt_input_ref().redraw(cx);
                     }
                     SttInputAction::Cancelled => {
