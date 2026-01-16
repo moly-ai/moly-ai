@@ -96,7 +96,7 @@ impl Chat {
         self.messages(ids!(messages))
     }
 
-    fn stt_input_ref(&self) -> SttInputRef {
+    pub fn stt_input_ref(&self) -> SttInputRef {
         self.stt_input(ids!(stt_input))
     }
 

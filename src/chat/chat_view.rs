@@ -27,6 +27,7 @@ live_design! {
     use crate::chat::deep_inquire_content::DeepInquireContent;
     use moly_kit::widgets::chat::Chat;
     use moly_kit::widgets::prompt_input::PromptInput;
+    use moly_kit::widgets::stt_input::SttInput;
 
     PromptInputWithShadow = <PromptInput> {
         padding: {left: 15, right: 15, top: 8, bottom: 8}
@@ -99,6 +100,74 @@ live_design! {
         }
     }
 
+    SttInputWithShadow = <SttInput> {
+        margin: {left: 15, right: 15, top: 8, bottom: 8}
+        visible: false,
+        clip_x: false, clip_y: false
+        show_bg: true
+
+        draw_bg: {
+            color: #fefefe
+            uniform border_radius: 7.0
+            uniform border_size: 0.0
+            uniform border_color: #0000
+            uniform shadow_color: #0001
+            uniform shadow_radius: 9.0,
+            uniform shadow_offset: vec2(0.0,-2.5)
+
+            varying rect_size2: vec2,
+            varying rect_size3: vec2,
+            varying rect_pos2: vec2,
+            varying rect_shift: vec2,
+            varying sdf_rect_pos: vec2,
+            varying sdf_rect_size: vec2,
+
+            fn get_color(self) -> vec4 {
+                return self.color
+            }
+
+            fn vertex(self) -> vec4 {
+                let min_offset = min(self.shadow_offset,vec2(0));
+                self.rect_size2 = self.rect_size + 2.0*vec2(self.shadow_radius);
+                self.rect_size3 = self.rect_size2 + abs(self.shadow_offset);
+                self.rect_pos2 = self.rect_pos - vec2(self.shadow_radius) + min_offset;
+                self.sdf_rect_size = self.rect_size2 - vec2(self.shadow_radius * 2.0 + self.border_size * 2.0)
+                self.sdf_rect_pos = -min_offset + vec2(self.border_size + self.shadow_radius);
+                self.rect_shift = -min_offset;
+
+                return self.clip_and_transform_vertex(self.rect_pos2, self.rect_size3)
+            }
+
+            fn get_border_color(self) -> vec4 {
+                return self.border_color
+            }
+
+            fn pixel(self) -> vec4 {
+
+                let sdf = Sdf2d::viewport(self.pos * self.rect_size3)
+                sdf.box(
+                    self.sdf_rect_pos.x,
+                    self.sdf_rect_pos.y,
+                    self.sdf_rect_size.x,
+                    self.sdf_rect_size.y,
+                    max(1.0, self.border_radius)
+                )
+                if sdf.shape > -1.0{
+                    let m = self.shadow_radius;
+                    let o = self.shadow_offset + self.rect_shift;
+                    let v = GaussShadow::rounded_box_shadow(vec2(m) + o, self.rect_size2+o, self.pos * (self.rect_size3+vec2(m)), self.shadow_radius*0.5, self.border_radius*2.0);
+                    sdf.clear(self.shadow_color*v)
+                }
+
+                sdf.fill_keep(self.get_color())
+                if self.border_size > 0.0 {
+                    sdf.stroke(self.get_border_color(), self.border_size)
+                }
+                return sdf.result
+            }
+        }
+    }
+
     pub ChatView = {{ChatView}} {
         width: Fill, height: Fill
         flow: Down
@@ -109,6 +178,7 @@ live_design! {
         chat = <Chat> {
             messages = { padding: {left: 10, right: 10} }
             prompt = <PromptInputWithShadow> {}
+            stt_input = <SttInputWithShadow> {}
         }
     }
 }
@@ -229,11 +299,23 @@ impl Widget for ChatView {
                     padding: {bottom: 50, left: 20, right: 20}
                 },
             );
+            self.chat(ids!(chat)).read().stt_input_ref().apply_over(
+                cx,
+                live! {
+                    margin: {bottom: 50, left: 20, right: 20}
+                },
+            );
         } else {
             self.prompt_input(ids!(chat.prompt)).apply_over(
                 cx,
                 live! {
                     padding: {left: 10, right: 10, top: 8, bottom: 8}
+                },
+            );
+            self.chat(ids!(chat)).read().stt_input_ref().apply_over(
+                cx,
+                live! {
+                    margin: {left: 10, right: 10, top: 8, bottom: 8}
                 },
             );
         }

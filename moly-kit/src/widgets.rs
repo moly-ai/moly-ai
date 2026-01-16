@@ -16,7 +16,6 @@ mod message_thinking_block;
 mod model_selector_item;
 mod slot;
 mod standard_message_content;
-mod stt_input;
 mod theme_moly_kit_light;
 
 pub mod chat;
@@ -28,6 +27,7 @@ pub mod model_selector_list;
 pub mod moly_modal;
 pub mod prompt_input;
 pub mod realtime;
+pub mod stt_input;
 
 pub fn live_design(cx: &mut makepad_widgets::Cx) {
     theme_moly_kit_light::live_design(cx);
