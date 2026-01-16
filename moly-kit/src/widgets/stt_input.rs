@@ -162,6 +162,8 @@ impl SttInput {
     }
 
     pub fn start_recording(&mut self, cx: &mut Cx) {
+        self.button(ids!(confirm)).set_visible(cx, true);
+
         self.state = SttInputState::Recording(RecordingState {
             start_time: Cx::time_now(),
         });
@@ -204,6 +206,7 @@ impl SttInput {
         self.stop_recording(cx);
         self.state = SttInputState::Sending;
         self.label(ids!(status)).set_text(cx, "Transcribing...");
+        self.button(ids!(confirm)).set_visible(cx, false);
 
         if let Some(buffer_arc) = self.audio_buffer.clone() {
             self.process_stt_audio(cx, buffer_arc, scope);
