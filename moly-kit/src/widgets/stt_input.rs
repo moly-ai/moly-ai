@@ -22,7 +22,7 @@ live_design! {
         padding: {top: 6, bottom: 6, left: 8, right: 8}
         draw_text: {
             text_style: <THEME_FONT_ICONS> {
-                font_size: 13.
+                font_size: 12.
             }
         }
         draw_bg: {
@@ -38,6 +38,7 @@ live_design! {
         spacing: 10,
         padding: 10,
         draw_bg: {
+            color: #fff
             border_radius: 12,
             border_color: #8888,
             border_size: 1.0,
@@ -52,10 +53,10 @@ live_design! {
                 color_focus: #000,
             }
             draw_bg: {
-                color: #fff
-                color_hover: #fff
-                color_down: #fff
-                color_focus: #fff
+                color: #0000
+                color_hover: #0000
+                color_down: #0000
+                color_focus: #0000
             }
         }
         <HorizontalFiller> {}
@@ -157,10 +158,17 @@ impl Widget for SttInput {
 }
 
 impl SttInput {
+    /// Sets the STT utility to be used for transcription.
     pub fn set_stt_utility(&mut self, utility: Option<SttUtility>) {
         self.stt_utility = utility;
     }
 
+    // /// Getter for the current STT utility.
+    // pub fn get_stt_utility(&self) -> Option<&SttUtility> {
+    //     self.stt_utility.as_ref()
+    // }
+
+    /// Begins recording audio from the microphone.
     pub fn start_recording(&mut self, cx: &mut Cx) {
         self.button(ids!(confirm)).set_visible(cx, true);
 
@@ -200,8 +208,7 @@ impl SttInput {
         cx.audio_input(0, |_, _| {});
     }
 
-    // TODO: We should stop recording on widget drop.
-
+    /// Completes the recording and starts the transcription process.
     pub fn finish_recording(&mut self, cx: &mut Cx, scope: &mut Scope) {
         self.stop_recording(cx);
         self.state = SttInputState::Sending;
@@ -213,6 +220,9 @@ impl SttInput {
         }
     }
 
+    /// Cancels the ongoing recording or transcription.
+    ///
+    /// This stops the audio device and aborts the async transcription request.
     pub fn cancel_recording(&mut self, cx: &mut Cx, scope: &mut Scope) {
         self.stop_recording(cx);
         self.state = SttInputState::Idle;
@@ -276,8 +286,6 @@ impl SttInput {
                         me.handle_transcription(cx, text, scope);
                     });
                 } else {
-                    // Handle no text? Treat as cancel or empty?
-                    // Chat impl didn't handle else.
                     ui.defer_with_redraw(move |me, cx, scope| {
                         me.cancel_recording(cx, scope);
                     });
@@ -295,7 +303,8 @@ impl SttInput {
         cx.widget_action(uid, &scope.path, SttInputAction::Transcribed(text));
     }
 
-    pub fn recorded<'a>(&self, actions: &'a Actions) -> Option<&'a str> {
+    /// When the transcription is ready, read if from the actions.
+    pub fn transcribed<'a>(&self, actions: &'a Actions) -> Option<&'a str> {
         actions
             .find_widget_action(self.widget_uid())
             .and_then(|widget_action| widget_action.downcast_ref::<SttInputAction>())
@@ -303,6 +312,14 @@ impl SttInput {
                 SttInputAction::Transcribed(text) => Some(text.as_str()),
                 _ => None,
             })
+    }
+
+    /// Check if the transcription was cancelled.
+    pub fn cancelled(&self, actions: &Actions) -> bool {
+        actions
+            .find_widget_action(self.widget_uid())
+            .and_then(|widget_action| widget_action.downcast_ref::<SttInputAction>())
+            .map_or(false, |action| matches!(action, SttInputAction::Cancelled))
     }
 }
 
@@ -328,3 +345,5 @@ fn time_to_minutes_seconds(time_secs: f64) -> String {
     let seconds = total_seconds % 60;
     format!("{}:{:02}", minutes, seconds)
 }
+
+// TODO: We should stop recording on widget drop.

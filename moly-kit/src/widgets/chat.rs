@@ -2,7 +2,6 @@ use makepad_widgets::*;
 use std::cell::{Ref, RefMut};
 use std::sync::{Arc, Mutex};
 
-use crate::aitk::protocol::BotClient;
 use crate::aitk::utils::tool::display_name_from_namespaced;
 use crate::prelude::*;
 use crate::utils::makepad::events::EventExt;
@@ -123,33 +122,26 @@ impl Chat {
     }
 
     fn handle_stt_input_actions(&mut self, cx: &mut Cx, event: &Event) {
-        let widget_uid = self.stt_input_ref().widget_uid();
-        if let Some(actions) = event.actions().find_widget_action(widget_uid) {
-            if let Some(action) = actions.downcast_ref::<SttInputAction>() {
-                match action {
-                    SttInputAction::Transcribed(transcription) => {
-                        self.stt_input_ref().set_visible(cx, false);
-                        self.prompt_input_ref().set_visible(cx, true);
+        if let Some(transcription) = self.stt_input_ref().read().transcribed(event.actions()) {
+            self.stt_input_ref().set_visible(cx, false);
+            self.prompt_input_ref().set_visible(cx, true);
 
-                        let mut text = self.prompt_input_ref().text();
-                        if let Some(last) = text.as_bytes().last()
-                            && *last != b' '
-                        {
-                            text.push(' ');
-                        }
-                        text.push_str(transcription);
-                        self.prompt_input_ref().set_text(cx, &text);
-
-                        self.prompt_input_ref().redraw(cx);
-                    }
-                    SttInputAction::Cancelled => {
-                        self.stt_input_ref().set_visible(cx, false);
-                        self.prompt_input_ref().set_visible(cx, true);
-                        self.prompt_input_ref().redraw(cx);
-                    }
-                    _ => {}
-                }
+            let mut text = self.prompt_input_ref().text();
+            if let Some(last) = text.as_bytes().last()
+                && *last != b' '
+            {
+                text.push(' ');
             }
+            text.push_str(transcription);
+            self.prompt_input_ref().set_text(cx, &text);
+
+            self.prompt_input_ref().redraw(cx);
+        }
+
+        if self.stt_input_ref().read().cancelled(event.actions()) {
+            self.stt_input_ref().set_visible(cx, false);
+            self.prompt_input_ref().set_visible(cx, true);
+            self.prompt_input_ref().redraw(cx);
         }
     }
 
