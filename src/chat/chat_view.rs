@@ -510,7 +510,7 @@ impl ChatView {
         if let Some(stt_config) = self.stt_config.pull(store.preferences.stt_config()) {
             if !stt_config.enabled || stt_config.url.is_empty() || stt_config.model_name.is_empty()
             {
-                self.chat(ids!(chat)).write().stt_utility = None;
+                self.chat(ids!(chat)).write().set_stt_utility(None);
                 self.redraw(cx);
                 return;
             }
@@ -526,7 +526,9 @@ impl ChatView {
                 bot_id: BotId::new(&stt_config.model_name, &stt_config.url),
             };
 
-            self.chat(ids!(chat)).write().stt_utility = Some(stt_utility);
+            self.chat(ids!(chat))
+                .write()
+                .set_stt_utility(Some(stt_utility));
 
             self.redraw(cx);
         }

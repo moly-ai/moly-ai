@@ -6,12 +6,9 @@ use crate::aitk::protocol::BotClient;
 use crate::aitk::utils::tool::display_name_from_namespaced;
 use crate::prelude::*;
 use crate::utils::makepad::events::EventExt;
+use crate::widgets::stt_input::*;
 
-#[derive(Clone)]
-pub struct SttUtility {
-    pub client: Box<dyn BotClient>,
-    pub bot_id: BotId,
-}
+pub use crate::widgets::stt_input::SttUtility;
 
 live_design!(
     use link::theme::*;
@@ -23,11 +20,13 @@ live_design!(
     use crate::widgets::prompt_input::*;
     use crate::widgets::moly_modal::*;
     use crate::widgets::realtime::*;
+    use crate::widgets::stt_input::*;
 
     pub Chat = {{Chat}} <RoundedView> {
         flow: Down,
         messages = <Messages> {}
         prompt = <PromptInput> {}
+        stt_input = <SttInput> { visible: false }
 
         <View> {
             width: Fill, height: Fit
@@ -57,21 +56,6 @@ pub struct Chat {
 
     #[rust]
     plugin_id: Option<ChatControllerPluginRegistrationId>,
-
-    #[rust]
-    pub stt_utility: Option<SttUtility>,
-
-    #[rust]
-    is_recording_stt: bool,
-
-    #[rust]
-    recorded_stt_audio: Option<Arc<Mutex<SttAudioData>>>,
-}
-
-#[derive(Default)]
-struct SttAudioData {
-    data: Vec<f32>,
-    sample_rate: Option<f64>,
 }
 
 impl Widget for Chat {
@@ -89,14 +73,14 @@ impl Widget for Chat {
 
         self.handle_messages(cx, event);
         self.handle_prompt_input(cx, event);
+        self.handle_stt_input_actions(cx, event);
         self.handle_realtime(cx);
         self.handle_modal_dismissal(cx, event);
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        self.prompt_input_ref()
-            .write()
-            .set_stt_visible(cx, self.stt_utility.is_some());
+        let has_stt = self.stt_input_ref().read().stt_utility.is_some();
+        self.prompt_input_ref().write().set_stt_visible(cx, has_stt);
 
         self.deref.draw_walk(cx, scope, walk)
     }
@@ -113,6 +97,14 @@ impl Chat {
         self.messages(ids!(messages))
     }
 
+    fn stt_input_ref(&self) -> SttInputRef {
+        self.stt_input(ids!(stt_input))
+    }
+
+    pub fn set_stt_utility(&mut self, utility: Option<SttUtility>) {
+        self.stt_input_ref().write().set_stt_utility(utility);
+    }
+
     fn handle_prompt_input(&mut self, cx: &mut Cx, event: &Event) {
         if self.prompt_input_ref().read().submitted(event.actions()) {
             self.handle_submit(cx);
@@ -123,110 +115,32 @@ impl Chat {
         }
 
         if self.prompt_input_ref().read().stt_pressed(event.actions()) {
-            self.handle_stt(cx);
+            self.prompt_input_ref().set_visible(cx, false);
+            self.stt_input_ref().set_visible(cx, true);
+            self.stt_input_ref().write().start_recording(cx);
+            self.redraw(cx);
         }
     }
 
-    fn handle_stt(&mut self, cx: &mut Cx) {
-        if self.stt_utility.is_none() {
-            return;
-        }
-
-        if self.is_recording_stt {
-            self.stop_stt_recording(cx);
-        } else {
-            self.start_stt_recording(cx);
-        }
-    }
-
-    fn start_stt_recording(&mut self, cx: &mut Cx) {
-        self.is_recording_stt = true;
-        // Optionally update UI state here (e.g. prompt input icon state)
-
-        if self.recorded_stt_audio.is_none() {
-            self.recorded_stt_audio = Some(Arc::new(Mutex::new(SttAudioData::default())));
-        }
-
-        // Reset buffer
-        if let Some(arc) = &self.recorded_stt_audio {
-            if let Ok(mut buffer) = arc.lock() {
-                buffer.data.clear();
-                buffer.sample_rate = None;
-            }
-
-            let buffer_clone = arc.clone();
-            cx.audio_input(0, move |info, input_buffer| {
-                let channel = input_buffer.channel(0); // Mono
-
-                if let Ok(mut recorded) = buffer_clone.try_lock() {
-                    if recorded.sample_rate.is_none() {
-                        recorded.sample_rate = Some(info.sample_rate);
+    fn handle_stt_input_actions(&mut self, cx: &mut Cx, event: &Event) {
+        let widget_uid = self.stt_input_ref().widget_uid();
+        if let Some(actions) = event.actions().find_widget_action(widget_uid) {
+            if let Some(action) = actions.downcast_ref::<SttInputAction>() {
+                match action {
+                    SttInputAction::Transcribed(text) => {
+                        self.stt_input_ref().set_visible(cx, false);
+                        self.prompt_input_ref().set_visible(cx, true);
+                        self.prompt_input_ref().set_text(cx, &text);
+                        self.prompt_input_ref().redraw(cx);
                     }
-                    recorded.data.extend_from_slice(channel);
+                    SttInputAction::Cancelled => {
+                        self.stt_input_ref().set_visible(cx, false);
+                        self.prompt_input_ref().set_visible(cx, true);
+                        self.prompt_input_ref().redraw(cx);
+                    }
+                    _ => {}
                 }
-            });
-        }
-    }
-
-    fn stop_stt_recording(&mut self, cx: &mut Cx) {
-        self.is_recording_stt = false;
-        // Stop recording
-        cx.audio_input(0, |_, _| {});
-
-        if let Some(buffer_arc) = self.recorded_stt_audio.clone() {
-            self.process_stt_audio(cx, buffer_arc);
-        }
-    }
-
-    fn process_stt_audio(&mut self, _cx: &mut Cx, buffer_arc: Arc<Mutex<SttAudioData>>) {
-        if let Some(utility) = &self.stt_utility {
-            let mut client = utility.client.clone();
-            let bot_id = utility.bot_id.clone();
-            let ui = self.ui_runner();
-
-            let (samples, sample_rate) = {
-                let guard = buffer_arc.lock().unwrap();
-                (guard.data.clone(), guard.sample_rate)
-            };
-
-            if samples.is_empty() {
-                return;
             }
-
-            let sample_rate = sample_rate.unwrap_or(48000.0) as u32;
-            let wav_bytes = crate::utils::audio::build_wav(&samples, sample_rate, 1);
-
-            let attachment = Attachment::from_bytes(
-                "recording.wav".to_string(),
-                Some("audio/wav".to_string()),
-                &wav_bytes,
-            );
-
-            let message = Message {
-                from: EntityId::User,
-                content: MessageContent {
-                    attachments: vec![attachment],
-                    ..Default::default()
-                },
-                ..Default::default()
-            };
-
-            crate::aitk::utils::asynchronous::spawn(async move {
-                use futures::{StreamExt, pin_mut};
-                let stream = client.send(&bot_id, &[message], &[]);
-
-                let filtered = stream
-                    .filter_map(|r| async move { r.value().map(|c| c.text.clone()) })
-                    .filter(|text| futures::future::ready(!text.is_empty()));
-                pin_mut!(filtered);
-                let text = filtered.next().await;
-
-                if let Some(text) = text {
-                    ui.defer_with_redraw(move |me, cx, _| {
-                        me.prompt_input_ref().set_text(cx, &text);
-                    });
-                }
-            });
         }
     }
 

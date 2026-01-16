@@ -1,17 +1,31 @@
-use crate::aitk::utils::asynchronous::{AbortOnDropHandle, abort_on_drop};
+use crate::aitk::protocol::{Attachment, BotClient, BotId, EntityId, Message, MessageContent};
+use crate::aitk::utils::asynchronous::{AbortOnDropHandle, abort_on_drop, spawn};
+use crate::prelude::*;
 use crate::utils::makepad::events::EventExt;
+use aitk::utils::asynchronous::spawn_abort_on_drop;
 use makepad_widgets::*;
+use std::sync::{Arc, Mutex};
+
+#[derive(Clone)]
+pub struct SttUtility {
+    pub client: Box<dyn BotClient>,
+    pub bot_id: BotId,
+}
 
 live_design! {
     use link::theme::*;
     use link::widgets::*;
     use crate::shared::widgets::*;
 
+    HorizontalFiller = <View>{width: Fill, height: 0}
+
     pub SttInput = {{SttInput}} {
         flow: Right,
+        align: {y: 0.5},
+        spacing: 10,
         cancel = <Button> { text: "Cancel" }
         <HorizontalFiller> {}
-        status = <Label> {}
+        status = <Label> { text: "Recording..." }
         <HorizontalFiller> {}
         confirm = <Button> { text: "Confirm" }
     }
@@ -24,8 +38,9 @@ struct AudioData {
 }
 
 #[derive(Clone, Debug, DefaultNone)]
-enum SttInputAction {
+pub enum SttInputAction {
     Transcribed(String),
+    Cancelled,
     None,
 }
 
@@ -49,6 +64,15 @@ pub struct SttInput {
 
     #[rust]
     state: SttInputState,
+
+    #[rust]
+    pub stt_utility: Option<SttUtility>,
+
+    #[rust]
+    audio_buffer: Option<Arc<Mutex<AudioData>>>,
+
+    #[rust]
+    abort_handle: Option<AbortOnDropHandle>,
 }
 
 impl Widget for SttInput {
@@ -57,29 +81,149 @@ impl Widget for SttInput {
     }
 
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+        self.ui_runner().handle(cx, event, scope, self);
         self.deref.handle_event(cx, event, scope);
 
         if self.button(ids!(confirm)).clicked(event.actions()) {
-            self.finish_recording(cx);
+            self.finish_recording(cx, scope);
         }
 
         if self.button(ids!(cancel)).clicked(event.actions()) {
-            self.cancel_recording(cx);
+            self.cancel_recording(cx, scope);
         }
     }
 }
 
 impl SttInput {
+    pub fn set_stt_utility(&mut self, utility: Option<SttUtility>) {
+        self.stt_utility = utility;
+    }
+
     pub fn start_recording(&mut self, cx: &mut Cx) {
-        // Start recording logic here
+        self.state = SttInputState::Recording(RecordingState { start_time: 0.0 });
+        self.label(ids!(status)).set_text(cx, "Recording...");
+
+        // Initialize or reset buffer
+        if self.audio_buffer.is_none() {
+            self.audio_buffer = Some(Arc::new(Mutex::new(AudioData::default())));
+        }
+
+        if let Some(arc) = &self.audio_buffer {
+            if let Ok(mut buffer) = arc.lock() {
+                buffer.data.clear();
+                buffer.sample_rate = None;
+            }
+
+            let buffer_clone = arc.clone();
+            cx.audio_input(0, move |info, input_buffer| {
+                let channel = input_buffer.channel(0); // Mono
+
+                if let Ok(mut recorded) = buffer_clone.try_lock() {
+                    if recorded.sample_rate.is_none() {
+                        recorded.sample_rate = Some(info.sample_rate);
+                    }
+                    recorded.data.extend_from_slice(channel);
+                }
+            });
+        }
     }
 
-    pub fn finish_recording(&mut self, cx: &mut Cx) {
-        // Stop recording logic here
+    fn stop_recording(&mut self, cx: &mut Cx) {
+        cx.audio_input(0, |_, _| {});
     }
 
-    pub fn cancel_recording(&mut self, cx: &mut Cx) {
-        // Cancel recording logic here
+    // TODO: We should stop recording on widget drop.
+
+    pub fn finish_recording(&mut self, cx: &mut Cx, scope: &mut Scope) {
+        self.stop_recording(cx);
+        self.state = SttInputState::Sending;
+        self.label(ids!(status)).set_text(cx, "Transcribing...");
+
+        if let Some(buffer_arc) = self.audio_buffer.clone() {
+            self.process_stt_audio(cx, buffer_arc, scope);
+        }
+    }
+
+    pub fn cancel_recording(&mut self, cx: &mut Cx, scope: &mut Scope) {
+        self.stop_recording(cx);
+        self.state = SttInputState::Idle;
+        self.abort_handle = None;
+
+        let uid = self.widget_uid();
+        cx.widget_action(uid, &scope.path, SttInputAction::Cancelled);
+    }
+
+    fn process_stt_audio(
+        &mut self,
+        cx: &mut Cx,
+        buffer_arc: Arc<Mutex<AudioData>>,
+        scope: &mut Scope,
+    ) {
+        if let Some(utility) = &self.stt_utility {
+            let mut client = utility.client.clone();
+            let bot_id = utility.bot_id.clone();
+            let ui = self.ui_runner();
+
+            let (samples, sample_rate) = {
+                let guard = buffer_arc.lock().unwrap();
+                (guard.data.clone(), guard.sample_rate)
+            };
+
+            if samples.is_empty() {
+                self.cancel_recording(cx, scope);
+                return;
+            }
+
+            let sample_rate = sample_rate.unwrap_or(48000.0) as u32;
+            let wav_bytes = crate::utils::audio::build_wav(&samples, sample_rate, 1);
+
+            let attachment = Attachment::from_bytes(
+                "recording.wav".to_string(),
+                Some("audio/wav".to_string()),
+                &wav_bytes,
+            );
+
+            let message = Message {
+                from: EntityId::User,
+                content: MessageContent {
+                    attachments: vec![attachment],
+                    ..Default::default()
+                },
+                ..Default::default()
+            };
+
+            let future = async move {
+                use futures::{StreamExt, pin_mut};
+                let stream = client.send(&bot_id, &[message], &[]);
+
+                let filtered = stream
+                    .filter_map(|r| async move { r.value().map(|c| c.text.clone()) })
+                    .filter(|text| futures::future::ready(!text.is_empty()));
+                pin_mut!(filtered);
+                let text = filtered.next().await;
+
+                if let Some(text) = text {
+                    ui.defer_with_redraw(move |me, cx, scope| {
+                        me.handle_transcription(cx, text, scope);
+                    });
+                } else {
+                    // Handle no text? Treat as cancel or empty?
+                    // Chat impl didn't handle else.
+                    ui.defer_with_redraw(move |me, cx, scope| {
+                        me.cancel_recording(cx, scope);
+                    });
+                }
+            };
+
+            self.abort_handle = Some(spawn_abort_on_drop(future));
+        }
+    }
+
+    fn handle_transcription(&mut self, cx: &mut Cx, text: String, scope: &mut Scope) {
+        self.state = SttInputState::Idle;
+        self.abort_handle = None;
+        let uid = self.widget_uid();
+        cx.widget_action(uid, &scope.path, SttInputAction::Transcribed(text));
     }
 
     pub fn recorded<'a>(&self, actions: &'a Actions) -> Option<&'a str> {
@@ -88,7 +232,23 @@ impl SttInput {
             .and_then(|widget_action| widget_action.downcast_ref::<SttInputAction>())
             .and_then(|action| match action {
                 SttInputAction::Transcribed(text) => Some(text.as_str()),
-                SttInputAction::None => None,
+                _ => None,
             })
+    }
+}
+
+impl SttInputRef {
+    /// Immutable access to the underlying [[SttInput]].
+    ///
+    /// Panics if the widget reference is empty or if it's already borrowed.
+    pub fn read(&self) -> std::cell::Ref<'_, SttInput> {
+        self.borrow().unwrap()
+    }
+
+    /// Mutable access to the underlying [[SttInput]].
+    ///
+    /// Panics if the widget reference is empty or if it's already borrowed.
+    pub fn write(&mut self) -> std::cell::RefMut<'_, SttInput> {
+        self.borrow_mut().unwrap()
     }
 }

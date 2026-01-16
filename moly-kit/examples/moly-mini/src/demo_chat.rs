@@ -323,10 +323,10 @@ impl DemoChat {
         if let Some(key) = OPEN_AI_STT_KEY {
             let mut client = OpenAiSttClient::new("https://api.openai.com/v1".to_string());
             let _ = client.set_key(key);
-            chat.write().stt_utility = Some(SttUtility {
+            chat.write().set_stt_utility(Some(SttUtility {
                 client: Box::new(client),
                 bot_id: BotId::new("gpt-4o-transcribe", ""),
-            });
+            }));
         }
     }
 }
