@@ -7,6 +7,7 @@ use crate::prelude::*;
 use crate::utils::makepad::events::EventExt;
 use crate::widgets::stt_input::*;
 
+// Re-export type needed to configure STT.
 pub use crate::widgets::stt_input::SttUtility;
 
 live_design!(

@@ -18,6 +18,13 @@ mod slot;
 mod standard_message_content;
 mod theme_moly_kit_light;
 
+// Note: Many of these widgets are not ready to be public, or they are not
+// intended for public use. However, we must expose them for things related to
+// Makepad, like DSL querying and overriding.
+// TODO: See if overriding can be done in DSLs without making the Rust struct public.
+// and if we can work with `apply_over`s with generic queries instead of the specific
+// widget ones.
+
 pub mod chat;
 pub mod citation_list;
 pub mod message_markdown;
