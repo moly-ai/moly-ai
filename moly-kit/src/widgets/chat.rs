@@ -79,7 +79,7 @@ impl Widget for Chat {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        let has_stt = self.stt_input_ref().read().stt_utility.is_some();
+        let has_stt = self.stt_input_ref().read().stt_utility().is_some();
         self.prompt_input_ref().write().set_stt_visible(cx, has_stt);
 
         self.deref.draw_walk(cx, scope, walk)

@@ -117,7 +117,7 @@ pub struct SttInput {
     state: SttInputState,
 
     #[rust]
-    pub stt_utility: Option<SttUtility>,
+    stt_utility: Option<SttUtility>,
 
     #[rust]
     audio_buffer: Option<Arc<Mutex<AudioData>>>,
@@ -163,10 +163,10 @@ impl SttInput {
         self.stt_utility = utility;
     }
 
-    // /// Getter for the current STT utility.
-    // pub fn get_stt_utility(&self) -> Option<&SttUtility> {
-    //     self.stt_utility.as_ref()
-    // }
+    /// Getter for the current STT utility.
+    pub fn stt_utility(&self) -> Option<&SttUtility> {
+        self.stt_utility.as_ref()
+    }
 
     /// Begins recording audio from the microphone.
     pub fn start_recording(&mut self, cx: &mut Cx) {
