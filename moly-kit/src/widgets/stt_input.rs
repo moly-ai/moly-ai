@@ -105,6 +105,8 @@ struct RecordingState {
     start_time: f64,
 }
 
+const TIMER_PRECISION: f64 = 0.1;
+
 #[derive(Live, Widget, LiveHook)]
 pub struct SttInput {
     #[deref]
@@ -121,6 +123,9 @@ pub struct SttInput {
 
     #[rust]
     abort_handle: Option<AbortOnDropHandle>,
+
+    #[rust]
+    timer: Timer,
 }
 
 impl Widget for SttInput {
@@ -131,6 +136,15 @@ impl Widget for SttInput {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.ui_runner().handle(cx, event, scope, self);
         self.deref.handle_event(cx, event, scope);
+
+        if self.timer.is_event(event).is_some() {
+            if let SttInputState::Recording(recording_state) = &self.state {
+                let elapsed = Cx::time_now() - recording_state.start_time;
+                self.label(ids!(status))
+                    .set_text(cx, &time_to_minutes_seconds(elapsed));
+                self.timer = cx.start_timeout(TIMER_PRECISION);
+            }
+        }
 
         if self.button(ids!(confirm)).clicked(event.actions()) {
             self.finish_recording(cx, scope);
@@ -148,8 +162,12 @@ impl SttInput {
     }
 
     pub fn start_recording(&mut self, cx: &mut Cx) {
-        self.state = SttInputState::Recording(RecordingState { start_time: 0.0 });
-        self.label(ids!(status)).set_text(cx, "Recording...");
+        self.state = SttInputState::Recording(RecordingState {
+            start_time: Cx::time_now(),
+        });
+        self.label(ids!(status))
+            .set_text(cx, &time_to_minutes_seconds(0.));
+        self.timer = cx.start_timeout(TIMER_PRECISION);
 
         // Initialize or reset buffer
         if self.audio_buffer.is_none() {
@@ -299,4 +317,11 @@ impl SttInputRef {
     pub fn write(&mut self) -> std::cell::RefMut<'_, SttInput> {
         self.borrow_mut().unwrap()
     }
+}
+
+fn time_to_minutes_seconds(time_secs: f64) -> String {
+    let total_seconds = time_secs.floor() as u64;
+    let minutes = total_seconds / 60;
+    let seconds = total_seconds % 60;
+    format!("{}:{:02}", minutes, seconds)
 }
