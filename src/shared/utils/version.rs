@@ -44,7 +44,11 @@ impl Version {
     /// This is called automatically by [`Versioned<T>`] when its data is changed.
     /// This method may not be relevant if you are already using [`Versioned<T>`].
     pub fn bump(&mut self) {
-        self.0 = NonZeroU64::new(self.0.get().wrapping_add(1)).unwrap();
+        let mut next = self.0.get().wrapping_add(1);
+        if next == 0 {
+            next = 1;
+        }
+        self.0 = NonZeroU64::new(next).unwrap();
     }
 }
 
@@ -233,6 +237,13 @@ mod tests {
         let initial = v;
         v.bump();
         assert_ne!(v, initial);
+    }
+
+    #[test]
+    fn test_version_wrap() {
+        let mut v = Version(NonZeroU64::new(u64::MAX).unwrap());
+        v.bump();
+        assert_eq!(v.0.get(), 1);
     }
 
     #[test]
