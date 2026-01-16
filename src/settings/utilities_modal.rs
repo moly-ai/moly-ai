@@ -96,17 +96,28 @@ live_design! {
                 text: "Speech to Text (STT)"
             }
 
-            enabled_toggle = <CheckBox> {
+            <View> {
                 width: Fill, height: Fit
-                label_walk: {margin: {left: 20}}
+                flow: Right
+                align: {x: 0.0, y: 0.5}
+                spacing: 10
 
-                draw_text: {
-                    text_style: <REGULAR_FONT>{font_size: 10},
-                    fn get_color(self) -> vec4 {
-                        return #000
+                <Label> {
+                    width: Fit, height: Fit
+                    text: "Enable STT"
+                    draw_text: {
+                        text_style: <REGULAR_FONT>{font_size: 10},
+                        color: #000
                     }
                 }
-                text: "Enable STT"
+
+                enabled_toggle = <MolySwitch> {
+                    animator: {
+                        selected = {
+                            default: off
+                        }
+                    }
+                }
             }
 
             url_group = <FormGroup> {
