@@ -39,10 +39,13 @@ impl Version {
         Version(NonZeroU64::new(1).unwrap())
     }
 
-    /// Increments the version by one, wrapping around on overflow.
+    /// Increments the version.
     ///
     /// This is called automatically by [`Versioned<T>`] when its data is changed.
     /// This method may not be relevant if you are already using [`Versioned<T>`].
+    ///
+    /// Note: Although, it very unlikely to reach the max (as this is an u64 internally),
+    /// this method considers going back to the initial version after the max is reached.
     pub fn bump(&mut self) {
         let mut next = self.0.get().wrapping_add(1);
         if next == 0 {
