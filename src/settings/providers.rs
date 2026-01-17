@@ -8,7 +8,10 @@ use crate::{
 use makepad_widgets::*;
 use moly_kit::prelude::*;
 
-use super::{add_provider_modal::AddProviderModalAction, provider_view::ProviderViewAction};
+use super::{
+    add_provider_modal::AddProviderModalAction, provider_view::ProviderViewAction,
+    utilities_modal::UtilitiesModalAction,
+};
 
 live_design! {
     use link::widgets::*;
@@ -19,6 +22,7 @@ live_design! {
     use crate::shared::styles::*;
     use crate::settings::add_provider_modal::*;
     use crate::settings::sync_modal::SyncModal;
+    use crate::settings::utilities_modal::UtilitiesModal;
 
     use moly_kit::widgets::moly_modal::*;
 
@@ -208,6 +212,28 @@ live_design! {
             }
         }
 
+        utilities_button = <RoundedShadowView> {
+            cursor: Hand
+            margin: {left: 10, right: 10, bottom: 20}
+            width: Fill, height: Fit
+            align: {x: 0.5, y: 0.5}
+            padding: {left: 30, right: 30, bottom: 15, top: 15}
+            draw_bg: {
+                color: (MAIN_BG_COLOR)
+                border_radius: 4.5,
+                uniform shadow_color: #0002
+                shadow_radius: 8.0,
+                shadow_offset: vec2(0.0,-1.5)
+            }
+            <Label> {
+                text: "Utilities"
+                draw_text: {
+                    text_style: <REGULAR_FONT>{font_size: 11}
+                    color: #000
+                }
+            }
+        }
+
         provider_icons: [
             (ICON_OPENAI),
             (ICON_GEMINI),
@@ -232,6 +258,12 @@ live_design! {
             sync_modal = <MolyModal> {
                 content: {
                     sync_modal_inner = <SyncModal> {}
+                }
+            }
+
+            utilities_modal = <MolyModal> {
+                content: {
+                    utilities_modal_inner = <UtilitiesModal> {}
                 }
             }
         }
@@ -332,21 +364,24 @@ impl Providers {
 impl WidgetMatchEvent for Providers {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
         // Handle modal open
-        if self
-            .view(ids!(add_provider_button))
-            .finger_up(actions)
-            .is_some()
+        if let Some(fu) = self.view(ids!(add_provider_button)).finger_up(actions)
+            && fu.was_tap()
         {
             let modal = self.moly_modal(ids!(add_provider_modal));
             modal.open_as_dialog(cx);
         }
 
-        if self
-            .view(ids!(open_sync_button))
-            .finger_up(actions)
-            .is_some()
+        if let Some(fu) = self.view(ids!(open_sync_button)).finger_up(actions)
+            && fu.was_tap()
         {
             let modal = self.moly_modal(ids!(sync_modal));
+            modal.open_as_dialog(cx);
+        }
+
+        if let Some(fu) = self.view(ids!(utilities_button)).finger_up(actions)
+            && fu.was_tap()
+        {
+            let modal = self.moly_modal(ids!(utilities_modal));
             modal.open_as_dialog(cx);
         }
 
@@ -364,6 +399,11 @@ impl WidgetMatchEvent for Providers {
 
             if let SyncModalAction::ModalDismissed = action.cast() {
                 self.moly_modal(ids!(sync_modal)).close(cx);
+                self.redraw(cx);
+            }
+
+            if let UtilitiesModalAction::ModalDismissed = action.cast() {
+                self.moly_modal(ids!(utilities_modal)).close(cx);
                 self.redraw(cx);
             }
 

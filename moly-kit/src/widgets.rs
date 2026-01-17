@@ -18,6 +18,13 @@ mod slot;
 mod standard_message_content;
 mod theme_moly_kit_light;
 
+// Note: Many of these widgets are not ready to be public, or they are not
+// intended for public use. However, we must expose them for things related to
+// Makepad, like DSL querying and overriding.
+// TODO: See if overriding can be done in DSLs without making the Rust struct public.
+// and if we can work with `apply_over`s with generic queries instead of the specific
+// widget ones.
+
 pub mod chat;
 pub mod citation_list;
 pub mod message_markdown;
@@ -27,6 +34,7 @@ pub mod model_selector_list;
 pub mod moly_modal;
 pub mod prompt_input;
 pub mod realtime;
+pub mod stt_input;
 
 pub fn live_design(cx: &mut makepad_widgets::Cx) {
     theme_moly_kit_light::live_design(cx);
@@ -50,6 +58,7 @@ pub fn live_design(cx: &mut makepad_widgets::Cx) {
     standard_message_content::live_design(cx);
     chat_line::live_design(cx);
     messages::live_design(cx);
+    stt_input::live_design(cx);
     prompt_input::live_design(cx);
     model_selector_item::live_design(cx);
     model_selector_list::live_design(cx);

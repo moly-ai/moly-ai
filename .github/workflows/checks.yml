@@ -64,3 +64,14 @@ jobs:
       - name: Run Moly Kit tests
         run: |
           cargo test --all-features --package moly-kit
+
+  check-patches:
+    name: Check Patches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Forbid local patches in Cargo.toml
+        run: |
+          awk '/^\s*#/ {next} /^\s*\[patch/ {in_patch=1; next} /^\s*\[/ {in_patch=0} in_patch && /path\s*=/ {print "Error: patch with path found at line " NR ": " $0; exit 1}' Cargo.toml

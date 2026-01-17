@@ -2,6 +2,7 @@ use makepad_widgets::*;
 
 use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
+use moly_kit::widgets::stt_input::SttInputWidgetExt;
 
 use crate::data::chats::chat::ChatId;
 use crate::data::deep_inquire_client::DeepInquireCustomContent;
@@ -11,6 +12,7 @@ use crate::shared::utils::attachments::{
     delete_attachment, generate_persistence_key, set_persistence_key_and_reader,
     write_attachment_to_key,
 };
+use crate::shared::utils::version::{Pull, Version};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 
@@ -26,6 +28,7 @@ live_design! {
     use crate::chat::deep_inquire_content::DeepInquireContent;
     use moly_kit::widgets::chat::Chat;
     use moly_kit::widgets::prompt_input::PromptInput;
+    use moly_kit::widgets::stt_input::SttInput;
 
     PromptInputWithShadow = <PromptInput> {
         padding: {left: 15, right: 15, top: 8, bottom: 8}
@@ -98,6 +101,74 @@ live_design! {
         }
     }
 
+    SttInputWithShadow = <SttInput> {
+        margin: {left: 15, right: 15, top: 8, bottom: 8}
+        visible: false,
+        clip_x: false, clip_y: false
+        show_bg: true
+
+        draw_bg: {
+            color: #fefefe
+            uniform border_radius: 7.0
+            uniform border_size: 0.0
+            uniform border_color: #0000
+            uniform shadow_color: #0001
+            uniform shadow_radius: 9.0,
+            uniform shadow_offset: vec2(0.0,-2.5)
+
+            varying rect_size2: vec2,
+            varying rect_size3: vec2,
+            varying rect_pos2: vec2,
+            varying rect_shift: vec2,
+            varying sdf_rect_pos: vec2,
+            varying sdf_rect_size: vec2,
+
+            fn get_color(self) -> vec4 {
+                return self.color
+            }
+
+            fn vertex(self) -> vec4 {
+                let min_offset = min(self.shadow_offset,vec2(0));
+                self.rect_size2 = self.rect_size + 2.0*vec2(self.shadow_radius);
+                self.rect_size3 = self.rect_size2 + abs(self.shadow_offset);
+                self.rect_pos2 = self.rect_pos - vec2(self.shadow_radius) + min_offset;
+                self.sdf_rect_size = self.rect_size2 - vec2(self.shadow_radius * 2.0 + self.border_size * 2.0)
+                self.sdf_rect_pos = -min_offset + vec2(self.border_size + self.shadow_radius);
+                self.rect_shift = -min_offset;
+
+                return self.clip_and_transform_vertex(self.rect_pos2, self.rect_size3)
+            }
+
+            fn get_border_color(self) -> vec4 {
+                return self.border_color
+            }
+
+            fn pixel(self) -> vec4 {
+
+                let sdf = Sdf2d::viewport(self.pos * self.rect_size3)
+                sdf.box(
+                    self.sdf_rect_pos.x,
+                    self.sdf_rect_pos.y,
+                    self.sdf_rect_size.x,
+                    self.sdf_rect_size.y,
+                    max(1.0, self.border_radius)
+                )
+                if sdf.shape > -1.0{
+                    let m = self.shadow_radius;
+                    let o = self.shadow_offset + self.rect_shift;
+                    let v = GaussShadow::rounded_box_shadow(vec2(m) + o, self.rect_size2+o, self.pos * (self.rect_size3+vec2(m)), self.shadow_radius*0.5, self.border_radius*2.0);
+                    sdf.clear(self.shadow_color*v)
+                }
+
+                sdf.fill_keep(self.get_color())
+                if self.border_size > 0.0 {
+                    sdf.stroke(self.get_border_color(), self.border_size)
+                }
+                return sdf.result
+            }
+        }
+    }
+
     pub ChatView = {{ChatView}} {
         width: Fill, height: Fill
         flow: Down
@@ -108,6 +179,7 @@ live_design! {
         chat = <Chat> {
             messages = { padding: {left: 10, right: 10} }
             prompt = <PromptInputWithShadow> {}
+            stt_input = <SttInputWithShadow> {}
         }
     }
 }
@@ -155,6 +227,9 @@ pub struct ChatView {
 
     #[rust]
     initial_bot_synced: bool,
+
+    #[rust]
+    stt_config: Option<Version>,
 }
 
 impl LiveHook for ChatView {
@@ -198,6 +273,7 @@ impl Drop for ChatView {
 impl Widget for ChatView {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.bind_bot_context(scope);
+        self.configure_stt(scope, cx);
 
         self.ui_runner().handle(cx, event, scope, self);
         self.view.handle_event(cx, event, scope);
@@ -224,11 +300,23 @@ impl Widget for ChatView {
                     padding: {bottom: 50, left: 20, right: 20}
                 },
             );
+            self.stt_input(ids!(chat.stt_input)).apply_over(
+                cx,
+                live! {
+                    margin: {bottom: 50, left: 20, right: 20}
+                },
+            );
         } else {
             self.prompt_input(ids!(chat.prompt)).apply_over(
                 cx,
                 live! {
                     padding: {left: 10, right: 10, top: 8, bottom: 8}
+                },
+            );
+            self.stt_input(ids!(chat.stt_input)).apply_over(
+                cx,
+                live! {
+                    margin: {left: 10, right: 10, top: 8, bottom: 8}
                 },
             );
         }
@@ -497,6 +585,35 @@ impl ChatView {
     pub fn unbind_bot_context(&mut self) {
         if let Some(mut bot_context) = self.bot_context.take() {
             bot_context.remove_chat_controller(&self.chat_controller);
+        }
+    }
+
+    fn configure_stt(&mut self, scope: &mut Scope, cx: &mut Cx) {
+        let store = scope.data.get_mut::<Store>().unwrap();
+        if let Some(stt_config) = self.stt_config.pull(store.preferences.stt_config()) {
+            if !stt_config.enabled || stt_config.url.is_empty() || stt_config.model_name.is_empty()
+            {
+                self.chat(ids!(chat)).write().set_stt_utility(None);
+                self.redraw(cx);
+                return;
+            }
+
+            let mut stt_client = OpenAiSttClient::new(stt_config.url.clone());
+
+            if !stt_config.api_key.is_empty() {
+                let _ = stt_client.set_key(&stt_config.api_key);
+            }
+
+            let stt_utility = SttUtility {
+                client: Box::new(stt_client),
+                bot_id: BotId::new(&stt_config.model_name, &stt_config.url),
+            };
+
+            self.chat(ids!(chat))
+                .write()
+                .set_stt_utility(Some(stt_utility));
+
+            self.redraw(cx);
         }
     }
 

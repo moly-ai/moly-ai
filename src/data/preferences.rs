@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 
 use crate::data::providers::ProviderId;
 use crate::shared::utils::filesystem;
+use crate::shared::utils::version::Versioned;
 
 use super::mcp_servers::McpServersConfig;
 use super::providers::{Provider, ProviderType};
@@ -21,6 +22,8 @@ pub struct Preferences {
     pub providers_preferences: Vec<ProviderPreferences>,
     #[serde(default)]
     pub mcp_servers_config: McpServersConfig,
+    #[serde(default)]
+    stt_config: Versioned<SttConfig>,
 }
 
 impl Default for Preferences {
@@ -30,6 +33,7 @@ impl Default for Preferences {
             downloaded_files_dir: default_model_downloads_dir().to_path_buf(),
             providers_preferences: vec![],
             mcp_servers_config: McpServersConfig::new(),
+            stt_config: Versioned::default(),
         }
     }
 }
@@ -62,6 +66,18 @@ impl Preferences {
                 Err(e) => log::error!("Failed to write preferences file: {:?}", e),
             }
         });
+    }
+
+    pub fn stt_config(&self) -> &Versioned<SttConfig> {
+        &self.stt_config
+    }
+
+    pub fn update_stt_config<F>(&mut self, update_fn: F)
+    where
+        F: FnOnce(&mut SttConfig),
+    {
+        self.stt_config.update_and_notify(update_fn);
+        self.save();
     }
 
     pub fn set_current_chat_model(&mut self, bot_id: Option<BotId>) {
@@ -290,4 +306,23 @@ impl ProviderPreferences {
 
 fn default_model_downloads_dir() -> &'static Path {
     Path::new("model_downloads")
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SttConfig {
+    pub enabled: bool,
+    pub url: String,
+    pub api_key: String,
+    pub model_name: String,
+}
+
+impl Default for SttConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            url: "https://api.openai.com/v1".to_string(),
+            api_key: String::new(),
+            model_name: "whisper-1".to_string(),
+        }
+    }
 }

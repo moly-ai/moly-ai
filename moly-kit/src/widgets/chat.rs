@@ -5,6 +5,10 @@ use std::sync::{Arc, Mutex};
 use crate::aitk::utils::tool::display_name_from_namespaced;
 use crate::prelude::*;
 use crate::utils::makepad::events::EventExt;
+use crate::widgets::stt_input::*;
+
+// Re-export type needed to configure STT.
+pub use crate::widgets::stt_input::SttUtility;
 
 live_design!(
     use link::theme::*;
@@ -16,11 +20,13 @@ live_design!(
     use crate::widgets::prompt_input::*;
     use crate::widgets::moly_modal::*;
     use crate::widgets::realtime::*;
+    use crate::widgets::stt_input::*;
 
     pub Chat = {{Chat}} <RoundedView> {
         flow: Down,
         messages = <Messages> {}
         prompt = <PromptInput> {}
+        stt_input = <SttInput> { visible: false }
 
         <View> {
             width: Fill, height: Fit
@@ -54,16 +60,28 @@ pub struct Chat {
 
 impl Widget for Chat {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+        // Handle audio devices setup
+        if let Event::AudioDevices(devices) = event {
+            let input = devices.default_input();
+            if !input.is_empty() {
+                cx.use_audio_inputs(&input);
+            }
+        }
+
         self.ui_runner().handle(cx, event, scope, self);
         self.deref.handle_event(cx, event, scope);
 
         self.handle_messages(cx, event);
         self.handle_prompt_input(cx, event);
+        self.handle_stt_input_actions(cx, event);
         self.handle_realtime(cx);
         self.handle_modal_dismissal(cx, event);
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
+        let has_stt = self.stt_input_ref().read().stt_utility().is_some();
+        self.prompt_input_ref().write().set_stt_visible(cx, has_stt);
+
         self.deref.draw_walk(cx, scope, walk)
     }
 }
@@ -79,13 +97,68 @@ impl Chat {
         self.messages(ids!(messages))
     }
 
+    pub fn stt_input_ref(&self) -> SttInputRef {
+        self.stt_input(ids!(stt_input))
+    }
+
+    pub fn set_stt_utility(&mut self, utility: Option<SttUtility>) {
+        self.stt_input_ref().write().set_stt_utility(utility);
+    }
+
     fn handle_prompt_input(&mut self, cx: &mut Cx, event: &Event) {
-        if self.prompt_input_ref().read().submitted(event.actions()) {
+        let submitted = self.prompt_input_ref().read().submitted(event.actions());
+        if submitted {
             self.handle_submit(cx);
         }
 
-        if self.prompt_input_ref().read().call_pressed(event.actions()) {
+        let call_pressed = self.prompt_input_ref().read().call_pressed(event.actions());
+        if call_pressed {
             self.handle_call(cx);
+        }
+
+        let stt_pressed = self.prompt_input_ref().read().stt_pressed(event.actions());
+        if stt_pressed {
+            self.prompt_input_ref().set_visible(cx, false);
+            self.stt_input_ref().set_visible(cx, true);
+            self.stt_input_ref().write().start_recording(cx);
+            self.redraw(cx);
+        }
+    }
+
+    fn handle_stt_input_actions(&mut self, cx: &mut Cx, event: &Event) {
+        // Most of the methods in the STT input return references, but since Makepad's
+        // widgets are RefCells, and `if` (and `if let`) statetments extend the lifetime
+        // of the values in their expressions, the program may crash under certain
+        // situations (difficult to explain since Makepad may borrow widgets even when
+        // querying). That's why values are stored in variables before the `if` expressions.
+
+        let transcription = self
+            .stt_input_ref()
+            .read()
+            .transcribed(event.actions())
+            .map(|s| s.to_string());
+
+        if let Some(transcription) = transcription {
+            self.stt_input_ref().set_visible(cx, false);
+            self.prompt_input_ref().set_visible(cx, true);
+
+            let mut text = self.prompt_input_ref().text();
+            if let Some(last) = text.as_bytes().last()
+                && *last != b' '
+            {
+                text.push(' ');
+            }
+            text.push_str(&transcription);
+            self.prompt_input_ref().set_text(cx, &text);
+
+            self.prompt_input_ref().redraw(cx);
+        }
+
+        let cancelled = self.stt_input_ref().read().cancelled(event.actions());
+        if cancelled {
+            self.stt_input_ref().set_visible(cx, false);
+            self.prompt_input_ref().set_visible(cx, true);
+            self.prompt_input_ref().redraw(cx);
         }
     }
 

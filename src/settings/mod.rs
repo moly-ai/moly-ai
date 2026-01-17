@@ -4,6 +4,7 @@ pub mod provider_view;
 pub mod providers;
 pub mod providers_screen;
 pub mod sync_modal;
+pub mod utilities_modal;
 use makepad_widgets::Cx;
 
 pub fn live_design(cx: &mut Cx) {
@@ -13,4 +14,5 @@ pub fn live_design(cx: &mut Cx) {
     providers::live_design(cx);
     add_provider_modal::live_design(cx);
     sync_modal::live_design(cx);
+    utilities_modal::live_design(cx);
 }
