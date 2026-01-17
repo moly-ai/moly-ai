@@ -364,28 +364,22 @@ impl Providers {
 impl WidgetMatchEvent for Providers {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
         // Handle modal open
-        if self
-            .view(ids!(add_provider_button))
-            .finger_up(actions)
-            .is_some()
+        if let Some(fu) = self.view(ids!(add_provider_button)).finger_up(actions)
+            && fu.was_tap()
         {
             let modal = self.moly_modal(ids!(add_provider_modal));
             modal.open_as_dialog(cx);
         }
 
-        if self
-            .view(ids!(open_sync_button))
-            .finger_up(actions)
-            .is_some()
+        if let Some(fu) = self.view(ids!(open_sync_button)).finger_up(actions)
+            && fu.was_tap()
         {
             let modal = self.moly_modal(ids!(sync_modal));
             modal.open_as_dialog(cx);
         }
 
-        if self
-            .view(ids!(utilities_button))
-            .finger_up(actions)
-            .is_some()
+        if let Some(fu) = self.view(ids!(utilities_button)).finger_up(actions)
+            && fu.was_tap()
         {
             let modal = self.moly_modal(ids!(utilities_modal));
             modal.open_as_dialog(cx);
