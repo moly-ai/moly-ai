@@ -28,8 +28,7 @@ pub(crate) fn build_wav(samples: &[f32], sample_rate: u32, channels: u16) -> Vec
     wav_bytes.extend_from_slice(&(data_len as u32).to_le_bytes());
 
     for sample in samples {
-        let clamped = sample.max(-1.0).min(1.0);
-        let val = (clamped * 32767.0) as i16;
+        let val = (sample.clamp(-1.0, 1.0) * 32767.0).round() as i16;
         wav_bytes.extend_from_slice(&val.to_le_bytes());
     }
 
