@@ -101,8 +101,14 @@ impl Chat {
         self.stt_input(ids!(stt_input))
     }
 
+    /// Configures the STT utility to be used for speech-to-text.
     pub fn set_stt_utility(&mut self, utility: Option<SttUtility>) {
         self.stt_input_ref().write().set_stt_utility(utility);
+    }
+
+    /// Returns the current STT utility, if an, as a clone.
+    pub fn stt_utility(&self) -> Option<SttUtility> {
+        self.stt_input_ref().read().stt_utility().cloned()
     }
 
     fn handle_prompt_input(&mut self, cx: &mut Cx, event: &Event) {
