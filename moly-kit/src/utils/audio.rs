@@ -58,7 +58,7 @@ pub(crate) fn build_wav(
     wav_bytes.extend_from_slice(&(data_len as u32).to_le_bytes());
 
     for sample in samples {
-        let val = (sample.clamp(-1.0, 1.0) * 32767.0).round() as i16;
+        let val = (sample.clamp(-1.0, 1.0) * 32767.0).trunc() as i16;
         wav_bytes.extend_from_slice(&val.to_le_bytes());
     }
 
