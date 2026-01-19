@@ -1,4 +1,3 @@
-
 /// Build WAV audio data from f32 samples.
 ///
 /// Returns a Vec<u8> containing the complete WAV file data.
