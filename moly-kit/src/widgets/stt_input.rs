@@ -254,7 +254,14 @@ impl SttInput {
             }
 
             let sample_rate = sample_rate.unwrap_or(48000.0) as u32;
-            let wav_bytes = crate::utils::audio::build_wav(&samples, sample_rate, 1);
+            let wav_bytes = match crate::utils::audio::build_wav(&samples, sample_rate, 1) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    ::log::error!("Error encoding audio: {}", e);
+                    self.cancel_recording(cx, scope);
+                    return;
+                }
+            };
 
             let attachment = Attachment::from_bytes(
                 "recording.wav".to_string(),
