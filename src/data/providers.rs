@@ -53,7 +53,7 @@ impl ProviderBot {
     /// (due to the server not being available, the server no longer providing the provider bot, etc.).
     pub fn unknown() -> Self {
         ProviderBot {
-            id: BotId::new("unknown", "unknown"),
+            id: BotId::new("unknown"),
             name: "Inaccesible model - check your connections".to_string(),
             description: "This model is not currently reachable, its information is not available"
                 .to_string(),

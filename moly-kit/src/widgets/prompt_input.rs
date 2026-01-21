@@ -423,13 +423,13 @@ impl PromptInput {
         let supports_attachments = self
             .bot_capabilities
             .as_ref()
-            .map(|caps| caps.supports_attachments())
+            .map(|caps| caps.has_capability(&BotCapability::AttachmentInput))
             .unwrap_or(false);
 
         let supports_realtime = self
             .bot_capabilities
             .as_ref()
-            .map(|caps| caps.supports_realtime())
+            .map(|caps| caps.has_capability(&BotCapability::Realtime))
             .unwrap_or(false);
 
         // Show attach button only if bot supports attachments AND we're on a supported platform
