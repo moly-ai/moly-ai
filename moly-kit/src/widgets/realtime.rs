@@ -204,22 +204,22 @@ live_design! {
             }
         }
 
-        transcription_model_selector = <SimpleDropDown> {
-            margin: 5
-            labels: ["whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
-            values: [whisper_1, gpt_4o_transcribe, gpt_4o_mini_transcribe]
-
+        transcription_model_selector = <TextInput> {
+            width: 200, height: Fit
+            text: "whisper-1"
+            draw_bg: {
+                color: #fff
+                border_color: #D0D5DD
+                border_size: 1.0
+                border_radius: 6.0
+            }
             draw_text: {
-                color: #222
-                text_style: {font_size: 11}
+                text_style: <THEME_FONT_REGULAR>{font_size: 11}
+                color: #000
+                color_hover: #444
+                color_focus: #000
             }
-
-            popup_menu = {
-                draw_text: {
-                    color: #222
-                    text_style: {font_size: 11}
-                }
-            }
+            padding: {top: 6, bottom: 6, left: 8, right: 8}
         }
     }
 
@@ -609,7 +609,7 @@ impl Widget for Realtime {
         self.widget_match_event(cx, event, scope);
 
         if let Some(_value) = self
-            .drop_down(ids!(transcription_model_selector))
+            .text_input(ids!(transcription_model_selector))
             .changed(event.actions())
         {
             if self.is_connected {
@@ -875,23 +875,8 @@ impl Realtime {
         self.is_connected = true;
     }
 
-    pub fn set_bot_entity_id(&mut self, cx: &mut Cx, bot_entity_id: EntityId) {
+    pub fn set_bot_entity_id(&mut self, _cx: &mut Cx, bot_entity_id: EntityId) {
         self.bot_entity_id = Some(bot_entity_id);
-
-        // TODO: set the available transcription models through the realtime channel.
-        // (determine the list of models in openai_realtime client)
-        // If the provider is not OpenAI, replace `whisper-1` with `whisper`
-        if let Some(EntityId::Bot(bot_id)) = &self.bot_entity_id {
-            if !bot_id.provider().contains("api.openai.com") {
-                let labels = vec![
-                    "whisper".to_string(),
-                    "gpt-4o-transcribe".to_string(),
-                    "gpt-4o-mini-transcribe".to_string(),
-                ];
-                self.drop_down(ids!(transcription_model_selector))
-                    .set_labels(cx, labels);
-            }
-        }
     }
 
     pub fn set_chat_controller(&mut self, chat_controller: Option<Arc<Mutex<ChatController>>>) {
@@ -1640,9 +1625,7 @@ impl Realtime {
                 .command_sender
                 .unbounded_send(RealtimeCommand::UpdateSessionConfig {
                     voice: self.selected_voice.clone(),
-                    transcription_model: self
-                        .drop_down(ids!(transcription_model_selector))
-                        .selected_label(),
+                    transcription_model: self.text_input(ids!(transcription_model_selector)).text(),
                 });
         }
     }
