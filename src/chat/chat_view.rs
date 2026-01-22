@@ -606,7 +606,7 @@ impl ChatView {
 
             let stt_utility = SttUtility {
                 client: Box::new(stt_client),
-                bot_id: BotId::new(&stt_config.model_name, &stt_config.url),
+                bot_id: BotId::new(&stt_config.model_name),
             };
 
             self.chat(ids!(chat))
