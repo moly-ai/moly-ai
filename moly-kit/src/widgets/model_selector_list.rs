@@ -160,14 +160,11 @@ impl ModelSelectorList {
     fn draw_items(&mut self, cx: &mut Cx2d, bots: &[Bot]) {
         let mut total_height = 0.0;
 
-        // Default grouping function: group by provider from bot ID
-        let default_grouping: GroupingFn = Arc::new(|bot: &Bot| {
-            let provider = bot.id.provider();
-            BotGroup {
-                id: provider.to_string(),
-                label: provider.to_string(),
-                icon: Some(bot.avatar.clone()),
-            }
+        // Default grouping function: group by "All"
+        let default_grouping: GroupingFn = Arc::new(|bot: &Bot| BotGroup {
+            id: "all".to_string(),
+            label: "All".to_string(),
+            icon: Some(bot.avatar.clone()),
         });
 
         let grouping_fn = self.grouping.as_ref().unwrap_or(&default_grouping);

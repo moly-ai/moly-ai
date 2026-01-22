@@ -466,11 +466,10 @@ where
 {
     Arc::new(move |bot: &Bot| {
         lookup(&bot.id).unwrap_or_else(|| {
-            // Default fallback: group by provider from bot ID
-            let provider = bot.id.provider();
+            // Default fallback: group by "All"
             BotGroup {
-                id: provider.to_string(),
-                label: provider.to_string(),
+                id: "all".to_string(),
+                label: "All".to_string(),
                 icon: Some(bot.avatar.clone()),
             }
         })
