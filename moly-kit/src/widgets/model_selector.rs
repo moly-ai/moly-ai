@@ -437,7 +437,7 @@ pub struct BotGroup {
 ///
 /// model_selector.set_grouping(Some(grouping));
 /// ```
-pub type GroupingFn = Arc<dyn Fn(&Bot) -> BotGroup + Send + Sync>;
+pub type GroupingFn = Box<dyn Fn(&Bot) -> BotGroup + Send + Sync>;
 
 /// Creates a grouping function that queries data on-demand via a lookup closure.
 ///
@@ -464,7 +464,7 @@ pub fn create_lookup_grouping<F>(lookup: F) -> GroupingFn
 where
     F: Fn(&BotId) -> Option<BotGroup> + Send + Sync + 'static,
 {
-    Arc::new(move |bot: &Bot| {
+    Box::new(move |bot: &Bot| {
         lookup(&bot.id).unwrap_or_else(|| {
             // Default fallback: group by "All"
             BotGroup {

@@ -161,7 +161,7 @@ impl ModelSelectorList {
         let mut total_height = 0.0;
 
         // Default grouping function: group by "All"
-        let default_grouping: GroupingFn = Arc::new(|bot: &Bot| BotGroup {
+        let default_grouping: GroupingFn = Box::new(|bot: &Bot| BotGroup {
             id: "all".to_string(),
             label: "All".to_string(),
             icon: Some(bot.avatar.clone()),
