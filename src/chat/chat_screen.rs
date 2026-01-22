@@ -141,15 +141,15 @@ impl ChatScreen {
     fn create_bot_context(&mut self, _cx: &mut Cx, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
 
-        let multi_client = {
-            let mut multi_client = MultiClient::new();
+        let router_client = {
+            let mut router_client = RouterClient::new();
             let supported_providers_list = supported_providers::load_supported_providers();
 
             let available_bots = store.chats.available_bots.clone();
             let providers = store.chats.providers.clone();
 
             // Filter enabled providers upfront and check credentials
-            for (_key, provider) in store
+            for (key, provider) in store
                 .chats
                 .providers
                 .iter()
@@ -184,14 +184,14 @@ impl ChatScreen {
                 };
 
                 if let Some(client) = client {
-                    multi_client.add_client(client);
+                    router_client.insert_client(key, client);
                 }
             }
 
-            multi_client
+            router_client
         };
 
-        let mut context: BotContext = multi_client.into();
+        let mut context: BotContext = router_client.into();
         let tool_manager = store.create_and_load_mcp_tool_manager();
         tool_manager
             .set_dangerous_mode_enabled(store.preferences.get_mcp_servers_dangerous_mode_enabled());
