@@ -226,25 +226,25 @@ impl DemoChat {
 
     fn setup_chat_controller(&mut self, cx: &mut Cx) {
         let client = {
-            let mut client = MultiClient::new();
+            let mut client = RouterClient::new();
 
             let tester = TesterClient;
-            client.add_client(Box::new(tester));
+            client.insert_client("tester", Box::new(tester));
 
             let ollama = OpenAiClient::new("http://localhost:11434/v1".into());
-            client.add_client(Box::new(ollama));
+            client.insert_client("ollama", Box::new(ollama));
 
             if let Some(key) = OPEN_AI_IMAGE_KEY {
                 let mut openai_image = OpenAiImageClient::new("https://api.openai.com/v1".into());
                 let _ = openai_image.set_key(key);
-                client.add_client(Box::new(openai_image));
+                client.insert_client("open_ai_image", Box::new(openai_image));
             }
 
             if let Some(key) = OPEN_AI_REALTIME_KEY {
                 let mut openai_realtime =
                     OpenAiRealtimeClient::new("wss://api.openai.com/v1/realtime".into());
                 let _ = openai_realtime.set_key(key);
-                client.add_client(Box::new(openai_realtime));
+                client.insert_client("open_ai_realtime", Box::new(openai_realtime));
             }
 
             // Only add OpenAI client if API key is present
@@ -252,13 +252,7 @@ impl DemoChat {
                 let openai_url = "https://api.openai.com/v1";
                 let mut openai = OpenAiClient::new(openai_url.into());
                 let _ = openai.set_key(key);
-                client.add_client(Box::new(openai));
-
-                // Realtime client
-                let openai_realtime_url = "wss://api.openai.com/v1/realtime";
-                let mut openai_realtime = OpenAiRealtimeClient::new(openai_realtime_url.into());
-                let _ = openai_realtime.set_key(key);
-                client.add_client(Box::new(openai_realtime));
+                client.insert_client("open_ai", Box::new(openai));
             }
 
             // Only add OpenRouter client if API key is present
@@ -266,7 +260,7 @@ impl DemoChat {
                 let open_router_url = "https://openrouter.ai/api/v1";
                 let mut open_router = OpenAiClient::new(open_router_url.into());
                 let _ = open_router.set_key(key);
-                client.add_client(Box::new(open_router));
+                client.insert_client("open_router", Box::new(open_router));
             }
 
             // Only add SiliconFlow client if API key is present
@@ -274,7 +268,7 @@ impl DemoChat {
                 let siliconflow_url = "https://api.siliconflow.cn/api/v1";
                 let mut siliconflow = OpenAiClient::new(siliconflow_url.into());
                 let _ = siliconflow.set_key(key);
-                client.add_client(Box::new(siliconflow));
+                client.insert_client("silicon_flow", Box::new(siliconflow));
             }
 
             client
@@ -325,7 +319,7 @@ impl DemoChat {
             let _ = client.set_key(key);
             chat.write().set_stt_utility(Some(SttUtility {
                 client: Box::new(client),
-                bot_id: BotId::new("gpt-4o-transcribe", ""),
+                bot_id: BotId::new("gpt-4o-transcribe"),
             }));
         }
     }
