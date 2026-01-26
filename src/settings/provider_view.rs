@@ -455,6 +455,7 @@ impl Widget for ProviderView {
                             .set_active(cx, model.enabled && self.provider.enabled);
 
                         item.as_model_entry().set_model_name(&model.name);
+                        item.as_model_entry().set_model_id(&model.id.to_string());
                         item.draw_all(cx, scope);
                     }
                 }
@@ -521,7 +522,7 @@ impl WidgetMatchEvent for ProviderView {
         for action in actions {
             if let Some(action) = action.downcast_ref::<ModelEntryAction>() {
                 match action {
-                    ModelEntryAction::ModelEnabledChanged(model_name, enabled) => {
+                    ModelEntryAction::ModelEnabledChanged(model_name, model_id, enabled) => {
                         // Update the model status in the preferences
                         store.preferences.update_model_status(
                             &self.provider.id,
@@ -531,9 +532,15 @@ impl WidgetMatchEvent for ProviderView {
 
                         // Update the model status in the store
                         if let Some(model) =
-                            store.chats.available_bots.get_mut(&BotId::new(model_name))
+                            store.chats.available_bots.get_mut(&BotId::new(model_id))
                         {
                             model.enabled = *enabled;
+                        } else {
+                            ::log::warn!(
+                                "Toggling model status: Bot with id {} and name {} not found in available_bots",
+                                model_id,
+                                model_name
+                            );
                         }
                         // Reload bot context to reflect the enabled status change
                         store.reload_bot_context();
@@ -702,6 +709,9 @@ struct ModelEntry {
 
     #[rust]
     model_name: String,
+
+    #[rust]
+    model_id: String,
 }
 
 impl Widget for ModelEntry {
@@ -744,6 +754,7 @@ impl WidgetMatchEvent for ModelEntry {
         if let Some(change) = enabled_switch.changed(actions) {
             cx.action(ModelEntryAction::ModelEnabledChanged(
                 self.model_name.clone(),
+                self.model_id.clone(),
                 change,
             ));
             self.redraw(cx);
@@ -757,10 +768,16 @@ impl ModelEntryRef {
             inner.model_name = name.to_string();
         }
     }
+
+    pub fn set_model_id(&mut self, id: &str) {
+        if let Some(mut inner) = self.borrow_mut() {
+            inner.model_id = id.to_string();
+        }
+    }
 }
 
 #[derive(Clone, Debug, DefaultNone)]
 enum ModelEntryAction {
     None,
-    ModelEnabledChanged(String, bool),
+    ModelEnabledChanged(String, String, bool),
 }
