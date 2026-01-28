@@ -204,22 +204,22 @@ live_design! {
             }
         }
 
-        transcription_model_selector = <TextInput> {
-            width: 200, height: Fit
-            text: "whisper-1"
-            draw_bg: {
-                color: #fff
-                border_color: #D0D5DD
-                border_size: 1.0
-                border_radius: 6.0
-            }
+        transcription_model_selector = <SimpleDropDown> {
+            margin: 5
+            labels: ["whisper-1", "whisper", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
+            values: [whisper_1, whisper, gpt_4o_transcribe, gpt_4o_mini_transcribe]
+
             draw_text: {
-                text_style: <THEME_FONT_REGULAR>{font_size: 11}
-                color: #000
-                color_hover: #444
-                color_focus: #000
+                color: #222
+                text_style: {font_size: 11}
             }
-            padding: {top: 6, bottom: 6, left: 8, right: 8}
+
+            popup_menu = {
+                draw_text: {
+                    color: #222
+                    text_style: {font_size: 11}
+                }
+            }
         }
     }
 
@@ -609,7 +609,7 @@ impl Widget for Realtime {
         self.widget_match_event(cx, event, scope);
 
         if let Some(_value) = self
-            .text_input(ids!(transcription_model_selector))
+            .drop_down(ids!(transcription_model_selector))
             .changed(event.actions())
         {
             if self.is_connected {
@@ -1625,7 +1625,9 @@ impl Realtime {
                 .command_sender
                 .unbounded_send(RealtimeCommand::UpdateSessionConfig {
                     voice: self.selected_voice.clone(),
-                    transcription_model: self.text_input(ids!(transcription_model_selector)).text(),
+                    transcription_model: self
+                        .drop_down(ids!(transcription_model_selector))
+                        .selected_label(),
                 });
         }
     }
