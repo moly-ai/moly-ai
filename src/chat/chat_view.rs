@@ -552,19 +552,18 @@ impl ChatView {
                 }
             }
 
-            // Create grouping function using lookup utility
-            use moly_kit::widgets::model_selector::create_lookup_grouping;
-
-            let grouping_fn =
-                create_lookup_grouping(move |bot_id: &BotId| bot_groups.get(bot_id).cloned());
-
             // Set grouping on the ModelSelector inside PromptInput
             let chat = self.chat(ids!(chat));
             chat.read()
                 .prompt_input_ref()
                 .widget(ids!(model_selector))
                 .as_model_selector()
-                .set_grouping(grouping_fn);
+                .set_grouping(move |bot: &moly_kit::aitk::protocol::Bot| {
+                    bot_groups
+                        .get(&bot.id)
+                        .cloned()
+                        .unwrap_or_else(|| moly_kit::widgets::model_selector::default_grouping(bot))
+                });
 
             // Update filter when bot_context changes
             let chat = self.chat(ids!(chat));
