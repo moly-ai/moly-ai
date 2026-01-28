@@ -107,9 +107,6 @@ pub struct ModelSelectorList {
 
     #[rust]
     pub filter: Option<Box<dyn BotFilter>>,
-
-    #[rust]
-    pub selected_bot_id: Option<BotId>,
 }
 
 impl Widget for ModelSelectorList {
@@ -125,14 +122,18 @@ impl Widget for ModelSelectorList {
     fn draw_walk(&mut self, cx: &mut Cx2d, _scope: &mut Scope, walk: Walk) -> DrawStep {
         cx.begin_turtle(walk, self.layout);
 
-        // Get bots from chat controller
-        let bots = if let Some(chat_controller) = &self.chat_controller {
-            chat_controller.lock().unwrap().state().bots.clone()
+        // Get bots and selected_bot_id from chat controller
+        let (bots, selected_bot_id) = if let Some(chat_controller) = &self.chat_controller {
+            {
+                let chat_controller = chat_controller.lock().unwrap();
+                let state = chat_controller.state();
+                (state.bots.clone(), state.bot_id.clone())
+            }
         } else {
-            Vec::new()
+            (Vec::new(), None)
         };
 
-        self.draw_items(cx, &bots);
+        self.draw_items(cx, &bots, selected_bot_id.as_ref());
 
         cx.end_turtle_with_area(&mut self.area);
         DrawStep::done()
@@ -160,7 +161,7 @@ impl WidgetMatchEvent for ModelSelectorList {
 }
 
 impl ModelSelectorList {
-    fn draw_items(&mut self, cx: &mut Cx2d, bots: &[Bot]) {
+    fn draw_items(&mut self, cx: &mut Cx2d, bots: &[Bot], selected_bot_id: Option<&BotId>) {
         let mut total_height = 0.0;
 
         // Filter bots based on search
@@ -260,7 +261,9 @@ impl ModelSelectorList {
 
                 let mut item = item_widget.as_model_selector_item();
                 item.set_bot(bot.clone());
-                item.set_selected_bot_id(self.selected_bot_id.clone());
+
+                let is_selected = selected_bot_id == Some(&bot.id);
+                item.set_selected(is_selected);
 
                 let _ = item_widget.draw_all(cx, &mut Scope::empty());
                 total_height += item_widget.area().rect(cx).size.y;
@@ -305,12 +308,6 @@ impl ModelSelectorListRef {
     {
         if let Some(mut inner) = self.borrow_mut() {
             inner.grouping = Box::new(grouping);
-        }
-    }
-
-    pub fn set_selected_bot_id(&mut self, selected_bot_id: Option<BotId>) {
-        if let Some(mut inner) = self.borrow_mut() {
-            inner.selected_bot_id = selected_bot_id;
         }
     }
 }

@@ -87,7 +87,7 @@ pub struct ModelSelectorItem {
     bot: Option<Bot>,
 
     #[rust]
-    selected_bot_id: Option<BotId>,
+    selected: bool,
 
     #[animator]
     animator: Animator,
@@ -133,8 +133,8 @@ impl Widget for ModelSelectorItem {
             self.label(ids!(label)).set_text(cx, &bot.name);
 
             // Show tick icon if this bot is selected
-            let is_selected = self.selected_bot_id.as_ref() == Some(&bot.id);
-            self.view(ids!(icon_tick_view)).set_visible(cx, is_selected);
+            self.view(ids!(icon_tick_view))
+                .set_visible(cx, self.selected);
         }
 
         self.view.draw_walk(cx, scope, walk)
@@ -148,9 +148,9 @@ impl ModelSelectorItemRef {
         }
     }
 
-    pub fn set_selected_bot_id(&mut self, selected_bot_id: Option<BotId>) {
+    pub fn set_selected(&mut self, selected: bool) {
         if let Some(mut inner) = self.borrow_mut() {
-            inner.selected_bot_id = selected_bot_id;
+            inner.selected = selected;
         }
     }
 }

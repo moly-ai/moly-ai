@@ -211,14 +211,20 @@ impl Widget for ModelSelector {
                 .set_text(cx, "Choose an AI assistant");
         }
 
-        // Set the chat controller and selected bot ID on the list before drawing
-        if let Some(controller) = &self.chat_controller {
-            if let Some(mut list) = self
+        // Set the chat controller on the list before drawing
+        if let Some(controller) = &self.chat_controller
+            && let Some(mut list) = self
                 .widget(ids!(options.list_container.list))
                 .borrow_mut::<ModelSelectorList>()
+            && Arc::as_ptr(controller)
+                != list
+                    .chat_controller
+                    .as_ref()
+                    .map(Arc::as_ptr)
+                    .unwrap_or(std::ptr::null())
+        {
             {
                 list.chat_controller = Some(controller.clone());
-                list.selected_bot_id = selected_bot_id;
             }
         }
 
