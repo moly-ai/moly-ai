@@ -109,7 +109,7 @@ fn fetch_models_with_client<F, M>(
     M: Fn(Bot) -> ProviderBot + Send + 'static,
 {
     spawn(async move {
-        let client = client_factory();
+        let mut client = client_factory();
 
         match client.bots().await.into_result() {
             Ok(bots) => {

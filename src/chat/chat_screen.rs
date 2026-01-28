@@ -142,7 +142,7 @@ impl ChatScreen {
         let store = scope.data.get_mut::<Store>().unwrap();
 
         let router_client = {
-            let mut router_client = RouterClient::new();
+            let router_client = RouterClient::new();
             let supported_providers_list = supported_providers::load_supported_providers();
 
             let available_bots = store.chats.available_bots.clone();

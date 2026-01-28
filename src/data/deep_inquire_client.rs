@@ -190,17 +190,14 @@ impl DeepInquireClient {
 }
 
 impl BotClient for DeepInquireClient {
-    fn bots(&self) -> BoxPlatformSendFuture<'static, ClientResult<Vec<Bot>>> {
+    fn bots(&mut self) -> BoxPlatformSendFuture<'static, ClientResult<Vec<Bot>>> {
         // For now we return a hardcoded bot because DeepInquire does not support a /models endpoint
         let bot = Bot {
             id: BotId::new("DeepInquire"),
             name: "DeepInquire".to_string(),
             avatar: EntityAvatar::Text("D".into()),
-            capabilities: BotCapabilities::new().with_capabilities([
-                BotCapability::TextInput,
-                BotCapability::AttachmentInput,
-                BotCapability::Custom,
-            ]),
+            capabilities: BotCapabilities::new()
+                .with_capabilities([BotCapability::TextInput, BotCapability::AttachmentInput]),
         };
 
         let future = async move { ClientResult::new_ok(vec![bot]) };
