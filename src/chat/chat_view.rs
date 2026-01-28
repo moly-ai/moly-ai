@@ -564,7 +564,7 @@ impl ChatView {
                 .prompt_input_ref()
                 .widget(ids!(model_selector))
                 .as_model_selector()
-                .set_grouping(Some(grouping_fn));
+                .set_grouping(grouping_fn);
 
             // Update filter when bot_context changes
             let chat = self.chat(ids!(chat));

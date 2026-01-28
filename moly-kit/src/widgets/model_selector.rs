@@ -380,15 +380,27 @@ impl ModelSelectorRef {
     /// - `group_id`: Unique identifier for the group (used for deduplication and sorting)
     /// - `group_label`: Display name for the group header
     /// - `group_icon`: Optional icon to display next to the group label
-    pub fn set_grouping(&mut self, grouping: Option<GroupingFn>) {
+    pub fn set_grouping<F>(&mut self, grouping: F)
+    where
+        F: Fn(&Bot) -> BotGroup + 'static,
+    {
         if let Some(inner) = self.borrow_mut() {
             if let Some(mut list) = inner
                 .widget(ids!(options.list_container.list))
                 .borrow_mut::<ModelSelectorList>()
             {
-                list.grouping = grouping;
+                list.grouping = Box::new(grouping);
             }
         }
+    }
+}
+
+/// Default grouping: groups all bots under "All" category.
+pub fn default_grouping(bot: &Bot) -> BotGroup {
+    BotGroup {
+        id: "all".to_string(),
+        label: "All".to_string(),
+        icon: Some(bot.avatar.clone()),
     }
 }
 
@@ -407,37 +419,6 @@ pub struct BotGroup {
     /// Optional icon displayed next to the group label
     pub icon: Option<EntityAvatar>,
 }
-
-/// Callback function that determines how bots are grouped in the model selector.
-///
-/// Applications can provide a custom grouping function to organize models by provider,
-/// capabilities, or any other criteria. The function receives a bot and returns a
-/// [`BotGroup`] that specifies how that bot should be grouped.
-///
-/// # Default Behavior
-/// If no grouping function is provided, bots are grouped by their provider
-/// (extracted from `BotId.provider()`), using the bot's avatar as the group icon.
-///
-/// # Example
-/// ```ignore
-/// use moly_kit::widgets::model_selector::{GroupingFn, BotGroup};
-/// use std::sync::Arc;
-///
-/// // Group by provider with custom names and icons
-/// let grouping: GroupingFn = Arc::new(|bot| {
-///     let provider_id = get_provider_id(&bot.id);
-///     let provider_name = get_friendly_name(&provider_id);
-///     let icon = get_provider_icon(&provider_id);
-///     BotGroup {
-///         id: provider_id,
-///         label: provider_name,
-///         icon,
-///     }
-/// });
-///
-/// model_selector.set_grouping(Some(grouping));
-/// ```
-pub type GroupingFn = Box<dyn Fn(&Bot) -> BotGroup + Send + Sync>;
 
 /// Creates a grouping function that queries data on-demand via a lookup closure.
 ///
@@ -460,18 +441,14 @@ pub type GroupingFn = Box<dyn Fn(&Bot) -> BotGroup + Send + Sync>;
 ///     })
 /// });
 /// ```
-pub fn create_lookup_grouping<F>(lookup: F) -> GroupingFn
+pub fn create_lookup_grouping<F>(lookup: F) -> Box<dyn Fn(&Bot) -> BotGroup>
 where
-    F: Fn(&BotId) -> Option<BotGroup> + Send + Sync + 'static,
+    F: Fn(&BotId) -> Option<BotGroup> + 'static,
 {
     Box::new(move |bot: &Bot| {
         lookup(&bot.id).unwrap_or_else(|| {
-            // Default fallback: group by "All"
-            BotGroup {
-                id: "all".to_string(),
-                label: "All".to_string(),
-                icon: Some(bot.avatar.clone()),
-            }
+            // Default fallback
+            default_grouping(bot)
         })
     })
 }

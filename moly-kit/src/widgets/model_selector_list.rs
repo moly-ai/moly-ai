@@ -1,11 +1,14 @@
 use super::model_selector_item::{ModelSelectorItemAction, ModelSelectorItemWidgetRefExt};
 use crate::{
     aitk::{controllers::chat::ChatController, protocol::*},
-    widgets::model_selector::{BotGroup, GroupingFn},
+    widgets::model_selector::{BotGroup, default_grouping},
 };
 use makepad_widgets::*;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+
+// We need a type alias, so Makepad's `#[rust(...)]` macro attribute works.
+type ErasedGroupingClosure = Box<dyn Fn(&Bot) -> BotGroup>;
 
 /// Trait for filtering which bots to show in the model selector
 pub trait BotFilter {
@@ -99,8 +102,8 @@ pub struct ModelSelectorList {
     #[rust]
     pub chat_controller: Option<Arc<Mutex<ChatController>>>,
 
-    #[rust]
-    pub grouping: Option<GroupingFn>,
+    #[rust(Box::new(default_grouping) as ErasedGroupingClosure)]
+    pub grouping: ErasedGroupingClosure,
 
     #[rust]
     pub filter: Option<Box<dyn BotFilter>>,
@@ -160,15 +163,6 @@ impl ModelSelectorList {
     fn draw_items(&mut self, cx: &mut Cx2d, bots: &[Bot]) {
         let mut total_height = 0.0;
 
-        // Default grouping function: group by "All"
-        let default_grouping: GroupingFn = Box::new(|bot: &Bot| BotGroup {
-            id: "all".to_string(),
-            label: "All".to_string(),
-            icon: Some(bot.avatar.clone()),
-        });
-
-        let grouping_fn = self.grouping.as_ref().unwrap_or(&default_grouping);
-
         // Filter bots based on search
         let terms = self
             .search_filter
@@ -199,7 +193,7 @@ impl ModelSelectorList {
         let mut groups: HashMap<String, ((String, Option<EntityAvatar>), Vec<&Bot>)> =
             HashMap::new();
         for bot in filtered_bots {
-            let group = grouping_fn(bot);
+            let group = (self.grouping)(bot);
             groups
                 .entry(group.id)
                 .or_insert_with(|| ((group.label, group.icon), Vec::new()))
@@ -305,9 +299,12 @@ impl ModelSelectorListRef {
         }
     }
 
-    pub fn set_grouping(&mut self, grouping: Option<GroupingFn>) {
+    pub fn set_grouping<F>(&mut self, grouping: F)
+    where
+        F: Fn(&Bot) -> BotGroup + 'static,
+    {
         if let Some(mut inner) = self.borrow_mut() {
-            inner.grouping = grouping;
+            inner.grouping = Box::new(grouping);
         }
     }
 
