@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-aitk = { git = "https://github.com/moly-ai/aitk", rev = "795778ed", features = ["async-rt"] }
+aitk = { git = "https://github.com/moly-ai/aitk", rev = "6cd8a74d", features = ["async-rt"] }
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
