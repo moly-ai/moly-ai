@@ -46,6 +46,8 @@ pub struct ProviderBot {
     pub description: String,
     pub provider_id: String,
     pub enabled: bool,
+    #[serde(default)]
+    pub is_recommended: bool,
 }
 
 impl ProviderBot {
@@ -59,6 +61,7 @@ impl ProviderBot {
                 .to_string(),
             provider_id: "unknown".to_string(),
             enabled: true,
+            is_recommended: false,
         }
     }
 

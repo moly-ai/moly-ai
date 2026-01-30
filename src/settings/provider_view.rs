@@ -359,6 +359,19 @@ Moly automatically appends useful context to your prompt, like the time of day."
                 }
             }
 
+            <View> {
+                width: Fill, height: Fit
+                margin: {bottom: 15}
+                model_search_input = <MolyTextInput> {
+                    width: Fill, height: 35
+                    empty_text: "Search models..."
+                    draw_text: {
+                        text_style: <REGULAR_FONT>{font_size: 12}
+                        color: #000
+                    }
+                }
+            }
+
             models_list = <FlatList> {
                 width: Fill, height: Fit
                 flow: Down,
@@ -396,6 +409,9 @@ struct ProviderView {
 
     #[rust]
     initialized: bool,
+
+    #[rust]
+    model_search: String,
 }
 
 impl Widget for ProviderView {
@@ -406,7 +422,21 @@ impl Widget for ProviderView {
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         let store = scope.data.get_mut::<Store>().unwrap();
-        let models = store.chats.get_provider_models(&self.provider.id);
+        let mut models = store.chats.get_provider_models(&self.provider.id);
+
+        // Filter by search
+        let search_term = self.model_search.to_lowercase();
+        if !search_term.is_empty() {
+            models.retain(|m| m.name.to_lowercase().contains(&search_term));
+        }
+
+        // Sort: Recommended first, then alphabetical
+        models.sort_by(|a, b| {
+            if a.is_recommended != b.is_recommended {
+                return b.is_recommended.cmp(&a.is_recommended);
+            }
+            a.name.cmp(&b.name)
+        });
 
         let provider = store.chats.providers.get(&self.provider.id).cloned();
 
@@ -450,7 +480,13 @@ impl Widget for ProviderView {
                         }
 
                         let name = model.human_readable_name();
-                        item.label(ids!(model_name)).set_text(cx, &name);
+                        let display_name = if model.is_recommended {
+                            format!("{} (Recommended)", name)
+                        } else {
+                            name.to_string()
+                        };
+
+                        item.label(ids!(model_name)).set_text(cx, &display_name);
                         item.check_box(ids!(enabled_switch))
                             .set_active(cx, model.enabled && self.provider.enabled);
 
@@ -501,6 +537,12 @@ impl ProviderView {
 impl WidgetMatchEvent for ProviderView {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
+
+        if let Some(text) = self.text_input(ids!(model_search_input)).changed(actions) {
+            self.model_search = text;
+            self.redraw(cx);
+        }
+
         // Handle provider enabled/disabled
         let provider_enabled_switch = self.check_box(ids!(provider_enabled_switch));
         if let Some(enabled) = provider_enabled_switch.changed(actions) {
@@ -640,6 +682,8 @@ impl ProviderViewRef {
     pub fn set_provider(&mut self, cx: &mut Cx, provider: &Provider) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.provider = provider.clone();
+            inner.model_search.clear();
+            inner.text_input(ids!(model_search_input)).set_text(cx, "");
 
             // Update the text inputs
             let api_key_input = inner.text_input(ids!(api_key));

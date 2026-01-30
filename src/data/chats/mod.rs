@@ -212,16 +212,31 @@ impl Chats {
         let mut fetched_from_moly_server = false;
         match result {
             ProviderFetchModelsResult::Success(provider_id, mut fetched_models) => {
-                // If the provider is part of the predefined list of supported providers,
-                // filter the fetched models to only include those that are in the supported models list.
-                if let Some(supported_provider) =
-                    super::supported_providers::load_supported_providers()
-                        .iter()
-                        .find(|sp| sp.id == provider_id)
-                {
-                    if let Some(supported_models) = &supported_provider.supported_models {
-                        // Filter fetched models to only include supported ones
-                        fetched_models.retain(|model| supported_models.contains(&model.name));
+                // Determine recommendation source
+                let provider_url = self.providers.get(&provider_id).map(|p| p.url.clone());
+                let supported_providers = super::supported_providers::load_supported_providers();
+
+                // Find matching supported provider info (by ID or URL)
+                let maybe_supported = supported_providers
+                    .iter()
+                    .find(|sp| sp.id == provider_id)
+                    .or_else(|| {
+                        if let Some(url) = &provider_url {
+                            supported_providers.iter().find(|sp| &sp.url == url)
+                        } else {
+                            None
+                        }
+                    });
+
+                let mut has_recommendation_list = false;
+                if let Some(sp) = maybe_supported {
+                    if let Some(supported_models) = &sp.supported_models {
+                        has_recommendation_list = true;
+                        for model in &mut fetched_models {
+                            if supported_models.contains(&model.name) {
+                                model.is_recommended = true;
+                            }
+                        }
                     }
                 }
 
@@ -238,8 +253,14 @@ impl Chats {
                             .find(|(mname, _)| *mname == rm.name);
 
                         if maybe_model.is_none() {
-                            // Insert with default enabled: true
-                            pref_entry.models.push((rm.name.clone(), true));
+                            // Determine default: recommended -> true, others -> false (if list exists)
+                            // If no list exists (Custom Provider), default -> true
+                            let default_enabled = if has_recommendation_list {
+                                rm.is_recommended
+                            } else {
+                                true
+                            };
+                            pref_entry.models.push((rm.name.clone(), default_enabled));
                         }
                     }
                     // Remove stale model names from preferences if needed
@@ -252,20 +273,28 @@ impl Chats {
 
                 // Insert the fetched models in memory, respecting preference "enabled" if it exists
                 for mut provider_bot in fetched_models {
+                    // Set initial state
+                    let mut final_enabled = if has_recommendation_list {
+                        provider_bot.is_recommended
+                    } else {
+                        true
+                    };
+
                     if let Some(pref_entry) = preferences
                         .providers_preferences
                         .iter()
                         .find(|pp| pp.id == provider_id)
                     {
                         // if there's a matching "(model_name, enabled)" in preferences, apply it
-                        if let Some((_m, enabled_val)) = pref_entry
+                        if let Some((_, enabled_val)) = pref_entry
                             .models
                             .iter()
                             .find(|(m, _)| *m == provider_bot.name)
                         {
-                            provider_bot.enabled = *enabled_val;
+                            final_enabled = *enabled_val;
                         }
                     }
+                    provider_bot.enabled = final_enabled;
 
                     // Add it to the provider record, only if it's not already in there
                     if !self
@@ -282,11 +311,9 @@ impl Chats {
                             .push(provider_bot.id.clone());
                     }
 
-                    // Add to the global available_bots only if it's not already in there
-                    if !self.available_bots.contains_key(&provider_bot.id) {
-                        self.available_bots
-                            .insert(provider_bot.id.clone(), provider_bot);
-                    }
+                    // Always insert/update to ensure fresh state (including enabled/recommended)
+                    self.available_bots
+                        .insert(provider_bot.id.clone(), provider_bot);
                 }
 
                 if let Some(provider) = self.providers.get_mut(&provider_id) {
