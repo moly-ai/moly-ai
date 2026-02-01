@@ -95,6 +95,26 @@ pub fn fetch_models_for_provider(provider: &Provider) {
                 None,
             );
         }
+        ProviderType::OpenClaw => {
+            fetch_models_with_client(
+                provider_id.clone(),
+                move || {
+                    let mut client = crate::data::openclaw_client::OpenClawClient::new(url);
+                    if let Some(key) = api_key {
+                        let _ = client.set_key(&key);
+                    }
+                    Box::new(client)
+                },
+                move |bot| ProviderBot {
+                    id: bot.id.clone(),
+                    name: bot.name.clone(),
+                    description: "OpenClaw local AI assistant".to_string(),
+                    provider_id: provider_id.clone(),
+                    enabled: true,
+                },
+                None,
+            );
+        }
     }
 }
 

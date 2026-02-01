@@ -6,6 +6,7 @@ use std::collections::HashMap;
 
 use crate::data::bot_fetcher::should_include_model;
 use crate::data::deep_inquire_client::DeepInquireClient;
+use crate::data::openclaw_client::OpenClawClient;
 use crate::data::providers::{Provider, ProviderBot, ProviderId, ProviderType};
 use crate::data::store::Store;
 use crate::data::supported_providers::{self, SupportedProvider};
@@ -181,6 +182,13 @@ impl ChatScreen {
                         &providers,
                         &store,
                     ),
+                    ProviderType::OpenClaw => create_openclaw_client(
+                        provider,
+                        &supported_providers_list,
+                        &available_bots,
+                        &providers,
+                        &store,
+                    ),
                 };
 
                 if let Some(client) = client {
@@ -235,7 +243,10 @@ fn has_valid_credentials(provider: &Provider) -> bool {
         ProviderType::OpenAi | ProviderType::MolyServer | ProviderType::OpenAiRealtime => {
             provider.api_key.is_some() || is_localhost(&provider.url)
         }
-        ProviderType::MoFa | ProviderType::OpenAiImage | ProviderType::DeepInquire => true,
+        ProviderType::MoFa
+        | ProviderType::OpenAiImage
+        | ProviderType::DeepInquire
+        | ProviderType::OpenClaw => true,
     }
 }
 
@@ -409,6 +420,37 @@ fn create_deep_inquire_client(
     store: &Store,
 ) -> Option<Box<dyn BotClient>> {
     let mut client = DeepInquireClient::new(provider.url.clone());
+
+    if let Some(key) = provider.api_key.as_ref() {
+        if let Err(e) = client.set_key(key) {
+            eprintln!("Failed to set API key for {}: {}", provider.name, e);
+            return None;
+        }
+    }
+
+    let mut map_client = MapClient::from(client);
+
+    setup_map_client(
+        &mut map_client,
+        provider,
+        supported_providers_list,
+        available_bots,
+        providers,
+        store,
+        ClientFilter::None,
+    );
+
+    Some(Box::new(map_client))
+}
+
+fn create_openclaw_client(
+    provider: &Provider,
+    supported_providers_list: &[SupportedProvider],
+    available_bots: &BotMap,
+    providers: &ProviderMap,
+    store: &Store,
+) -> Option<Box<dyn BotClient>> {
+    let mut client = OpenClawClient::new(provider.url.clone());
 
     if let Some(key) = provider.api_key.as_ref() {
         if let Err(e) = client.set_key(key) {
