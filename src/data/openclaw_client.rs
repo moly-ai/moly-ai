@@ -140,7 +140,8 @@ impl OpenClawClient {
 
     fn build_history_message(messages: &[Message]) -> String {
         let mut combined = String::new();
-        for message in messages {
+        let start = messages.len().saturating_sub(MAX_HISTORY_MESSAGES);
+        for message in &messages[start..] {
             let role = match message.from {
                 EntityId::User => "user",
                 EntityId::System => "system",
@@ -180,6 +181,7 @@ impl OpenClawClient {
 
 #[cfg(not(target_arch = "wasm32"))]
 const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
+const MAX_HISTORY_MESSAGES: usize = 32;
 
 /// Result of processing a WebSocket message.
 enum ProcessResult {
