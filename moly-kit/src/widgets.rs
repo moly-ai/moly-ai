@@ -4,6 +4,7 @@
 
 use makepad_widgets::*;
 
+pub mod a2ui_client;
 mod attachment_list;
 mod attachment_view;
 mod attachment_viewer_modal;
@@ -17,6 +18,11 @@ mod model_selector_item;
 mod slot;
 mod standard_message_content;
 mod theme_moly_kit_light;
+
+pub use a2ui_client::{
+    A2uiClient, set_global_a2ui_enabled, is_global_a2ui_enabled,
+    extract_a2ui_json, set_pending_a2ui_json, take_pending_a2ui_json,
+};
 
 // Note: Many of these widgets are not ready to be public, or they are not
 // intended for public use. However, we must expose them for things related to
@@ -42,6 +48,9 @@ pub fn live_design(cx: &mut makepad_widgets::Cx) {
     // Currently we only have a light theme which we use as default.
     cx.link(live_id!(moly_kit_theme), live_id!(theme_moly_kit_light));
 
+    // Register makepad-component widgets (MpSwitch, etc.)
+    makepad_component::widgets::live_design(cx);
+
     math_widget::math::live_design(cx);
     image_view::live_design(cx);
     attachment_view::live_design(cx);
@@ -66,4 +75,5 @@ pub fn live_design(cx: &mut makepad_widgets::Cx) {
     chat::live_design(cx);
     realtime::live_design(cx);
     message_thinking_block::live_design(cx);
+    crate::a2ui::live_design(cx);
 }

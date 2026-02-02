@@ -5,10 +5,21 @@ use std::sync::{Arc, Mutex};
 use crate::aitk::utils::tool::display_name_from_namespaced;
 use crate::prelude::*;
 use crate::utils::makepad::events::EventExt;
+use crate::widgets::a2ui_client::{extract_a2ui_json, set_pending_a2ui_json};
 use crate::widgets::stt_input::*;
 
 // Re-export type needed to configure STT.
 pub use crate::widgets::stt_input::SttUtility;
+
+/// Actions emitted by the Chat widget
+#[derive(Clone, Debug, DefaultNone)]
+pub enum ChatAction {
+    None,
+    /// A2UI JSON was extracted from the model response
+    A2uiJson(String),
+    /// A2UI toggle was changed
+    A2uiToggled(bool),
+}
 
 live_design!(
     use link::theme::*;
@@ -72,7 +83,7 @@ impl Widget for Chat {
         self.deref.handle_event(cx, event, scope);
 
         self.handle_messages(cx, event);
-        self.handle_prompt_input(cx, event);
+        self.handle_prompt_input(cx, event, scope);
         self.handle_stt_input_actions(cx, event);
         self.handle_realtime(cx);
         self.handle_modal_dismissal(cx, event);
@@ -111,7 +122,7 @@ impl Chat {
         self.stt_input_ref().read().stt_utility().cloned()
     }
 
-    fn handle_prompt_input(&mut self, cx: &mut Cx, event: &Event) {
+    fn handle_prompt_input(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         let submitted = self.prompt_input_ref().read().submitted(event.actions());
         if submitted {
             self.handle_submit(cx);
@@ -128,6 +139,16 @@ impl Chat {
             self.stt_input_ref().set_visible(cx, true);
             self.stt_input_ref().write().start_recording(cx);
             self.redraw(cx);
+        }
+
+        // Forward A2UI toggle action to parent
+        if let Some(a2ui_enabled) = self.prompt_input_ref().a2ui_toggled(event.actions()) {
+            eprintln!("[Chat] Forwarding A2UI toggle: {}", a2ui_enabled);
+            cx.widget_action(
+                self.widget_uid(),
+                &scope.path,
+                ChatAction::A2uiToggled(a2ui_enabled),
+            );
         }
     }
 
@@ -476,6 +497,87 @@ impl Chat {
             .is_streaming
     }
 
+    /// Extract A2UI JSON from the last bot message and emit it as an action.
+    ///
+    /// After streaming ends, inspects the last bot message for ` ```a2ui ``` `
+    /// code fences. If found, strips the JSON block from the displayed text
+    /// and stores the JSON for the shell app to render.
+    fn extract_and_emit_a2ui(&self, cx: &mut Cx, scope: &mut Scope) {
+        eprintln!("[A2UI extract] extract_and_emit_a2ui called");
+
+        let Some(controller) = &self.chat_controller else {
+            eprintln!("[A2UI extract] no chat controller");
+            return;
+        };
+
+        let mut lock = controller.lock().unwrap();
+        let messages = &lock.state().messages;
+
+        // Find the last bot message
+        let Some((idx, message)) = messages
+            .iter()
+            .enumerate()
+            .rev()
+            .find(|(_, m)| matches!(m.from, EntityId::Bot(_)))
+        else {
+            eprintln!("[A2UI extract] no bot message found");
+            return;
+        };
+
+        let preview_end = message.content.text
+            .char_indices()
+            .take_while(|(i, _)| *i < 100)
+            .last()
+            .map(|(i, c)| i + c.len_utf8())
+            .unwrap_or(0);
+        eprintln!(
+            "[A2UI extract] last bot msg len={}, starts_with='{}'",
+            message.content.text.len(),
+            &message.content.text[..preview_end]
+        );
+
+        let (clean_text, json) = extract_a2ui_json(&message.content.text, true);
+
+        let Some(json_str) = json else {
+            eprintln!("[A2UI extract] no a2ui JSON found in message");
+            return;
+        };
+
+        eprintln!(
+            "[A2UI extract] found JSON ({} bytes), clean_text len={}",
+            json_str.len(),
+            clean_text.len()
+        );
+
+        // Update the message text to remove the A2UI JSON block.
+        // Use a placeholder if clean text is empty — LLM APIs reject
+        // empty assistant messages in conversation history.
+        eprintln!("[A2UI extract] about to dispatch_mutation(Update) idx={}", idx);
+        let mut updated = message.clone();
+        updated.content.text = if clean_text.is_empty() {
+            "*UI updated in canvas*".to_string()
+        } else {
+            clean_text
+        };
+        lock.dispatch_mutation(VecMutation::Update(idx, updated));
+        eprintln!("[A2UI extract] dispatch_mutation done, calling set_pending_a2ui_json");
+
+        // Store JSON for the shell app to render
+        set_pending_a2ui_json(json_str.clone());
+        eprintln!("[A2UI extract] set_pending_a2ui_json done");
+
+        drop(lock);
+
+        // Emit as widget action for local consumers
+        cx.widget_action(
+            self.widget_uid(),
+            &scope.path,
+            ChatAction::A2uiJson(json_str),
+        );
+
+        cx.redraw_all();
+    }
+
     pub fn set_chat_controller(
         &mut self,
         _cx: &mut Cx,
@@ -562,6 +664,16 @@ impl ChatRef {
     pub fn write_with<R>(&mut self, f: impl FnOnce(&mut Chat) -> R) -> R {
         f(&mut *self.write())
     }
+
+    /// Check if A2UI JSON was extracted and return it.
+    pub fn a2ui_json(&self, actions: &Actions) -> Option<String> {
+        if let Some(item) = actions.find_widget_action(self.widget_uid()) {
+            if let ChatAction::A2uiJson(json) = item.cast() {
+                return Some(json);
+            }
+        }
+        None
+    }
 }
 
 impl Drop for Chat {
@@ -590,8 +702,10 @@ impl ChatControllerPlugin for Plugin {
                     });
                 }
                 ChatStateMutation::SetIsStreaming(false) => {
-                    self.ui.defer(|chat, cx, _| {
+                    self.ui.defer(|chat, cx, scope| {
                         chat.handle_streaming_end(cx);
+                        // Extract A2UI JSON from the last message and emit action
+                        chat.extract_and_emit_a2ui(cx, scope);
                     });
                 }
                 ChatStateMutation::MutateBots(_) => {

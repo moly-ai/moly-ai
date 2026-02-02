@@ -1,6 +1,7 @@
 use crate::{
     aitk::{protocol::*, utils::tool::display_name_from_namespaced},
     widgets::{
+        a2ui_client::extract_a2ui_json,
         attachment_list::AttachmentListWidgetExt,
         attachment_viewer_modal::AttachmentViewerModalWidgetExt,
     },
@@ -101,13 +102,25 @@ impl StandardMessageContent {
         let markdown = self.label(ids!(markdown));
 
         if metadata.is_writing() {
-            let text_with_typing = format!("{} {}", content.text, TYPING_INDICATOR);
+            // Strip A2UI JSON blocks during streaming so they don't flash in chat
+            let (clean_text, a2ui_found) = extract_a2ui_json(&content.text, false);
+            if a2ui_found.is_some() || content.text.contains("```a2ui") {
+                ::log::info!(
+                    "[A2UI Display] Streaming: found={}, original_len={}, clean_len={}",
+                    a2ui_found.is_some(),
+                    content.text.len(),
+                    clean_text.len(),
+                );
+            }
+            let text_with_typing = format!("{} {}", clean_text, TYPING_INDICATOR);
             markdown.set_text(cx, &convert_math_delimiters(&text_with_typing));
         } else if !content.tool_calls.is_empty() {
             let tool_calls_text = Self::generate_tool_calls_text(content);
             markdown.set_text(cx, &convert_math_delimiters(&tool_calls_text));
         } else {
-            markdown.set_text(cx, &convert_math_delimiters(&content.text));
+            // Strip any A2UI JSON blocks from display text
+            let (clean_text, _) = extract_a2ui_json(&content.text, true);
+            markdown.set_text(cx, &convert_math_delimiters(&clean_text));
         }
     }
 

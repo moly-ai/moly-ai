@@ -7,6 +7,7 @@ use crate::{
     aitk::{controllers::chat::ChatController, protocol::*},
     utils::makepad::{events::EventExt, portal_list::ItemsRangeIter, ui_runner::DeferRedraw},
     widgets::{
+        a2ui_client::extract_a2ui_json,
         avatar::AvatarWidgetRefExt, chat_line::ChatLineAction,
         message_loading::MessageLoadingWidgetRefExt,
     },
@@ -220,6 +221,11 @@ impl Messages {
         // the list draw.
         let mut chat_controller = chat_controller.lock().unwrap();
 
+        let msg_count = chat_controller.state().messages.len();
+        if msg_count == 0 {
+            ::log::info!("Messages::draw_list called with 0 messages");
+        }
+
         let last_message_index = chat_controller.state().messages.len().checked_sub(1);
         let second_last_message_index = last_message_index.and_then(|i| i.checked_sub(1));
 
@@ -303,9 +309,7 @@ impl Messages {
                     item
                 }
                 EntityId::Tool => {
-                    // Render tool execution results
                     let item = if message.metadata.is_writing() {
-                        // Show loading animation for tool execution
                         let item = list.item(cx, index, live_id!(LoadingLine));
                         item.message_loading(ids!(content_section.loading))
                             .animate(cx);
@@ -438,8 +442,16 @@ impl Messages {
                             (model_name, avatar)
                         });
 
+                    // Check if visible text is empty after stripping A2UI blocks
+                    let visible_empty = if message.metadata.is_writing() {
+                        let (clean, _) = extract_a2ui_json(&message.content.text, false);
+                        message.content.is_empty() || clean.trim().is_empty()
+                    } else {
+                        message.content.is_empty()
+                    };
+
                     let item =
-                        if message.metadata.is_writing() && message.content.is_empty() {
+                        if message.metadata.is_writing() && visible_empty {
                             let item = list.item(cx, index, live_id!(LoadingLine));
                             item.message_loading(ids!(content_section.loading))
                                 .animate(cx);
@@ -447,7 +459,6 @@ impl Messages {
                         } else if !message.content.tool_calls.is_empty() {
                             let item = list.item(cx, index, live_id!(ToolRequestLine));
 
-                            // Set visibility and status based on permission status
                             let has_pending = message.content.tool_calls.iter().any(|tc| {
                                 tc.permission_status == ToolCallPermissionStatus::Pending
                             });
@@ -456,10 +467,8 @@ impl Messages {
                                     tc.permission_status == ToolCallPermissionStatus::Denied
                                 });
 
-                            // Show/hide tool actions based on status
                             item.view(ids!(tool_actions)).set_visible(cx, has_pending);
 
-                            // Set status text, only show if denied
                             if has_denied {
                                 item.view(ids!(status_view)).set_visible(cx, true);
                                 item.label(ids!(approved_status)).set_text(cx, "Denied");
@@ -546,23 +555,18 @@ impl Messages {
             .as_ref()
             .expect("no chat controller set");
 
-        if chat_controller.lock().unwrap().state().messages.len() > 0 {
-            let list = self.portal_list(ids!(list));
+        let message_count = chat_controller.lock().unwrap().state().messages.len();
+        let list = self.portal_list(ids!(list));
 
+        if message_count > 0 {
             // Use immediate scroll instead of smooth scroll to prevent continuous scroll actions
-            list.set_first_id_and_scroll(
-                chat_controller
-                    .lock()
-                    .unwrap()
-                    .state()
-                    .messages
-                    .len()
-                    .saturating_sub(1),
-                0.0,
-            );
-
-            self.redraw(cx);
+            list.set_first_id_and_scroll(message_count.saturating_sub(1), 0.0);
+        } else {
+            // Reset to beginning when no messages
+            list.set_first_id_and_scroll(0, 0.0);
         }
+
+        self.redraw(cx);
     }
 
     /// Smoothly scroll to the end of the list.

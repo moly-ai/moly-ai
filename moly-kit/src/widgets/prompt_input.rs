@@ -1,4 +1,5 @@
 use makepad_widgets::*;
+use makepad_component::widgets::switch::MpSwitchWidgetExt;
 use std::cell::{Ref, RefMut};
 
 #[allow(unused)]
@@ -16,6 +17,7 @@ live_design! {
 
     use crate::widgets::attachment_list::*;
     use crate::widgets::model_selector::*;
+    use makepad_component::widgets::switch::*;
 
     SubmitButton = <Button> {
         width: 28,
@@ -129,13 +131,15 @@ live_design! {
     pub PromptInput = {{PromptInput}} <CommandTextInput> {
         send_icon: dep("crate://self/resources/send.svg"),
         stop_icon: dep("crate://self/resources/stop.svg"),
+        width: Fill
         height: Fit { max: 350 }
         persistent = {
+            width: Fill
             height: Fit
             padding: {top: 10, bottom: 10, left: 10, right: 10}
             draw_bg: {
                 color: #fff,
-                border_radius: 10.0,
+                border_radius: 4.0,
                 border_color: #D0D5DD,
                 border_size: 1.0,
             }
@@ -185,8 +189,24 @@ live_design! {
                 left = <View> {
                     width: Fit, height: Fit
                     align: {x: 0.0, y: 0.5}
+                    spacing: 8
                     attach = <AttachButton> {}
                     model_selector = <ModelSelector> {}
+                    // A2UI toggle - enables AI-generated UI in canvas panel
+                    a2ui_toggle_container = <View> {
+                        width: Fit, height: Fit
+                        align: {y: 0.5}
+                        spacing: 4
+                        visible: true  // Visible for testing A2UI feature
+                        a2ui_label = <Label> {
+                            text: "A2UI"
+                            draw_text: {
+                                text_style: { font_size: 10.0 }
+                                color: #6b7280
+                            }
+                        }
+                        a2ui_toggle = <MpSwitch> {}
+                    }
                 }
                 width: Fill, height: Fit
                 separator = <View> { width: Fill, height: 1}
@@ -201,6 +221,14 @@ pub enum Task {
     #[default]
     Send,
     Stop,
+}
+
+/// Action emitted when the A2UI toggle changes
+#[derive(Clone, Debug, DefaultNone)]
+pub enum PromptInputAction {
+    None,
+    /// A2UI toggle was changed to the given state
+    A2uiToggled(bool),
 }
 
 #[derive(Default, Copy, Clone, PartialEq)]
@@ -237,6 +265,14 @@ pub struct PromptInput {
     /// Capabilities of the currently selected bot
     #[rust]
     pub bot_capabilities: Option<BotCapabilities>,
+
+    /// Whether A2UI is enabled for the current chat session
+    #[rust]
+    pub a2ui_enabled: bool,
+
+    /// Whether the current provider supports A2UI
+    #[rust]
+    pub a2ui_available: bool,
 }
 
 impl LiveHook for PromptInput {
@@ -273,6 +309,20 @@ impl Widget for PromptInput {
                 }
                 Err(_) => {}
             });
+        }
+
+        // Handle A2UI toggle changes
+        let a2ui_toggle = self.mp_switch(ids!(a2ui_toggle));
+        if let Some(new_state) = a2ui_toggle.changed(event.actions()) {
+            eprintln!("[PromptInput] A2UI toggle changed to: {}", new_state);
+            self.a2ui_enabled = new_state;
+            // Set global A2UI state so A2uiClient can read it
+            crate::widgets::a2ui_client::set_global_a2ui_enabled(new_state);
+            cx.widget_action(
+                self.widget_uid(),
+                &scope.path,
+                PromptInputAction::A2uiToggled(new_state),
+            );
         }
     }
 
@@ -418,6 +468,33 @@ impl PromptInput {
         self.button(ids!(stt)).set_visible(cx, visible);
     }
 
+    /// Set whether A2UI is available (provider supports it)
+    pub fn set_a2ui_available(&mut self, cx: &mut Cx, available: bool) {
+        self.a2ui_available = available;
+        self.view(ids!(a2ui_toggle_container)).set_visible(cx, available);
+        if !available {
+            // Disable A2UI if provider doesn't support it
+            self.a2ui_enabled = false;
+            self.mp_switch(ids!(a2ui_toggle)).set_on(cx, false);
+        }
+    }
+
+    /// Set the A2UI toggle state
+    pub fn set_a2ui_enabled(&mut self, cx: &mut Cx, enabled: bool) {
+        self.a2ui_enabled = enabled;
+        self.mp_switch(ids!(a2ui_toggle)).set_on(cx, enabled);
+    }
+
+    /// Check if A2UI is enabled
+    pub fn is_a2ui_enabled(&self) -> bool {
+        self.a2ui_enabled
+    }
+
+    /// Check if A2UI is available (provider supports it)
+    pub fn is_a2ui_available(&self) -> bool {
+        self.a2ui_available
+    }
+
     /// Update button visibility based on bot capabilities
     fn update_button_visibility(&mut self, cx: &mut Cx) {
         let supports_attachments = self
@@ -503,5 +580,15 @@ impl PromptInputRef {
     /// Panics if the widget reference is empty or if it's already borrowed.
     pub fn write_with<R>(&mut self, f: impl FnOnce(&mut PromptInput) -> R) -> R {
         f(&mut *self.write())
+    }
+
+    /// Check if the A2UI toggle was changed and return the new state
+    pub fn a2ui_toggled(&self, actions: &Actions) -> Option<bool> {
+        if let Some(item) = actions.find_widget_action(self.widget_uid()) {
+            if let PromptInputAction::A2uiToggled(state) = item.cast() {
+                return Some(state);
+            }
+        }
+        None
     }
 }
