@@ -171,7 +171,7 @@ jobs:
 
       - name: Install cargo-makepad
         run: |
-          cargo install --force --git https://github.com/wyeworks/makepad.git --rev aadc68376 cargo-makepad
+          cargo install --force --git https://github.com/wyeworks/makepad.git --rev 1aa19396c cargo-makepad
 
       - name: Install toolchain
         run: |
@@ -211,7 +211,7 @@ jobs:
 
       - name: Install cargo-makepad
         run: |
-          cargo install --force --git https://github.com/wyeworks/makepad.git --rev aadc68376 cargo-makepad
+          cargo install --force --git https://github.com/wyeworks/makepad.git --rev 1aa19396c cargo-makepad
 
       - name: Install toolchain
         run: |
