@@ -204,6 +204,11 @@ live_design! {
                             text_style: <REGULAR_FONT>{font_size: 12}
                             color: #000
                         }
+                        is_multiline: false
+                        input_mode: Url
+                        autocorrect: Disabled
+                        autocapitalize: None
+                        return_key_type: Go
                     }
                 }
             }
@@ -225,13 +230,14 @@ live_design! {
                     api_key = <MolyTextInput> {
                         empty_text: ""
                         width: Fill, height: 30
-                        is_password: true
                         draw_text: {
                             text_style: <REGULAR_FONT>{
                                 font_size: 12
                             }
                             color: #000
                         }
+                        is_password: true
+                        is_multiline: false
                     }
 
                     toggle_key_visibility = <IconButton> {
