@@ -9,8 +9,12 @@ use moly_kit::prelude::*;
 use serde::Serialize;
 use serde_json::Value;
 use std::sync::{Arc, RwLock};
+#[cfg(not(target_arch = "wasm32"))]
+use std::time::Duration;
 use uuid::Uuid;
 
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::time::{sleep, Instant};
 #[cfg(not(target_arch = "wasm32"))]
 use tokio_tungstenite::{connect_async, tungstenite::Message as WsMessage};
 
@@ -97,11 +101,14 @@ impl OpenClawClient {
 
     /// Sets the authentication token for the client.
     pub fn set_key(&mut self, token: &str) -> Result<(), &'static str> {
-        self.0.write().unwrap().token = Some(token.to_string());
+        self.0
+            .write()
+            .map_err(|_| "OpenClaw client lock poisoned")?
+            .token = Some(token.to_string());
         Ok(())
     }
 
-    fn build_connect_request(token: Option<&String>) -> Request<ConnectParams> {
+    fn build_connect_request(token: Option<&str>) -> Request<ConnectParams> {
         Request::new(
             "connect",
             ConnectParams {
@@ -115,7 +122,7 @@ impl OpenClawClient {
                     platform: "desktop",
                     mode: "cli",
                 },
-                auth: token.map(|t| AuthInfo { token: t.clone() }),
+                auth: token.map(|t| AuthInfo { token: t.to_string() }),
             },
         )
     }
@@ -130,7 +137,49 @@ impl OpenClawClient {
             },
         )
     }
+
+    fn build_history_message(messages: &[Message]) -> String {
+        let mut combined = String::new();
+        for message in messages {
+            let role = match message.from {
+                EntityId::User => "user",
+                EntityId::System => "system",
+                EntityId::Bot(_) => "assistant",
+                EntityId::Tool | EntityId::App => continue,
+            };
+
+            let text = message.content.text.trim();
+            if text.is_empty() {
+                continue;
+            }
+
+            if !combined.is_empty() {
+                combined.push_str("\n\n");
+            }
+            combined.push_str(role);
+            combined.push_str(": ");
+            combined.push_str(text);
+        }
+
+        if combined.is_empty() {
+            let fallback = messages
+                .iter()
+                .rev()
+                .find(|m| matches!(m.from, EntityId::User))
+                .map(|m| m.content.text.trim())
+                .filter(|text| !text.is_empty());
+
+            if let Some(text) = fallback {
+                combined.push_str(text);
+            }
+        }
+
+        combined
+    }
 }
+
+#[cfg(not(target_arch = "wasm32"))]
+const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// Result of processing a WebSocket message.
 enum ProcessResult {
@@ -143,7 +192,11 @@ enum ProcessResult {
 }
 
 /// Processes an event message from OpenClaw.
-fn process_event(event: &str, payload: Option<&Value>, content: &mut MessageContent) -> ProcessResult {
+fn process_event(
+    event: &str,
+    payload: Option<&Value>,
+    content: &mut MessageContent,
+) -> ProcessResult {
     match event {
         "connect.challenge" => {
             log::debug!("OpenClaw: received connect.challenge");
@@ -201,7 +254,11 @@ fn process_event(event: &str, payload: Option<&Value>, content: &mut MessageCont
 }
 
 /// Processes a response message from OpenClaw.
-fn process_response(json: &Value, content: &mut MessageContent, connected: &mut bool) -> ProcessResult {
+fn process_response(
+    json: &Value,
+    content: &mut MessageContent,
+    connected: &mut bool,
+) -> ProcessResult {
     let ok = json["ok"].as_bool().unwrap_or(false);
     if !ok {
         let msg = json["error"].as_str().unwrap_or("Unknown error");
@@ -252,8 +309,7 @@ impl BotClient for OpenClawClient {
             id: BotId::new("openclaw/assistant"),
             name: "OpenClaw Assistant".to_string(),
             avatar: EntityAvatar::Text("🦞".into()),
-            capabilities: BotCapabilities::new()
-                .with_capabilities([BotCapability::TextInput, BotCapability::AttachmentInput]),
+            capabilities: BotCapabilities::new().with_capabilities([BotCapability::TextInput]),
         };
         Box::pin(async move { ClientResult::new_ok(vec![bot]) })
     }
@@ -269,13 +325,19 @@ impl BotClient for OpenClawClient {
         messages: &[Message],
         _tools: &[Tool],
     ) -> BoxPlatformSendStream<'static, ClientResult<MessageContent>> {
-        let inner = self.0.read().unwrap().clone();
-        let last_message = messages
-            .iter()
-            .rev()
-            .find(|m| matches!(m.from, EntityId::User))
-            .map(|m| m.content.text.clone())
-            .unwrap_or_default();
+        let inner = match self.0.read() {
+            Ok(inner) => inner.clone(),
+            Err(_) => {
+                let stream = stream! {
+                    yield ClientError::new(
+                        ClientErrorKind::Unknown,
+                        "OpenClaw client lock poisoned".to_string(),
+                    ).into();
+                };
+                return Box::pin(stream);
+            }
+        };
+        let history_message = Self::build_history_message(messages);
 
         let stream = stream! {
             log::debug!("OpenClaw: connecting to {}", inner.url);
@@ -294,8 +356,49 @@ impl BotClient for OpenClawClient {
             let (mut write, mut read) = ws_stream.split();
             let mut content = MessageContent::default();
             let mut connected = false;
+            let mut history_message = history_message;
+            let mut handshake_deadline = sleep(HANDSHAKE_TIMEOUT);
+            tokio::pin!(handshake_deadline);
 
-            while let Some(msg_result) = read.next().await {
+            let connect_req = Self::build_connect_request(inner.token.as_deref());
+            let connect_json = match serde_json::to_string(&connect_req) {
+                Ok(j) => j,
+                Err(e) => {
+                    yield ClientError::new(
+                        ClientErrorKind::Format,
+                        format!("Failed to serialize request: {}", e),
+                    ).into();
+                    return;
+                }
+            };
+            if let Err(e) = write.send(WsMessage::Text(connect_json.into())).await {
+                yield ClientError::new(
+                    ClientErrorKind::Network,
+                    format!("Failed to send request: {}", e),
+                ).into();
+                return;
+            }
+
+            loop {
+                let msg_result = tokio::select! {
+                    _ = &mut handshake_deadline, if !connected => {
+                        yield ClientError::new(
+                            ClientErrorKind::Network,
+                            "Timed out waiting for OpenClaw handshake".to_string(),
+                        ).into();
+                        return;
+                    }
+                    msg = read.next() => msg,
+                };
+
+                let msg_result = match msg_result {
+                    Some(result) => result,
+                    None => {
+                        log::debug!("OpenClaw: connection closed");
+                        break;
+                    }
+                };
+
                 let result = match msg_result {
                     Ok(WsMessage::Text(text)) => {
                         let json: Value = match serde_json::from_str(&text) {
@@ -334,7 +437,10 @@ impl BotClient for OpenClawClient {
                         break;
                     }
                     ProcessResult::SendConnect => {
-                        let req = Self::build_connect_request(inner.token.as_ref());
+                        if connected {
+                            continue;
+                        }
+                        let req = Self::build_connect_request(inner.token.as_deref());
                         let json = match serde_json::to_string(&req) {
                             Ok(j) => j,
                             Err(e) => {
@@ -352,9 +458,11 @@ impl BotClient for OpenClawClient {
                             ).into();
                             return;
                         }
+                        handshake_deadline.as_mut().reset(Instant::now() + HANDSHAKE_TIMEOUT);
                     }
                     ProcessResult::SendAgent => {
-                        let req = Self::build_agent_request(last_message.clone());
+                        let req =
+                            Self::build_agent_request(std::mem::take(&mut history_message));
                         let json = match serde_json::to_string(&req) {
                             Ok(j) => j,
                             Err(e) => {
@@ -391,7 +499,18 @@ impl BotClient for OpenClawClient {
         _messages: &[Message],
         _tools: &[Tool],
     ) -> BoxPlatformSendStream<'static, ClientResult<MessageContent>> {
-        let inner = self.0.read().unwrap().clone();
+        let inner = match self.0.read() {
+            Ok(inner) => inner.clone(),
+            Err(_) => {
+                let stream = stream! {
+                    yield ClientError::new(
+                        ClientErrorKind::Unknown,
+                        "OpenClaw client lock poisoned".to_string(),
+                    ).into();
+                };
+                return Box::pin(stream);
+            }
+        };
         let stream = stream! {
             let url = inner.url.replace("ws://", "http://").replace("wss://", "https://");
             let content = MessageContent {
