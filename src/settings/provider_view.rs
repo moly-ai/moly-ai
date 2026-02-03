@@ -92,7 +92,7 @@ live_design! {
         padding: {top: 10, bottom: 5, left: 10}
         label = <Label> {
             draw_text: {
-                text_style: <BOLD_FONT>{font_size: 11}
+                text_style: <BOLD_FONT>{font_size: 13.5}
                 color: #555
             }
         }
@@ -374,7 +374,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                 width: Fill, height: Fit
                 margin: {bottom: 15}
                 model_search_input = <MolyTextInput> {
-                    width: Fill, height: 35
+                    width: Fill
                     empty_text: "Search models..."
                     draw_text: {
                         text_style: <REGULAR_FONT>{font_size: 12}
