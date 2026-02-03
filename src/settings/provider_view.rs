@@ -87,6 +87,17 @@ live_design! {
         }
     }
 
+    HeaderEntry = <View> {
+        width: Fill, height: Fit
+        padding: {top: 10, bottom: 5, left: 10}
+        label = <Label> {
+            draw_text: {
+                text_style: <BOLD_FONT>{font_size: 11}
+                color: #555
+            }
+        }
+    }
+
     pub ProviderView = {{ProviderView}}<RoundedShadowView> {
         width: Fill, height: Fill
         show_bg: true
@@ -379,6 +390,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                 drag_scrolling: true,
 
                 model_entry = <ModelEntry> {}
+                header_entry = <HeaderEntry> {}
             }
 
             remove_provider_view = <View> {
@@ -422,21 +434,95 @@ impl Widget for ProviderView {
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         let store = scope.data.get_mut::<Store>().unwrap();
-        let mut models = store.chats.get_provider_models(&self.provider.id);
+        let models = store.chats.get_provider_models(&self.provider.id);
 
+        let mut filtered_models = models.clone();
         // Filter by search
         let search_term = self.model_search.to_lowercase();
         if !search_term.is_empty() {
-            models.retain(|m| m.name.to_lowercase().contains(&search_term));
+            filtered_models.retain(|m| m.name.to_lowercase().contains(&search_term));
         }
 
         // Sort: Recommended first, then alphabetical
-        models.sort_by(|a, b| {
+        filtered_models.sort_by(|a, b| {
             if a.is_recommended != b.is_recommended {
                 return b.is_recommended.cmp(&a.is_recommended);
             }
             a.name.cmp(&b.name)
         });
+
+        // Split into two groups
+        let (recommended, others): (Vec<_>, Vec<_>) =
+            filtered_models.into_iter().partition(|m| m.is_recommended);
+
+        // Prepare display items: Headers and Models
+        // We use a simple Enum-like approach by generating a flat list of operations
+        // 0: Header("Recommended"), 1: Model(m), ...
+        // We can't use an Enum easily with FlatList iteration without reconstructing a vector
+        // So let's construct a vector of items to draw.
+        struct DisplayItem {
+            id: LiveId,
+            is_header: bool,
+            text: String,
+            model_name_key: String,
+            model_id: Option<String>,
+            model_enabled: bool,
+            provider_enabled: bool,
+        }
+
+        let mut display_items = Vec::new();
+
+        let show_headers = !recommended.is_empty() && !others.is_empty();
+
+        if !recommended.is_empty() {
+            if show_headers {
+                display_items.push(DisplayItem {
+                    id: LiveId::from_str("header_recommended"),
+                    is_header: true,
+                    text: "Recommended".to_string(),
+                    model_name_key: "".to_string(),
+                    model_id: None,
+                    model_enabled: false,
+                    provider_enabled: false,
+                });
+            }
+            for model in recommended {
+                display_items.push(DisplayItem {
+                    id: LiveId::from_str(&model.name),
+                    is_header: false,
+                    text: model.human_readable_name().to_string(),
+                    model_name_key: model.name.clone(),
+                    model_id: Some(model.id.to_string()),
+                    model_enabled: model.enabled,
+                    provider_enabled: self.provider.enabled,
+                });
+            }
+        }
+
+        if !others.is_empty() {
+            if show_headers {
+                display_items.push(DisplayItem {
+                    id: LiveId::from_str("header_others"),
+                    is_header: true,
+                    text: "Other Models".to_string(),
+                    model_name_key: "".to_string(),
+                    model_id: None,
+                    model_enabled: false,
+                    provider_enabled: false,
+                });
+            }
+            for model in others {
+                display_items.push(DisplayItem {
+                    id: LiveId::from_str(&model.name),
+                    is_header: false,
+                    text: model.human_readable_name().to_string(),
+                    model_name_key: model.name.clone(),
+                    model_id: Some(model.id.to_string()),
+                    model_enabled: model.enabled,
+                    provider_enabled: self.provider.enabled,
+                });
+            }
+        }
 
         let provider = store.chats.providers.get(&self.provider.id).cloned();
 
@@ -469,30 +555,33 @@ impl Widget for ProviderView {
 
         while let Some(item) = self.view.draw_walk(cx, scope, walk).step() {
             if let Some(mut list) = item.as_flat_list().borrow_mut() {
-                for (idx, model) in models.iter().enumerate() {
-                    // Use model name as unique ID
-                    let item_id = LiveId::from_str(&model.name);
-
-                    if let Some(item) = list.item(cx, item_id, live_id!(model_entry)) {
-                        // hide the separator for the first item
-                        if idx == 0 {
-                            item.view(ids!(separator)).set_visible(cx, false);
+                for (idx, display_item) in display_items.iter().enumerate() {
+                    if display_item.is_header {
+                        if let Some(item) = list.item(cx, display_item.id, live_id!(header_entry)) {
+                            item.label(ids!(label)).set_text(cx, &display_item.text);
+                            item.draw_all(cx, scope);
                         }
+                    } else {
+                        if let Some(item) = list.item(cx, display_item.id, live_id!(model_entry)) {
+                            // hide the separator for the first item (if not preceded by header)
+                            if idx == 0 {
+                                item.view(ids!(separator)).set_visible(cx, false);
+                            }
 
-                        let name = model.human_readable_name();
-                        let display_name = if model.is_recommended {
-                            format!("{} (Recommended)", name)
-                        } else {
-                            name.to_string()
-                        };
+                            item.label(ids!(model_name))
+                                .set_text(cx, &display_item.text);
+                            item.check_box(ids!(enabled_switch)).set_active(
+                                cx,
+                                display_item.model_enabled && display_item.provider_enabled,
+                            );
 
-                        item.label(ids!(model_name)).set_text(cx, &display_name);
-                        item.check_box(ids!(enabled_switch))
-                            .set_active(cx, model.enabled && self.provider.enabled);
-
-                        item.as_model_entry().set_model_name(&model.name);
-                        item.as_model_entry().set_model_id(&model.id.to_string());
-                        item.draw_all(cx, scope);
+                            if let Some(mid) = &display_item.model_id {
+                                item.as_model_entry()
+                                    .set_model_name(&display_item.model_name_key);
+                                item.as_model_entry().set_model_id(mid);
+                            }
+                            item.draw_all(cx, scope);
+                        }
                     }
                 }
             }
