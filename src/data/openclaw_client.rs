@@ -4,17 +4,15 @@
 //! a local AI assistant platform that supports multiple messaging channels.
 
 use async_stream::stream;
-use futures::{SinkExt, StreamExt};
+use futures::{FutureExt, SinkExt, StreamExt};
+use moly_kit::aitk::utils::asynchronous::sleep;
 use moly_kit::prelude::*;
 use serde::Serialize;
 use serde_json::Value;
 use std::sync::{Arc, RwLock};
-#[cfg(not(target_arch = "wasm32"))]
 use std::time::Duration;
 use uuid::Uuid;
 
-#[cfg(not(target_arch = "wasm32"))]
-use tokio::time::{sleep, Instant};
 #[cfg(not(target_arch = "wasm32"))]
 use tokio_tungstenite::{connect_async, tungstenite::Message as WsMessage};
 
@@ -355,12 +353,13 @@ impl BotClient for OpenClawClient {
                 }
             };
 
-            let (mut write, mut read) = ws_stream.split();
+            let (mut write, read) = ws_stream.split();
+            let mut read = read.fuse();
             let mut content = MessageContent::default();
             let mut connected = false;
             let mut history_message = history_message;
-            let mut handshake_deadline = sleep(HANDSHAKE_TIMEOUT);
-            tokio::pin!(handshake_deadline);
+            let handshake_deadline = std::pin::pin!(sleep(HANDSHAKE_TIMEOUT));
+            let mut handshake_deadline = handshake_deadline.fuse();
 
             let connect_req = Self::build_connect_request(inner.token.as_deref());
             let connect_json = match serde_json::to_string(&connect_req) {
@@ -382,13 +381,16 @@ impl BotClient for OpenClawClient {
             }
 
             loop {
-                let msg_result = tokio::select! {
-                    _ = &mut handshake_deadline, if !connected => {
-                        yield ClientError::new(
-                            ClientErrorKind::Network,
-                            "Timed out waiting for OpenClaw handshake".to_string(),
-                        ).into();
-                        return;
+                let msg_result = futures::select! {
+                    _ = handshake_deadline => {
+                        if !connected {
+                            yield ClientError::new(
+                                ClientErrorKind::Network,
+                                "Timed out waiting for OpenClaw handshake".to_string(),
+                            ).into();
+                            return;
+                        }
+                        None
                     }
                     msg = read.next() => msg,
                 };
@@ -460,7 +462,6 @@ impl BotClient for OpenClawClient {
                             ).into();
                             return;
                         }
-                        handshake_deadline.as_mut().reset(Instant::now() + HANDSHAKE_TIMEOUT);
                     }
                     ProcessResult::SendAgent => {
                         let req =

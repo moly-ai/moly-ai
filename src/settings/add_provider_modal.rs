@@ -454,7 +454,11 @@ impl WidgetMatchEvent for AddProviderModal {
                     id: provider_id,
                     name: name.clone(),
                     url: api_host.clone(),
-                    api_key: None,
+                    api_key: if api_key.is_empty() {
+                        None
+                    } else {
+                        Some(api_key.clone())
+                    },
                     provider_type: ProviderType::OpenClaw,
                     connection_status: ProviderConnectionStatus::Disconnected,
                     enabled: true,
