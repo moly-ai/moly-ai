@@ -434,17 +434,16 @@ impl Widget for ProviderView {
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         let store = scope.data.get_mut::<Store>().unwrap();
-        let models = store.chats.get_provider_models(&self.provider.id);
+        let mut models = store.chats.get_provider_models(&self.provider.id);
 
-        let mut filtered_models = models.clone();
         // Filter by search
         let search_term = self.model_search.to_lowercase();
         if !search_term.is_empty() {
-            filtered_models.retain(|m| m.name.to_lowercase().contains(&search_term));
+            models.retain(|m| m.name.to_lowercase().contains(&search_term));
         }
 
         // Sort: Recommended first, then alphabetical
-        filtered_models.sort_by(|a, b| {
+        models.sort_by(|a, b| {
             if a.is_recommended != b.is_recommended {
                 return b.is_recommended.cmp(&a.is_recommended);
             }
@@ -453,7 +452,7 @@ impl Widget for ProviderView {
 
         // Split into two groups
         let (recommended, others): (Vec<_>, Vec<_>) =
-            filtered_models.into_iter().partition(|m| m.is_recommended);
+            models.into_iter().partition(|m| m.is_recommended);
 
         // Prepare display items: Headers and Models
         // We use a simple Enum-like approach by generating a flat list of operations
