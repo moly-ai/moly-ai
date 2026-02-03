@@ -9,6 +9,7 @@ use moly_kit::aitk::utils::asynchronous::sleep;
 use moly_kit::prelude::*;
 use serde::Serialize;
 use serde_json::Value;
+use std::collections::HashSet;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use uuid::Uuid;
@@ -191,6 +192,54 @@ enum ProcessResult {
     Done,
 }
 
+fn merge_text_content(content: &mut String, incoming: &str) {
+    if content.is_empty() {
+        content.push_str(incoming);
+        return;
+    }
+
+    if incoming.starts_with(content.as_str()) {
+        *content = incoming.to_string();
+        return;
+    }
+
+    if content.starts_with(incoming) {
+        return;
+    }
+
+    let overlap = find_overlap_bytes(content, incoming);
+    if overlap == 0 {
+        content.push_str(incoming);
+        return;
+    }
+    content.push_str(&incoming[overlap..]);
+}
+
+fn find_overlap_bytes(content: &str, incoming: &str) -> usize {
+    let content_bounds = char_bounds(content);
+    let incoming_bounds = char_bounds(incoming);
+    let max_overlap = content_bounds
+        .len()
+        .saturating_sub(1)
+        .min(incoming_bounds.len().saturating_sub(1));
+
+    for overlap in (1..=max_overlap).rev() {
+        let content_start = content_bounds[content_bounds.len() - 1 - overlap];
+        let incoming_end = incoming_bounds[overlap];
+        if &content[content_start..] == &incoming[..incoming_end] {
+            return incoming_end;
+        }
+    }
+
+    0
+}
+
+fn char_bounds(value: &str) -> Vec<usize> {
+    let mut bounds: Vec<usize> = value.char_indices().map(|(idx, _)| idx).collect();
+    bounds.push(value.len());
+    bounds
+}
+
 /// Processes an event message from OpenClaw.
 fn process_event(
     event: &str,
@@ -204,7 +253,7 @@ fn process_event(
         }
         "agent.text" | "agent.content" => {
             if let Some(text) = payload.and_then(|p| p["text"].as_str()) {
-                content.text = text.to_string();
+                merge_text_content(&mut content.text, text);
                 ProcessResult::Yield(content.clone())
             } else {
                 ProcessResult::Continue
@@ -213,27 +262,31 @@ fn process_event(
         "agent.text.delta" | "agent.content.delta" => {
             let delta = payload
                 .and_then(|p| p["delta"].as_str().or(p["text"].as_str()));
-            if let Some(d) = delta {
-                content.text.push_str(d);
+            if let Some(text) = delta {
+                merge_text_content(&mut content.text, text);
                 ProcessResult::Yield(content.clone())
             } else {
                 ProcessResult::Continue
             }
         }
         "agent" => {
-            if let Some(delta) = payload.and_then(|p| p["data"]["delta"].as_str()) {
-                content.text.push_str(delta);
+            let delta = payload
+                .and_then(|p| p["data"]["delta"].as_str())
+                .or_else(|| payload.and_then(|p| p["data"]["text"].as_str()))
+                .or_else(|| payload.and_then(|p| p["delta"].as_str()))
+                .or_else(|| payload.and_then(|p| p["text"].as_str()));
+            if let Some(text) = delta {
+                merge_text_content(&mut content.text, text);
                 ProcessResult::Yield(content.clone())
             } else {
                 ProcessResult::Continue
             }
         }
-        "agent.done" | "agent.complete" | "agent.end" | "chat" => {
-            if event == "chat" {
-                let state = payload.and_then(|p| p["state"].as_str());
-                if state != Some("done") && state != Some("complete") {
-                    return ProcessResult::Continue;
-                }
+        "agent.done" | "agent.complete" | "agent.end" => ProcessResult::Continue,
+        "chat" => {
+            let state = payload.and_then(|p| p["state"].as_str());
+            if state != Some("done") && state != Some("complete") {
+                return ProcessResult::Continue;
             }
             ProcessResult::Done
         }
@@ -283,6 +336,16 @@ fn process_response(
     // Handle agent response completion
     let status = payload["status"].as_str();
     if status == Some("ok") || status == Some("completed") {
+        if let Some(summary) = payload
+            .get("summary")
+            .and_then(|value| value.as_str())
+            .or_else(|| payload["result"]["summary"].as_str())
+            .or_else(|| payload["result"]["text"].as_str())
+        {
+            merge_text_content(&mut content.text, summary);
+            return ProcessResult::Done;
+        }
+
         // Prefer streaming content if available
         if !content.text.is_empty() {
             return ProcessResult::Done;
@@ -358,6 +421,7 @@ impl BotClient for OpenClawClient {
             let mut content = MessageContent::default();
             let mut connected = false;
             let mut history_message = history_message;
+            let mut seen_seqs: HashSet<u64> = HashSet::new();
             let handshake_deadline = std::pin::pin!(sleep(HANDSHAKE_TIMEOUT));
             let mut handshake_deadline = handshake_deadline.fuse();
 
@@ -390,7 +454,8 @@ impl BotClient for OpenClawClient {
                             ).into();
                             return;
                         }
-                        None
+                        // Handshake completed, ignore the timeout and continue
+                        continue;
                     }
                     msg = read.next() => msg,
                 };
@@ -399,6 +464,9 @@ impl BotClient for OpenClawClient {
                     Some(result) => result,
                     None => {
                         log::debug!("OpenClaw: connection closed");
+                        if !content.text.is_empty() {
+                            yield ClientResult::new_ok(content.clone());
+                        }
                         break;
                     }
                 };
@@ -412,6 +480,16 @@ impl BotClient for OpenClawClient {
 
                         match json["type"].as_str().unwrap_or("") {
                             "event" => {
+                                // Deduplicate events by seq number
+                                if let Some(seq) = json["seq"].as_u64() {
+                                    if !seen_seqs.insert(seq) {
+                                        log::trace!(
+                                            "OpenClaw: skipping duplicate event seq={}",
+                                            seq
+                                        );
+                                        continue;
+                                    }
+                                }
                                 let event = json["event"].as_str().unwrap_or("");
                                 process_event(event, json.get("payload"), &mut content)
                             }
@@ -424,7 +502,10 @@ impl BotClient for OpenClawClient {
                     }
                     Ok(WsMessage::Close(_)) => {
                         log::debug!("OpenClaw: connection closed");
-                        break;
+                        if content.text.is_empty() {
+                            break;
+                        }
+                        ProcessResult::Done
                     }
                     Ok(_) => ProcessResult::Continue,
                     Err(e) => ProcessResult::Error(ClientError::new(
