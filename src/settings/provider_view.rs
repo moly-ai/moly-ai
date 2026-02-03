@@ -2,7 +2,7 @@ use makepad_widgets::*;
 use moly_kit::prelude::*;
 
 use crate::data::{
-    providers::{Provider, ProviderConnectionStatus, ProviderType},
+    providers::{Provider, ProviderBot, ProviderConnectionStatus, ProviderType},
     store::Store,
 };
 
@@ -454,19 +454,9 @@ impl Widget for ProviderView {
         let (recommended, others): (Vec<_>, Vec<_>) =
             models.into_iter().partition(|m| m.is_recommended);
 
-        // Prepare display items: Headers and Models
-        // We use a simple Enum-like approach by generating a flat list of operations
-        // 0: Header("Recommended"), 1: Model(m), ...
-        // We can't use an Enum easily with FlatList iteration without reconstructing a vector
-        // So let's construct a vector of items to draw.
-        struct DisplayItem {
-            id: LiveId,
-            is_header: bool,
-            text: String,
-            model_name_key: String,
-            model_id: Option<String>,
-            model_enabled: bool,
-            provider_enabled: bool,
+        enum DisplayItem {
+            Header(String),
+            Bot(ProviderBot),
         }
 
         let mut display_items = Vec::new();
@@ -475,51 +465,19 @@ impl Widget for ProviderView {
 
         if !recommended.is_empty() {
             if show_headers {
-                display_items.push(DisplayItem {
-                    id: LiveId::from_str("header_recommended"),
-                    is_header: true,
-                    text: "Recommended".to_string(),
-                    model_name_key: "".to_string(),
-                    model_id: None,
-                    model_enabled: false,
-                    provider_enabled: false,
-                });
+                display_items.push(DisplayItem::Header("Recommended".to_string()));
             }
             for model in recommended {
-                display_items.push(DisplayItem {
-                    id: LiveId::from_str(&model.name),
-                    is_header: false,
-                    text: model.human_readable_name().to_string(),
-                    model_name_key: model.name.clone(),
-                    model_id: Some(model.id.to_string()),
-                    model_enabled: model.enabled,
-                    provider_enabled: self.provider.enabled,
-                });
+                display_items.push(DisplayItem::Bot(model));
             }
         }
 
         if !others.is_empty() {
             if show_headers {
-                display_items.push(DisplayItem {
-                    id: LiveId::from_str("header_others"),
-                    is_header: true,
-                    text: "Other Models".to_string(),
-                    model_name_key: "".to_string(),
-                    model_id: None,
-                    model_enabled: false,
-                    provider_enabled: false,
-                });
+                display_items.push(DisplayItem::Header("Other Models".to_string()));
             }
             for model in others {
-                display_items.push(DisplayItem {
-                    id: LiveId::from_str(&model.name),
-                    is_header: false,
-                    text: model.human_readable_name().to_string(),
-                    model_name_key: model.name.clone(),
-                    model_id: Some(model.id.to_string()),
-                    model_enabled: model.enabled,
-                    provider_enabled: self.provider.enabled,
-                });
+                display_items.push(DisplayItem::Bot(model));
             }
         }
 
@@ -555,31 +513,31 @@ impl Widget for ProviderView {
         while let Some(item) = self.view.draw_walk(cx, scope, walk).step() {
             if let Some(mut list) = item.as_flat_list().borrow_mut() {
                 for (idx, display_item) in display_items.iter().enumerate() {
-                    if display_item.is_header {
-                        if let Some(item) = list.item(cx, display_item.id, live_id!(header_entry)) {
-                            item.label(ids!(label)).set_text(cx, &display_item.text);
-                            item.draw_all(cx, scope);
+                    match display_item {
+                        DisplayItem::Header(text) => {
+                            let item_id = LiveId::from_str(&text);
+                            if let Some(item) = list.item(cx, item_id, live_id!(header_entry)) {
+                                item.label(ids!(label)).set_text(cx, text);
+                                item.draw_all(cx, scope);
+                            }
                         }
-                    } else {
-                        if let Some(item) = list.item(cx, display_item.id, live_id!(model_entry)) {
-                            // hide the separator for the first item (if not preceded by header)
-                            if idx == 0 {
-                                item.view(ids!(separator)).set_visible(cx, false);
-                            }
+                        DisplayItem::Bot(bot) => {
+                            let item_id = LiveId::from_str(&bot.name);
+                            if let Some(item) = list.item(cx, item_id, live_id!(model_entry)) {
+                                // hide the separator for the first item (if not preceded by header)
+                                if idx == 0 {
+                                    item.view(ids!(separator)).set_visible(cx, false);
+                                }
 
-                            item.label(ids!(model_name))
-                                .set_text(cx, &display_item.text);
-                            item.check_box(ids!(enabled_switch)).set_active(
-                                cx,
-                                display_item.model_enabled && display_item.provider_enabled,
-                            );
+                                item.label(ids!(model_name))
+                                    .set_text(cx, &bot.human_readable_name());
+                                item.check_box(ids!(enabled_switch))
+                                    .set_active(cx, bot.enabled && self.provider.enabled);
 
-                            if let Some(mid) = &display_item.model_id {
-                                item.as_model_entry()
-                                    .set_model_name(&display_item.model_name_key);
-                                item.as_model_entry().set_model_id(mid);
+                                item.as_model_entry().set_model_name(&bot.name);
+                                item.as_model_entry().set_model_id(&bot.id.to_string());
+                                item.draw_all(cx, scope);
                             }
-                            item.draw_all(cx, scope);
                         }
                     }
                 }
