@@ -240,37 +240,6 @@ impl Chats {
                     }
                 }
 
-                // Update user's preferences for the provider (adding new models if needed)
-                if let Some(pref_entry) = preferences
-                    .providers_preferences
-                    .iter_mut()
-                    .find(|pp| pp.id == provider_id)
-                {
-                    for rm in &fetched_models {
-                        let maybe_model = pref_entry
-                            .models
-                            .iter_mut()
-                            .find(|(mname, _)| *mname == rm.name);
-
-                        if maybe_model.is_none() {
-                            // Determine default: recommended -> true, others -> false (if list exists)
-                            // If no list exists (Custom Provider), default -> true
-                            let default_enabled = if has_recommendation_list {
-                                rm.is_recommended
-                            } else {
-                                true
-                            };
-                            pref_entry.models.push((rm.name.clone(), default_enabled));
-                        }
-                    }
-                    // Remove stale model names from preferences if needed
-                    pref_entry
-                        .models
-                        .retain(|(mname, _)| fetched_models.iter().any(|rm| rm.name == *mname));
-
-                    preferences.save();
-                }
-
                 // Insert the fetched models in memory, respecting preference "enabled" if it exists
                 for mut provider_bot in fetched_models {
                     // Set initial state
