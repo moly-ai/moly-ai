@@ -315,11 +315,6 @@ impl Store {
         let mut final_list = Vec::new();
 
         for s in &supported {
-            // if the provider was deleted by the user, we skip it
-            if self.preferences.deleted_provider_ids.contains(&s.id) {
-                continue;
-            }
-
             let maybe_prefs = self
                 .preferences
                 .providers_preferences

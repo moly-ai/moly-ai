@@ -21,8 +21,6 @@ pub struct Preferences {
     #[serde(default)]
     pub providers_preferences: Vec<ProviderPreferences>,
     #[serde(default)]
-    pub deleted_provider_ids: Vec<String>,
-    #[serde(default)]
     pub mcp_servers_config: McpServersConfig,
     #[serde(default)]
     stt_config: Versioned<SttConfig>,
@@ -34,7 +32,6 @@ impl Default for Preferences {
             current_chat_model: None,
             downloaded_files_dir: default_model_downloads_dir().to_path_buf(),
             providers_preferences: vec![],
-            deleted_provider_ids: vec![],
             mcp_servers_config: McpServersConfig::new(),
             stt_config: Versioned::default(),
         }
@@ -128,9 +125,6 @@ impl Preferences {
 
     pub fn remove_provider(&mut self, provider_id: &ProviderId) {
         self.providers_preferences.retain(|p| &p.id != provider_id);
-        if !self.deleted_provider_ids.contains(provider_id) {
-            self.deleted_provider_ids.push(provider_id.clone());
-        }
         self.save();
     }
 
