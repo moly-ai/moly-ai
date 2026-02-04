@@ -186,29 +186,36 @@ impl Widget for ModelSelector {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        // Read selected bot from controller state (source of truth)
-        let selected_bot_id = if let Some(chat_controller) = &self.chat_controller {
-            chat_controller.lock().unwrap().state().bot_id.clone()
+        // Read state from controller
+        let (bots, selected_bot_id) = if let Some(chat_controller) = &self.chat_controller {
+            let state = chat_controller.lock().unwrap().state().clone();
+            (state.bots, state.bot_id)
         } else {
-            None
+            (Vec::new(), None)
         };
 
-        // Update button text based on selected bot from controller state
-        if let Some(bot_id) = &selected_bot_id {
-            if let Some(chat_controller) = &self.chat_controller {
-                let state = chat_controller.lock().unwrap().state().clone();
-                if let Some(bot) = state.bots.iter().find(|b| &b.id == bot_id) {
+        // Handle empty bots case - disable button
+        if bots.is_empty() {
+            self.button(ids!(button))
+                .set_text(cx, "No models available");
+            self.button(ids!(button)).set_enabled(cx, false);
+        } else {
+            self.button(ids!(button)).set_enabled(cx, true);
+
+            // Update button text based on selected bot
+            if let Some(bot_id) = &selected_bot_id {
+                if let Some(bot) = bots.iter().find(|b| &b.id == bot_id) {
                     self.button(ids!(button)).set_text(cx, &bot.name);
                 } else {
                     // Bot not found in list (e.g., disabled) - show default text
                     self.button(ids!(button))
                         .set_text(cx, "Choose an AI assistant");
                 }
+            } else {
+                // No bot selected, show default text
+                self.button(ids!(button))
+                    .set_text(cx, "Choose an AI assistant");
             }
-        } else {
-            // No bot selected, show default text
-            self.button(ids!(button))
-                .set_text(cx, "Choose an AI assistant");
         }
 
         // Set the chat controller on the list before drawing
