@@ -535,7 +535,7 @@ impl Widget for ProviderView {
 
         if !others.is_empty() {
             if show_headers {
-                display_items.push(DisplayItem::Header("Other Models".to_string()));
+                display_items.push(DisplayItem::Header("Unknown".to_string()));
             }
             for model in others {
                 display_items.push(DisplayItem::Bot(model));
