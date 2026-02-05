@@ -428,12 +428,12 @@ Moly automatically appends useful context to your prompt, like the time of day."
                     text: "Show potentially unsupported models"
                     draw_bg: {
                         color: (TRANSPARENT)
-                        border_color_1: (PRIMARY_COLOR)
+                        border_color_1: #e17100
                         border_size: 1.0
                     }
                     draw_text: {
                         text_style: <REGULAR_FONT>{font_size: 11},
-                        color: (PRIMARY_COLOR)
+                        color: #e17100
                     }
                 }
             }
