@@ -470,9 +470,6 @@ struct ProviderView {
     initialized: bool,
 
     #[rust]
-    model_search: String,
-
-    #[rust]
     showing_others: bool,
 }
 
@@ -494,7 +491,10 @@ impl Widget for ProviderView {
         let provider_has_recommended = models.iter().any(|m| m.is_recommended);
 
         // Filter by search
-        let search_term = self.model_search.to_lowercase();
+        let search_term = self
+            .text_input(ids!(model_search_input))
+            .text()
+            .to_lowercase();
         if !search_term.is_empty() {
             models.retain(|m| m.name.to_lowercase().contains(&search_term));
         }
@@ -663,11 +663,6 @@ impl WidgetMatchEvent for ProviderView {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
 
-        if let Some(text) = self.text_input(ids!(model_search_input)).changed(actions) {
-            self.model_search = text;
-            self.redraw(cx);
-        }
-
         if self.button(ids!(show_others_button)).clicked(actions) {
             self.showing_others = true;
             self.redraw(cx);
@@ -812,7 +807,6 @@ impl ProviderViewRef {
     pub fn set_provider(&mut self, cx: &mut Cx, provider: &Provider) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.provider = provider.clone();
-            inner.model_search.clear();
             inner.text_input(ids!(model_search_input)).set_text(cx, "");
             inner.showing_others = false;
 
