@@ -425,7 +425,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                     margin: {top: (MD_GAP)}
                     visible: false
                     padding: {top: 6, bottom: 6, left: 12, right: 12},
-                    text: "Show unknown models"
+                    text: "Show potentially unsupported models"
                     draw_bg: {
                         color: (TRANSPARENT)
                         border_color_1: (PRIMARY_COLOR)
