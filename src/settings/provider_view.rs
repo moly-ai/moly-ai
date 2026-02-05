@@ -126,10 +126,8 @@ live_design! {
         content = <ScrollYView> {
             flow: Down
             height: Fill,
-            // I exclude bottom padding because it currently doesn't work in the
-            // scroll view, but if it starts working it will add unwanted extra
-            // space at the bottom due to the workaround.
-            padding: {top: 25, left: 25, right: 25, bottom: 0},
+            // Padding controlled from the Rust side.
+            padding: 0,
             scroll_bars: {
                 scroll_bar_y: {
                     bar_size: 7.
@@ -581,11 +579,14 @@ impl Widget for ProviderView {
         self.button(ids!(show_others_button))
             .set_visible(cx, show_others_button);
 
-        if cx.display_context.is_desktop() {
-            self.view(ids!(content)).apply_over(cx, live! {});
+        let content_padding = if cx.display_context.is_desktop() {
+            25
         } else {
-            self.view(ids!(content)).apply_over(cx, live! {});
-        }
+            5
+        };
+
+        self.view(ids!(content))
+            .apply_over(cx, live! { padding: (content_padding) });
 
         while let Some(item) = self.view.draw_walk(cx, scope, walk).step() {
             if let Some(mut list) = item.as_flat_list().borrow_mut() {
