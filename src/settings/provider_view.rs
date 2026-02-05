@@ -306,13 +306,11 @@ Moly automatically appends useful context to your prompt, like the time of day."
                 draw_bg: { color: (CTA_BUTTON_COLOR), border_size: 0 }
             }
 
-
-            // TOOLS ENABLED
             provider_features_group = <View> {
                 width: Fill, height: Fit
                 flow: Down
-                spacing: 20
 
+                // TOOLS ENABLED
                 tools_form_group = <FormGroup> {
                     visible: false
                     height: Fit
@@ -400,17 +398,16 @@ Moly automatically appends useful context to your prompt, like the time of day."
 
                 show_others_button = <MolyButton> {
                     visible: false
-                    width: Fit, height: 30
-                    margin: {top: 10}
-                    text: "Show Unknown Models"
+                    padding: {top: 6, bottom: 6, left: 12, right: 12},
+                    text: "Show unknown models"
                     draw_bg: {
-                        color: #fff
-                        border_color: #d3d3d3
+                        color: (TRANSPARENT)
+                        border_color_1: (PRIMARY_COLOR)
                         border_size: 1.0
                     }
                     draw_text: {
                         text_style: <REGULAR_FONT>{font_size: 11},
-                        color: #000
+                        color: (PRIMARY_COLOR)
                     }
                 }
             }
