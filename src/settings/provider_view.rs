@@ -397,6 +397,22 @@ Moly automatically appends useful context to your prompt, like the time of day."
                     model_entry = <ModelEntry> {}
                     header_entry = <HeaderEntry> {}
                 }
+
+                show_others_button = <MolyButton> {
+                    visible: false
+                    width: Fit, height: 30
+                    margin: {top: 10}
+                    text: "Show Unknown Models"
+                    draw_bg: {
+                        color: #fff
+                        border_color: #d3d3d3
+                        border_size: 1.0
+                    }
+                    draw_text: {
+                        text_style: <REGULAR_FONT>{font_size: 11},
+                        color: #000
+                    }
+                }
             }
 
             remove_provider_view = <View> {
@@ -430,6 +446,9 @@ struct ProviderView {
 
     #[rust]
     model_search: String,
+
+    #[rust]
+    showing_others: bool,
 }
 
 impl Widget for ProviderView {
@@ -443,6 +462,11 @@ impl Widget for ProviderView {
         let mut models = store.chats.get_provider_models(&self.provider.id);
 
         let has_models = !models.is_empty();
+
+        // Check if the provider generally supports recommendations (has at least one recommended model)
+        // This check is done before filtering to ensure the button behavior is consistent
+        // regardless of whether the search filter hides the recommended models.
+        let provider_has_recommended = models.iter().any(|m| m.is_recommended);
 
         // Filter by search
         let search_term = self.model_search.to_lowercase();
@@ -459,8 +483,22 @@ impl Widget for ProviderView {
         });
 
         // Split into two groups
-        let (recommended, others): (Vec<_>, Vec<_>) =
+        let (recommended, mut others): (Vec<_>, Vec<_>) =
             models.into_iter().partition(|m| m.is_recommended);
+
+        let mut show_others_button = false;
+
+        // If provider supports recommendations, handle the "Unknown/Others" visibility
+        if provider_has_recommended {
+            if !self.showing_others {
+                // If we have items in "others" (that matched the filter), we show the button
+                if !others.is_empty() {
+                    show_others_button = true;
+                    // Hide the others from the list until the button is clicked
+                    others.clear();
+                }
+            }
+        }
 
         enum DisplayItem {
             Header(String),
@@ -512,6 +550,9 @@ impl Widget for ProviderView {
 
         self.view(ids!(provider_features_group))
             .set_visible(cx, has_models);
+
+        self.button(ids!(show_others_button))
+            .set_visible(cx, show_others_button);
 
         if cx.display_context.is_desktop() {
             self.view(ids!(content))
@@ -597,6 +638,11 @@ impl WidgetMatchEvent for ProviderView {
 
         if let Some(text) = self.text_input(ids!(model_search_input)).changed(actions) {
             self.model_search = text;
+            self.redraw(cx);
+        }
+
+        if self.button(ids!(show_others_button)).clicked(actions) {
+            self.showing_others = true;
             self.redraw(cx);
         }
 
@@ -741,6 +787,7 @@ impl ProviderViewRef {
             inner.provider = provider.clone();
             inner.model_search.clear();
             inner.text_input(ids!(model_search_input)).set_text(cx, "");
+            inner.showing_others = false;
 
             // Update the text inputs
             let api_key_input = inner.text_input(ids!(api_key));
