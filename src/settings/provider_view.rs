@@ -308,89 +308,94 @@ Moly automatically appends useful context to your prompt, like the time of day."
 
 
             // TOOLS ENABLED
-            tools_form_group = <FormGroup> {
-                visible: false
-                height: Fit
-
-                <View> {
-                    width: Fill, height: 1
-                    margin: {bottom: 10}
-                    show_bg: true,
-                    draw_bg: {
-                        color: #D9D9D9
+            provider_features_group = <View> {
+                width: Fill, height: Fit
+                flow: Down
+                
+                tools_form_group = <FormGroup> {
+                    visible: false
+                    height: Fit
+    
+                    <View> {
+                        width: Fill, height: 1
+                        margin: {bottom: 10}
+                        show_bg: true,
+                        draw_bg: {
+                            color: #D9D9D9
+                        }
+                    }
+    
+                    <Label> {
+                        text: "MCP Configuration"
+                        draw_text: {
+                            text_style: <BOLD_FONT>{font_size: 12}
+                            color: #000
+                        }
+                    }
+    
+                    <View> {
+                        flow: Right, spacing: 12
+                        width: Fit, height: Fit
+                        align: {x: 0.5, y: 0.5}
+                        <Label> {
+                            text: "Enable Tools"
+                            draw_text: {
+                                text_style: {font_size: 12}
+                                color: #000
+                            }
+                        }
+    
+                        provider_tools_switch = <MolySwitch> {
+                            // Match the default value to avoid the animation on start.
+                            animator: {
+                                selected = {
+                                    default: on
+                                }
+                            }
+                        }
+                    }
+    
+                    <View> {
+                        width: Fill, height: 1
+                        margin: {top: 10}
+                        show_bg: true,
+                        draw_bg: {
+                            color: #D9D9D9
+                        }
                     }
                 }
-
-                <Label> {
-                    text: "MCP Configuration"
+    
+                // MODELS
+                models_label = <Label> {
+                    text: "Models"
                     draw_text: {
                         text_style: <BOLD_FONT>{font_size: 12}
                         color: #000
                     }
                 }
-
+    
                 <View> {
-                    flow: Right, spacing: 12
-                    width: Fit, height: Fit
-                    align: {x: 0.5, y: 0.5}
-                    <Label> {
-                        text: "Enable Tools"
+                    width: Fill, height: Fit
+                    margin: {bottom: 15}
+                    model_search_input = <MolyTextInput> {
+                        width: Fill, height: 30
+                        empty_text: "Search models..."
                         draw_text: {
-                            text_style: {font_size: 12}
+                            text_style: <REGULAR_FONT>{font_size: 12}
                             color: #000
                         }
                     }
-
-                    provider_tools_switch = <MolySwitch> {
-                        // Match the default value to avoid the animation on start.
-                        animator: {
-                            selected = {
-                                default: on
-                            }
-                        }
-                    }
                 }
-
-                <View> {
-                    width: Fill, height: 1
-                    margin: {top: 10}
-                    show_bg: true,
-                    draw_bg: {
-                        color: #D9D9D9
-                    }
+    
+                models_list = <FlatList> {
+                    width: Fill, height: Fit
+                    flow: Down,
+                    grab_key_focus: true,
+                    drag_scrolling: true,
+    
+                    model_entry = <ModelEntry> {}
+                    header_entry = <HeaderEntry> {}
                 }
-            }
-
-            // MODELS
-            <Label> {
-                text: "Models"
-                draw_text: {
-                    text_style: <BOLD_FONT>{font_size: 12}
-                    color: #000
-                }
-            }
-
-            <View> {
-                width: Fill, height: Fit
-                margin: {bottom: 15}
-                model_search_input = <MolyTextInput> {
-                    width: Fill
-                    empty_text: "Search models..."
-                    draw_text: {
-                        text_style: <REGULAR_FONT>{font_size: 12}
-                        color: #000
-                    }
-                }
-            }
-
-            models_list = <FlatList> {
-                width: Fill, height: Fit
-                flow: Down,
-                grab_key_focus: true,
-                drag_scrolling: true,
-
-                model_entry = <ModelEntry> {}
-                header_entry = <HeaderEntry> {}
             }
 
             remove_provider_view = <View> {
@@ -435,6 +440,8 @@ impl Widget for ProviderView {
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         let store = scope.data.get_mut::<Store>().unwrap();
         let mut models = store.chats.get_provider_models(&self.provider.id);
+
+        let has_models = !models.is_empty();
 
         // Filter by search
         let search_term = self.model_search.to_lowercase();
@@ -501,6 +508,8 @@ impl Widget for ProviderView {
         } else {
             self.view(ids!(refresh_button)).set_visible(cx, false);
         }
+
+        self.view(ids!(provider_features_group)).set_visible(cx, has_models);
 
         if cx.display_context.is_desktop() {
             self.view(ids!(content))
