@@ -92,10 +92,22 @@ live_design! {
 
     HeaderEntry = <View> {
         width: Fill, height: Fit
+        flow: Down
+        padding: {top: (MD_GAP)}
+
         label = <Label> {
             draw_text: {
                 text_style: <BOLD_FONT>{font_size: 13.5}
                 color: #555
+            }
+        }
+
+        separator = <View> {
+            margin: {top: (MD_GAP)}
+            height: 1,
+            show_bg: true,
+            draw_bg: {
+                color: #D9D9D9
             }
         }
     }
@@ -577,6 +589,7 @@ impl Widget for ProviderView {
 
         while let Some(item) = self.view.draw_walk(cx, scope, walk).step() {
             if let Some(mut list) = item.as_flat_list().borrow_mut() {
+                let mut previous_was_header = false;
                 for (idx, display_item) in display_items.iter().enumerate() {
                     match display_item {
                         DisplayItem::Header(text) => {
@@ -585,14 +598,13 @@ impl Widget for ProviderView {
                                 item.label(ids!(label)).set_text(cx, text);
                                 item.draw_all(cx, scope);
                             }
+                            previous_was_header = true;
                         }
                         DisplayItem::Bot(bot) => {
                             let item_id = LiveId::from_str(&bot.name);
                             if let Some(item) = list.item(cx, item_id, live_id!(model_entry)) {
-                                // hide the separator for the first item (if not preceded by header)
-                                if idx == 0 {
-                                    item.view(ids!(separator)).set_visible(cx, false);
-                                }
+                                let show_separator = idx > 0 && !previous_was_header;
+                                item.view(ids!(separator)).set_visible(cx, show_separator);
 
                                 item.label(ids!(model_name))
                                     .set_text(cx, &bot.human_readable_name());
@@ -603,6 +615,7 @@ impl Widget for ProviderView {
                                 item.as_model_entry().set_model_id(&bot.id.to_string());
                                 item.draw_all(cx, scope);
                             }
+                            previous_was_header = false;
                         }
                     }
                 }
