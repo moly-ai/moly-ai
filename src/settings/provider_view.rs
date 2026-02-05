@@ -15,6 +15,12 @@ live_design! {
     use crate::shared::styles::*;
 
     REFRESH_ICON = dep("crate://self/resources/images/refresh_icon.png")
+    // Tiny space to separate tabular text.
+    SM_GAP = 4
+    // Used with top/left margins in each explicit element that should be spaced apart.
+    MD_GAP = 10
+    // Larger gap for sections that need more separation, for whatever reason.
+    LG_GAP = 15
 
     IconButton = <Button> {
         width: Fit, height: Fit
@@ -37,7 +43,6 @@ live_design! {
     FormGroup = <View> {
         flow: Down
         height: Fit
-        spacing: 10
     }
 
     ModelEntry = {{ModelEntry}} {
@@ -45,7 +50,6 @@ live_design! {
         width: Fill, height: 50
         flow: Down,
         separator = <View> {
-            margin: {left: 10, right: 10, top: 0, bottom: 5}
             height: 1,
             show_bg: true,
             draw_bg: {
@@ -56,7 +60,6 @@ live_design! {
         content = <View> {
             flow: Right,
             width: Fill, height: Fill
-            padding: {top: 8, bottom: 10, left: 15, right: 15}
             align: {x: 0.5, y: 0.5}
             model_name = <Label> {
                 text: "Model Name"
@@ -89,7 +92,6 @@ live_design! {
 
     HeaderEntry = <View> {
         width: Fill, height: Fit
-        padding: {top: 10, bottom: 5, left: 10}
         label = <Label> {
             draw_text: {
                 text_style: <BOLD_FONT>{font_size: 13.5}
@@ -110,10 +112,12 @@ live_design! {
         }
 
         content = <ScrollYView> {
-            padding: 30
-            flow: Down, spacing: 20
-            height: Fill
-
+            flow: Down
+            height: Fill,
+            // I exclude bottom padding because it currently doesn't work in the
+            // scroll view, but if it starts working it will add unwanted extra
+            // space at the bottom due to the workaround.
+            padding: {top: 25, left: 25, right: 25, bottom: 0},
             scroll_bars: {
                 scroll_bar_y: {
                     bar_size: 7.
@@ -128,7 +132,7 @@ live_design! {
             <FormGroup> {
                 flow: Right,
                 <View> {
-                    flow: Down, spacing: 8
+                    flow: Down
                     width: Fit, height: Fit
                     name = <Label> {
                         draw_text: {
@@ -139,7 +143,7 @@ live_design! {
 
                     <View> {
                         width: Fit, height: Fit
-                        spacing: 4
+                        margin: {top: (MD_GAP)}
                         <Label> {
                             text: "Type:"
                             draw_text: {
@@ -148,6 +152,7 @@ live_design! {
                             }
                         }
                         provider_type = <Label> {
+                            margin: {left: (SM_GAP)}
                             draw_text: {
                                 text_style: {font_size: 11}
                                 color: #000
@@ -157,19 +162,17 @@ live_design! {
                 }
 
 
-                <View> {
-                    width: Fill, height: 1
-                }
+                <View> {width: Fill, height: 0}
 
                 <View> {
+                    margin: {top: (MD_GAP)}
                     align: {x: 0.5, y: 0.5}
                     width: Fit, height: Fit
-                    flow: Right, spacing: 10
+                    flow: Right
                     refresh_button = <View> {
                         visible: false
-                        padding: {top: 4} // TODO: this is a hack to align the image view with the switch
                         cursor: Hand
-                        width: 30, height: 30
+                        width: Fit, height: Fit
 
                         icon = <Image> {
                             width: 22, height: 22
@@ -177,6 +180,7 @@ live_design! {
                         }
                     }
                     provider_enabled_switch = <MolySwitch> {
+                        margin: {left: (MD_GAP)}
                         // Match the default value to avoid the animation on start.
                         animator: {
                             selected = {
@@ -188,6 +192,7 @@ live_design! {
             }
 
             separator = <View> {
+                margin: {top: (LG_GAP)}
                 height: 1,
                 show_bg: true,
                 draw_bg: {
@@ -197,6 +202,7 @@ live_design! {
 
             // HOST
             <FormGroup> {
+                margin: {top: (LG_GAP)}
                 <Label> {
                     text: "API Host"
                     draw_text: {
@@ -206,7 +212,6 @@ live_design! {
                 }
 
                 <View> {
-                    spacing: 10
                     width: Fill, height: 35
                     api_host = <MolyTextInput> {
                         width: Fill, height: 30
@@ -221,6 +226,7 @@ live_design! {
 
             // API KEY
             <FormGroup> {
+                margin: {top: (MD_GAP)}
                 <Label> {
                     text: "API Key"
                     draw_text: {
@@ -230,7 +236,6 @@ live_design! {
                 }
 
                 <View> {
-                    spacing: 5
                     align: {x: 0.0, y: 0.5}
                     width: Fill, height: 35
                     api_key = <MolyTextInput> {
@@ -250,6 +255,7 @@ live_design! {
                     }
                 }
                 <View> {
+                    margin: {top: (MD_GAP)}
                     width: Fill, height: Fit
                     align: {x: 0.0, y: 0.5}
                     connection_status = <Label> {
@@ -263,6 +269,7 @@ live_design! {
 
             // SYSTEM PROMPT
             system_prompt_group = <FormGroup> {
+                margin: {top: (MD_GAP)}
                 height: Fit
                 visible: false
                 <Label> {
@@ -287,7 +294,6 @@ live_design! {
                     }
                     system_prompt = <MolyTextInput> {
                         width: Fill, height: Fit
-                        padding: 8
                         empty_text: "Optional: enter a custom system prompt.
 When using a custom prompt, we recommend including the language you'd like to be greeted on, knowledge cutoff, and tool usage eagerness.
 Moly automatically appends useful context to your prompt, like the time of day."
@@ -299,6 +305,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
             }
 
             save_provider = <MolyButton> {
+                margin: {top: (MD_GAP)}
                 width: Fit
                 height: 30
                 padding: {left: 20, right: 20, top: 0, bottom: 0}
@@ -312,12 +319,13 @@ Moly automatically appends useful context to your prompt, like the time of day."
 
                 // TOOLS ENABLED
                 tools_form_group = <FormGroup> {
+                    margin: {top: (MD_GAP)}
                     visible: false
                     height: Fit
 
                     <View> {
+                        margin: {top: (MD_GAP)}
                         width: Fill, height: 1
-                        margin: {bottom: 10}
                         show_bg: true,
                         draw_bg: {
                             color: #D9D9D9
@@ -325,6 +333,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                     }
 
                     <Label> {
+                        margin: {top: (MD_GAP)}
                         text: "MCP Configuration"
                         draw_text: {
                             text_style: <BOLD_FONT>{font_size: 12}
@@ -333,7 +342,8 @@ Moly automatically appends useful context to your prompt, like the time of day."
                     }
 
                     <View> {
-                        flow: Right, spacing: 12
+                        margin: {top: (MD_GAP)}
+                        flow: Right
                         width: Fit, height: Fit
                         align: {x: 0.5, y: 0.5}
                         <Label> {
@@ -345,6 +355,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                         }
 
                         provider_tools_switch = <MolySwitch> {
+                            margin: {left: (MD_GAP)}
                             // Match the default value to avoid the animation on start.
                             animator: {
                                 selected = {
@@ -355,8 +366,8 @@ Moly automatically appends useful context to your prompt, like the time of day."
                     }
 
                     <View> {
+                        margin: {top: (MD_GAP)}
                         width: Fill, height: 1
-                        margin: {top: 10}
                         show_bg: true,
                         draw_bg: {
                             color: #D9D9D9
@@ -366,6 +377,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
 
                 // MODELS
                 models_label = <Label> {
+                    margin: {top: (MD_GAP)}
                     text: "Models"
                     draw_text: {
                         text_style: <BOLD_FONT>{font_size: 12}
@@ -374,8 +386,8 @@ Moly automatically appends useful context to your prompt, like the time of day."
                 }
 
                 <View> {
+                    margin: {top: (MD_GAP)}
                     width: Fill, height: Fit
-                    margin: {bottom: 15}
                     model_search_input = <MolyTextInput> {
                         width: Fill, height: 30
                         empty_text: "Search models..."
@@ -387,6 +399,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                 }
 
                 models_list = <FlatList> {
+                    margin: {top: (MD_GAP)}
                     width: Fill, height: Fit
                     flow: Down,
                     grab_key_focus: true,
@@ -397,6 +410,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                 }
 
                 show_others_button = <MolyButton> {
+                    margin: {top: (MD_GAP)}
                     visible: false
                     padding: {top: 6, bottom: 6, left: 12, right: 12},
                     text: "Show unknown models"
@@ -413,6 +427,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
             }
 
             remove_provider_view = <View> {
+                margin: {top: (MD_GAP)}
                 width: Fill, height: Fit
                 align: {x: 1.0, y: 0.5}
                 remove_provider_button = <MolyButton> {
@@ -425,6 +440,9 @@ Moly automatically appends useful context to your prompt, like the time of day."
                     draw_bg: { color: #B4605A, border_size: 0 }
                 }
             }
+
+            // Bottom padding in the scroll view doesn't currently work.
+            <View> { height: (MD_GAP) }
         }
     }
 }
@@ -552,11 +570,9 @@ impl Widget for ProviderView {
             .set_visible(cx, show_others_button);
 
         if cx.display_context.is_desktop() {
-            self.view(ids!(content))
-                .apply_over(cx, live! { padding: 30 });
+            self.view(ids!(content)).apply_over(cx, live! {});
         } else {
-            self.view(ids!(content))
-                .apply_over(cx, live! { padding: 5 });
+            self.view(ids!(content)).apply_over(cx, live! {});
         }
 
         while let Some(item) = self.view.draw_walk(cx, scope, walk).step() {
