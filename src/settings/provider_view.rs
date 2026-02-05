@@ -311,11 +311,12 @@ Moly automatically appends useful context to your prompt, like the time of day."
             provider_features_group = <View> {
                 width: Fill, height: Fit
                 flow: Down
-                
+                spacing: 20
+
                 tools_form_group = <FormGroup> {
                     visible: false
                     height: Fit
-    
+
                     <View> {
                         width: Fill, height: 1
                         margin: {bottom: 10}
@@ -324,7 +325,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                             color: #D9D9D9
                         }
                     }
-    
+
                     <Label> {
                         text: "MCP Configuration"
                         draw_text: {
@@ -332,7 +333,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                             color: #000
                         }
                     }
-    
+
                     <View> {
                         flow: Right, spacing: 12
                         width: Fit, height: Fit
@@ -344,7 +345,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                                 color: #000
                             }
                         }
-    
+
                         provider_tools_switch = <MolySwitch> {
                             // Match the default value to avoid the animation on start.
                             animator: {
@@ -354,7 +355,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                             }
                         }
                     }
-    
+
                     <View> {
                         width: Fill, height: 1
                         margin: {top: 10}
@@ -364,7 +365,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                         }
                     }
                 }
-    
+
                 // MODELS
                 models_label = <Label> {
                     text: "Models"
@@ -373,7 +374,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
                         color: #000
                     }
                 }
-    
+
                 <View> {
                     width: Fill, height: Fit
                     margin: {bottom: 15}
@@ -386,13 +387,13 @@ Moly automatically appends useful context to your prompt, like the time of day."
                         }
                     }
                 }
-    
+
                 models_list = <FlatList> {
                     width: Fill, height: Fit
                     flow: Down,
                     grab_key_focus: true,
                     drag_scrolling: true,
-    
+
                     model_entry = <ModelEntry> {}
                     header_entry = <HeaderEntry> {}
                 }
@@ -509,7 +510,8 @@ impl Widget for ProviderView {
             self.view(ids!(refresh_button)).set_visible(cx, false);
         }
 
-        self.view(ids!(provider_features_group)).set_visible(cx, has_models);
+        self.view(ids!(provider_features_group))
+            .set_visible(cx, has_models);
 
         if cx.display_context.is_desktop() {
             self.view(ids!(content))
