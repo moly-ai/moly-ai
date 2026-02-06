@@ -71,7 +71,7 @@ dependencies = [
 [[package]]
 name = "aitk"
 version = "0.1.0"
-source = "git+https://github.com/moly-ai/aitk?rev=6cd8a74d#6cd8a74d8268aa2cd8d20fb2c6a8c70ca416d81d"
+source = "git+https://github.com/moly-ai/aitk?rev=ff4515d#ff4515de3158aeda920cf87880c5e996b017d913"
 dependencies = [
  "async-stream",
  "base64",
