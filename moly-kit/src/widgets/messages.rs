@@ -413,28 +413,22 @@ impl Messages {
                         let show_section = has_note || has_details;
                         item.view(ids!(error_details_section))
                             .set_visible(cx, show_section);
-                        item.view(ids!(error_note))
-                            .set_visible(cx, has_note);
+                        item.view(ids!(error_note)).set_visible(cx, has_note);
                         item.view(ids!(error_details_toggle))
                             .set_visible(cx, has_details);
 
-                        let is_expanded =
-                            self.expanded_error_details.contains(&index);
-                        item.view(ids!(error_details))
-                            .set_visible(cx, is_expanded);
+                        let is_expanded = self.expanded_error_details.contains(&index);
+                        item.view(ids!(error_details)).set_visible(cx, is_expanded);
                         let toggle_text = if is_expanded {
                             "Hide details"
                         } else {
                             "Show details"
                         };
-                        item.label(ids!(toggle_label))
-                            .set_text(cx, toggle_text);
+                        item.label(ids!(toggle_label)).set_text(cx, toggle_text);
 
                         if has_details {
-                            item.label(ids!(details_text)).set_text(
-                                cx,
-                                message.content.data.as_deref().unwrap_or(""),
-                            );
+                            item.label(ids!(details_text))
+                                .set_text(cx, message.content.data.as_deref().unwrap_or(""));
                         }
 
                         self.apply_editor_visibility(cx, &item, index);
