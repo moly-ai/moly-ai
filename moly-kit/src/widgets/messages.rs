@@ -801,9 +801,7 @@ fn error_note_for(error_text: &str) -> &'static str {
              quota/credits, or do not have access to this resource/model \
              in your current plan."
         }
-        Some(401) => {
-            "This usually means your API key is invalid or expired."
-        }
+        Some(401) => "This usually means your API key is invalid or expired.",
         Some(403) => {
             "This usually means you do not have permission to access \
              this resource."
