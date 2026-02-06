@@ -426,7 +426,7 @@ impl Messages {
                         };
                         item.label(ids!(toggle_label)).set_text(cx, toggle_text);
 
-                        if has_details {
+                        if has_details && is_expanded {
                             item.label(ids!(details_text))
                                 .set_text(cx, message.content.data.as_deref().unwrap_or(""));
                         }
@@ -779,30 +779,44 @@ impl Messages {
     }
 }
 
+/// Extracts an HTTP status code from error text matching the pattern "status {code}".
+fn extract_status_code(error_text: &str) -> Option<u16> {
+    let mut tokens = error_text.split_whitespace();
+    while let Some(token) = tokens.next() {
+        if token.eq_ignore_ascii_case("status") {
+            if let Some(code) = tokens.next().and_then(|t| t.parse::<u16>().ok()) {
+                return Some(code);
+            }
+        }
+    }
+    None
+}
+
 /// Returns a user-friendly note for common HTTP error status codes found in the
 /// error text, or an empty string if no match.
 fn error_note_for(error_text: &str) -> &'static str {
-    if error_text.contains("429") {
-        "This usually means you've hit a rate limit, run out of \
-         quota/credits, or do not have access to this resource/model \
-         in your current plan."
-    } else if error_text.contains("401") {
-        "This usually means your API key is invalid or expired."
-    } else if error_text.contains("403") {
-        "This usually means you do not have permission to access \
-         this resource."
-    } else if error_text.contains("400") {
-        "This might be an error on our side. If the problem persists, \
-         please file an issue on GitHub."
-    } else if error_text.contains("500")
-        || error_text.contains("502")
-        || error_text.contains("503")
-        || error_text.contains("504")
-    {
-        "A server error occurred. This is likely a temporary issue \
-         with the provider."
-    } else {
-        ""
+    match extract_status_code(error_text) {
+        Some(429) => {
+            "This usually means you've hit a rate limit, run out of \
+             quota/credits, or do not have access to this resource/model \
+             in your current plan."
+        }
+        Some(401) => {
+            "This usually means your API key is invalid or expired."
+        }
+        Some(403) => {
+            "This usually means you do not have permission to access \
+             this resource."
+        }
+        Some(400) => {
+            "This might be an error on our side. If the problem persists, \
+             please file an issue on GitHub."
+        }
+        Some(500 | 502 | 503 | 504) => {
+            "A server error occurred. This is likely a temporary issue \
+             with the provider."
+        }
+        _ => "",
     }
 }
 
