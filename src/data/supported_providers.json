@@ -151,6 +151,15 @@
                 "claude-opus-4-20250514",
                 "claude-sonnet-4-20250514"
             ]
+        },
+        {
+            "id": "openclaw",
+            "name": "OpenClaw",
+            "url": "ws://127.0.0.1:18789",
+            "provider_type": "OpenClaw",
+            "supported_models": [
+                "OpenClaw Assistant"
+            ]
         }
     ]
 }

@@ -5,6 +5,7 @@ pub mod deep_inquire_client;
 pub mod downloads;
 pub mod mcp_servers;
 pub mod moly_client;
+pub mod openclaw_client;
 pub mod preferences;
 pub mod providers;
 pub mod search;
