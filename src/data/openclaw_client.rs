@@ -121,7 +121,9 @@ impl OpenClawClient {
                     platform: "desktop",
                     mode: "cli",
                 },
-                auth: token.map(|t| AuthInfo { token: t.to_string() }),
+                auth: token.map(|t| AuthInfo {
+                    token: t.to_string(),
+                }),
             },
         )
     }
@@ -260,8 +262,7 @@ fn process_event(
             }
         }
         "agent.text.delta" | "agent.content.delta" => {
-            let delta = payload
-                .and_then(|p| p["delta"].as_str().or(p["text"].as_str()));
+            let delta = payload.and_then(|p| p["delta"].as_str().or(p["text"].as_str()));
             if let Some(text) = delta {
                 merge_text_content(&mut content.text, text);
                 ProcessResult::Yield(content.clone())
@@ -336,6 +337,11 @@ fn process_response(
     // Handle agent response completion
     let status = payload["status"].as_str();
     if status == Some("ok") || status == Some("completed") {
+        // Prefer streaming content if available
+        if !content.text.is_empty() {
+            return ProcessResult::Done;
+        }
+
         if let Some(summary) = payload
             .get("summary")
             .and_then(|value| value.as_str())
@@ -343,11 +349,6 @@ fn process_response(
             .or_else(|| payload["result"]["text"].as_str())
         {
             merge_text_content(&mut content.text, summary);
-            return ProcessResult::Done;
-        }
-
-        // Prefer streaming content if available
-        if !content.text.is_empty() {
             return ProcessResult::Done;
         }
         // Extract from result.payloads[].text
