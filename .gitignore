@@ -8,6 +8,7 @@ preferences.json
 ignored/
 .claude
 mdbook-admonish.css
+symlinks/
 
 # iOS build script with personal credentials (use MANUAL_BUILD.md as template)
 packaging/ios/build-and-upload.sh
