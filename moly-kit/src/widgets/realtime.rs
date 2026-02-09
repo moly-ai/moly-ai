@@ -601,12 +601,25 @@ pub struct Realtime {
 
     #[rust]
     mic_permission_status: MicPermissionStatus,
+
+    #[rust]
+    devices_selector_hidden: bool,
 }
 
 impl Widget for Realtime {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.view.handle_event(cx, event, scope);
         self.widget_match_event(cx, event, scope);
+
+        // Hide audio device selectors on mobile platforms (iOS and Android)
+        // as they don't support selecting audio devices for realtime audio
+        if !self.devices_selector_hidden {
+            #[cfg(any(target_os = "android", target_os = "ios"))]
+            {
+                self.view(ids!(devices_selector)).set_visible(cx, false);
+            }
+            self.devices_selector_hidden = true;
+        }
 
         if let Some(_value) = self
             .drop_down(ids!(transcription_model_selector))
