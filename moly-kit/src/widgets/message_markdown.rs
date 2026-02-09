@@ -5,7 +5,7 @@ live_design! {
     use link::moly_kit_theme::*;
 
     use makepad_code_editor::code_view::CodeView;
-    use math_widget::math::Math;
+    use math_widget::math::MathView;
 
     MD_LINE_SPACING = 1.5
     MD_FONT_COLOR = #000
@@ -91,11 +91,11 @@ live_design! {
         use_code_block_widget: true
 
         use_math_widget: true
-        inline_math = <Math> {
+        inline_math = <MathView> {
             color: #000
             font_size: 11.0
         }
-        display_math = <Math> {
+        display_math = <MathView> {
             color: #000
             font_size: 11.0
         }

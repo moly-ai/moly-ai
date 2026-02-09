@@ -2,7 +2,7 @@ use makepad_widgets::*;
 use moly_kit::prelude::*;
 
 use crate::data::{
-    providers::{Provider, ProviderConnectionStatus, ProviderType},
+    providers::{Provider, ProviderBot, ProviderConnectionStatus, ProviderType},
     store::Store,
 };
 
@@ -15,6 +15,12 @@ live_design! {
     use crate::shared::styles::*;
 
     REFRESH_ICON = dep("crate://self/resources/images/refresh_icon.png")
+    // Tiny space to separate tabular text.
+    SM_GAP = 4
+    // Used with top/left margins in each explicit element that should be spaced apart.
+    MD_GAP = 10
+    // Larger gap for sections that need more separation, for whatever reason.
+    LG_GAP = 15
 
     IconButton = <Button> {
         width: Fit, height: Fit
@@ -37,7 +43,6 @@ live_design! {
     FormGroup = <View> {
         flow: Down
         height: Fit
-        spacing: 10
     }
 
     ModelEntry = {{ModelEntry}} {
@@ -45,7 +50,6 @@ live_design! {
         width: Fill, height: 50
         flow: Down,
         separator = <View> {
-            margin: {left: 10, right: 10, top: 0, bottom: 5}
             height: 1,
             show_bg: true,
             draw_bg: {
@@ -56,7 +60,6 @@ live_design! {
         content = <View> {
             flow: Right,
             width: Fill, height: Fill
-            padding: {top: 8, bottom: 10, left: 15, right: 15}
             align: {x: 0.5, y: 0.5}
             model_name = <Label> {
                 text: "Model Name"
@@ -87,6 +90,28 @@ live_design! {
         }
     }
 
+    HeaderEntry = <View> {
+        width: Fill, height: Fit
+        flow: Down
+        padding: {top: (MD_GAP)}
+
+        label = <Label> {
+            draw_text: {
+                text_style: <BOLD_FONT>{font_size: 13.5}
+                color: #555
+            }
+        }
+
+        separator = <View> {
+            margin: {top: (MD_GAP)}
+            height: 1,
+            show_bg: true,
+            draw_bg: {
+                color: #D9D9D9
+            }
+        }
+    }
+
     pub ProviderView = {{ProviderView}}<RoundedShadowView> {
         width: Fill, height: Fill
         show_bg: true
@@ -99,10 +124,10 @@ live_design! {
         }
 
         content = <ScrollYView> {
-            padding: 30
-            flow: Down, spacing: 20
-            height: Fill
-
+            flow: Down
+            height: Fill,
+            // Padding controlled from the Rust side.
+            padding: 0,
             scroll_bars: {
                 scroll_bar_y: {
                     bar_size: 7.
@@ -117,7 +142,7 @@ live_design! {
             <FormGroup> {
                 flow: Right,
                 <View> {
-                    flow: Down, spacing: 8
+                    flow: Down
                     width: Fit, height: Fit
                     name = <Label> {
                         draw_text: {
@@ -128,7 +153,7 @@ live_design! {
 
                     <View> {
                         width: Fit, height: Fit
-                        spacing: 4
+                        margin: {top: (MD_GAP)}
                         <Label> {
                             text: "Type:"
                             draw_text: {
@@ -137,6 +162,7 @@ live_design! {
                             }
                         }
                         provider_type = <Label> {
+                            margin: {left: (SM_GAP)}
                             draw_text: {
                                 text_style: {font_size: 11}
                                 color: #000
@@ -146,19 +172,17 @@ live_design! {
                 }
 
 
-                <View> {
-                    width: Fill, height: 1
-                }
+                <View> {width: Fill, height: 0}
 
                 <View> {
+                    margin: {top: (MD_GAP)}
                     align: {x: 0.5, y: 0.5}
                     width: Fit, height: Fit
-                    flow: Right, spacing: 10
+                    flow: Right
                     refresh_button = <View> {
                         visible: false
-                        padding: {top: 4} // TODO: this is a hack to align the image view with the switch
                         cursor: Hand
-                        width: 30, height: 30
+                        width: Fit, height: Fit
 
                         icon = <Image> {
                             width: 22, height: 22
@@ -166,6 +190,7 @@ live_design! {
                         }
                     }
                     provider_enabled_switch = <MolySwitch> {
+                        margin: {left: (MD_GAP)}
                         // Match the default value to avoid the animation on start.
                         animator: {
                             selected = {
@@ -177,6 +202,7 @@ live_design! {
             }
 
             separator = <View> {
+                margin: {top: (LG_GAP)}
                 height: 1,
                 show_bg: true,
                 draw_bg: {
@@ -186,6 +212,7 @@ live_design! {
 
             // HOST
             <FormGroup> {
+                margin: {top: (LG_GAP)}
                 <Label> {
                     text: "API Host"
                     draw_text: {
@@ -195,7 +222,6 @@ live_design! {
                 }
 
                 <View> {
-                    spacing: 10
                     width: Fill, height: 35
                     api_host = <MolyTextInput> {
                         width: Fill, height: 30
@@ -204,12 +230,18 @@ live_design! {
                             text_style: <REGULAR_FONT>{font_size: 12}
                             color: #000
                         }
+                        is_multiline: false
+                        input_mode: Url
+                        autocorrect: Disabled
+                        autocapitalize: None
+                        return_key_type: Go
                     }
                 }
             }
 
             // API KEY
             <FormGroup> {
+                margin: {top: (MD_GAP)}
                 <Label> {
                     text: "API Key"
                     draw_text: {
@@ -219,19 +251,19 @@ live_design! {
                 }
 
                 <View> {
-                    spacing: 5
                     align: {x: 0.0, y: 0.5}
                     width: Fill, height: 35
                     api_key = <MolyTextInput> {
                         empty_text: ""
                         width: Fill, height: 30
-                        is_password: true
                         draw_text: {
                             text_style: <REGULAR_FONT>{
                                 font_size: 12
                             }
                             color: #000
                         }
+                        is_password: true
+                        is_multiline: false
                     }
 
                     toggle_key_visibility = <IconButton> {
@@ -239,6 +271,7 @@ live_design! {
                     }
                 }
                 <View> {
+                    margin: {top: (MD_GAP)}
                     width: Fill, height: Fit
                     align: {x: 0.0, y: 0.5}
                     connection_status = <Label> {
@@ -252,6 +285,7 @@ live_design! {
 
             // SYSTEM PROMPT
             system_prompt_group = <FormGroup> {
+                margin: {top: (MD_GAP)}
                 height: Fit
                 visible: false
                 <Label> {
@@ -276,7 +310,6 @@ live_design! {
                     }
                     system_prompt = <MolyTextInput> {
                         width: Fill, height: Fit
-                        padding: 8
                         empty_text: "Optional: enter a custom system prompt.
 When using a custom prompt, we recommend including the language you'd like to be greeted on, knowledge cutoff, and tool usage eagerness.
 Moly automatically appends useful context to your prompt, like the time of day."
@@ -288,6 +321,7 @@ Moly automatically appends useful context to your prompt, like the time of day."
             }
 
             save_provider = <MolyButton> {
+                margin: {top: (MD_GAP)}
                 width: Fit
                 height: 30
                 padding: {left: 20, right: 20, top: 0, bottom: 0}
@@ -295,23 +329,72 @@ Moly automatically appends useful context to your prompt, like the time of day."
                 draw_bg: { color: (CTA_BUTTON_COLOR), border_size: 0 }
             }
 
+            provider_features_group = <View> {
+                width: Fill, height: Fit
+                flow: Down
 
-            // TOOLS ENABLED
-            tools_form_group = <FormGroup> {
-                visible: false
-                height: Fit
+                // TOOLS ENABLED
+                tools_form_group = <FormGroup> {
+                    margin: {top: (MD_GAP)}
+                    visible: false
+                    height: Fit
 
-                <View> {
-                    width: Fill, height: 1
-                    margin: {bottom: 10}
-                    show_bg: true,
-                    draw_bg: {
-                        color: #D9D9D9
+                    <View> {
+                        margin: {top: (MD_GAP)}
+                        width: Fill, height: 1
+                        show_bg: true,
+                        draw_bg: {
+                            color: #D9D9D9
+                        }
+                    }
+
+                    <Label> {
+                        margin: {top: (MD_GAP)}
+                        text: "MCP Configuration"
+                        draw_text: {
+                            text_style: <BOLD_FONT>{font_size: 12}
+                            color: #000
+                        }
+                    }
+
+                    <View> {
+                        margin: {top: (MD_GAP)}
+                        flow: Right
+                        width: Fit, height: Fit
+                        align: {x: 0.5, y: 0.5}
+                        <Label> {
+                            text: "Enable Tools"
+                            draw_text: {
+                                text_style: {font_size: 12}
+                                color: #000
+                            }
+                        }
+
+                        provider_tools_switch = <MolySwitch> {
+                            margin: {left: (MD_GAP)}
+                            // Match the default value to avoid the animation on start.
+                            animator: {
+                                selected = {
+                                    default: on
+                                }
+                            }
+                        }
+                    }
+
+                    <View> {
+                        margin: {top: (MD_GAP)}
+                        width: Fill, height: 1
+                        show_bg: true,
+                        draw_bg: {
+                            color: #D9D9D9
+                        }
                     }
                 }
 
-                <Label> {
-                    text: "MCP Configuration"
+                // MODELS
+                models_label = <Label> {
+                    margin: {top: (MD_GAP)}
+                    text: "Models"
                     draw_text: {
                         text_style: <BOLD_FONT>{font_size: 12}
                         color: #000
@@ -319,56 +402,48 @@ Moly automatically appends useful context to your prompt, like the time of day."
                 }
 
                 <View> {
-                    flow: Right, spacing: 12
-                    width: Fit, height: Fit
-                    align: {x: 0.5, y: 0.5}
-                    <Label> {
-                        text: "Enable Tools"
+                    margin: {top: (MD_GAP)}
+                    width: Fill, height: Fit
+                    model_search_input = <MolyTextInput> {
+                        width: Fill, height: 30
+                        empty_text: "Search models..."
                         draw_text: {
-                            text_style: {font_size: 12}
+                            text_style: <REGULAR_FONT>{font_size: 12}
                             color: #000
                         }
                     }
-
-                    provider_tools_switch = <MolySwitch> {
-                        // Match the default value to avoid the animation on start.
-                        animator: {
-                            selected = {
-                                default: on
-                            }
-                        }
-                    }
                 }
 
-                <View> {
-                    width: Fill, height: 1
-                    margin: {top: 10}
-                    show_bg: true,
+                models_list = <FlatList> {
+                    margin: {top: (MD_GAP)}
+                    width: Fill, height: Fit
+                    flow: Down,
+                    grab_key_focus: true,
+                    drag_scrolling: true,
+
+                    model_entry = <ModelEntry> {}
+                    header_entry = <HeaderEntry> {}
+                }
+
+                show_others_button = <MolyButton> {
+                    margin: {top: (MD_GAP)}
+                    visible: false
+                    padding: {top: 6, bottom: 6, left: 12, right: 12},
+                    text: "Show potentially unsupported models"
                     draw_bg: {
-                        color: #D9D9D9
+                        color: (TRANSPARENT)
+                        border_color_1: #e17100
+                        border_size: 1.0
+                    }
+                    draw_text: {
+                        text_style: <REGULAR_FONT>{font_size: 11},
+                        color: #e17100
                     }
                 }
-            }
-
-            // MODELS
-            <Label> {
-                text: "Models"
-                draw_text: {
-                    text_style: <BOLD_FONT>{font_size: 12}
-                    color: #000
-                }
-            }
-
-            models_list = <FlatList> {
-                width: Fill, height: Fit
-                flow: Down,
-                grab_key_focus: true,
-                drag_scrolling: true,
-
-                model_entry = <ModelEntry> {}
             }
 
             remove_provider_view = <View> {
+                margin: {top: (MD_GAP)}
                 width: Fill, height: Fit
                 align: {x: 1.0, y: 0.5}
                 remove_provider_button = <MolyButton> {
@@ -381,6 +456,9 @@ Moly automatically appends useful context to your prompt, like the time of day."
                     draw_bg: { color: #B4605A, border_size: 0 }
                 }
             }
+
+            // Bottom padding in the scroll view doesn't currently work.
+            <View> { height: (MD_GAP) }
         }
     }
 }
@@ -396,6 +474,9 @@ struct ProviderView {
 
     #[rust]
     initialized: bool,
+
+    #[rust]
+    showing_others: bool,
 }
 
 impl Widget for ProviderView {
@@ -406,7 +487,76 @@ impl Widget for ProviderView {
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         let store = scope.data.get_mut::<Store>().unwrap();
-        let models = store.chats.get_provider_models(&self.provider.id);
+        let mut models = store.chats.get_provider_models(&self.provider.id);
+
+        let has_models = !models.is_empty();
+
+        // Check if the provider generally supports recommendations (has at least one recommended model)
+        // This check is done before filtering to ensure the button behavior is consistent
+        // regardless of whether the search filter hides the recommended models.
+        let provider_has_recommended = models.iter().any(|m| m.is_recommended);
+
+        // Filter by search
+        let search_term = self
+            .text_input(ids!(model_search_input))
+            .text()
+            .to_lowercase();
+        if !search_term.is_empty() {
+            models.retain(|m| m.name.to_lowercase().contains(&search_term));
+        }
+
+        // Sort: Recommended first, then alphabetical
+        models.sort_by(|a, b| {
+            if a.is_recommended != b.is_recommended {
+                return b.is_recommended.cmp(&a.is_recommended);
+            }
+            a.name.cmp(&b.name)
+        });
+
+        // Split into two groups
+        let (recommended, mut others): (Vec<_>, Vec<_>) =
+            models.into_iter().partition(|m| m.is_recommended);
+
+        let mut show_others_button = false;
+
+        // If provider supports recommendations, handle the "Unknown/Others" visibility
+        if provider_has_recommended {
+            if !self.showing_others {
+                // If we have items in "others" (that matched the filter), we show the button
+                if !others.is_empty() {
+                    show_others_button = true;
+                    // Hide the others from the list until the button is clicked
+                    others.clear();
+                }
+            }
+        }
+
+        enum DisplayItem {
+            Header(String),
+            Bot(ProviderBot),
+        }
+
+        let mut display_items = Vec::new();
+
+        let show_headers = !recommended.is_empty() && !others.is_empty();
+
+        if !recommended.is_empty() {
+            if show_headers {
+                display_items.push(DisplayItem::Header("Recommended".to_string()));
+            }
+            for model in recommended {
+                display_items.push(DisplayItem::Bot(model));
+            }
+        }
+
+        if !others.is_empty() {
+            if show_headers {
+                display_items.push(DisplayItem::Header("Unknown".to_string()));
+            }
+            for model in others {
+                display_items.push(DisplayItem::Bot(model));
+            }
+        }
 
         let provider = store.chats.providers.get(&self.provider.id).cloned();
 
@@ -429,34 +579,51 @@ impl Widget for ProviderView {
             self.view(ids!(refresh_button)).set_visible(cx, false);
         }
 
-        if cx.display_context.is_desktop() {
-            self.view(ids!(content))
-                .apply_over(cx, live! { padding: 30 });
+        self.view(ids!(provider_features_group))
+            .set_visible(cx, has_models);
+
+        self.button(ids!(show_others_button))
+            .set_visible(cx, show_others_button);
+
+        let content_padding = if cx.display_context.is_desktop() {
+            25
         } else {
-            self.view(ids!(content))
-                .apply_over(cx, live! { padding: 5 });
-        }
+            5
+        };
+
+        self.view(ids!(content))
+            .apply_over(cx, live! { padding: (content_padding) });
 
         while let Some(item) = self.view.draw_walk(cx, scope, walk).step() {
             if let Some(mut list) = item.as_flat_list().borrow_mut() {
-                for (idx, model) in models.iter().enumerate() {
-                    // Use model name as unique ID
-                    let item_id = LiveId::from_str(&model.name);
-
-                    if let Some(item) = list.item(cx, item_id, live_id!(model_entry)) {
-                        // hide the separator for the first item
-                        if idx == 0 {
-                            item.view(ids!(separator)).set_visible(cx, false);
+                let mut previous_was_header = false;
+                for (idx, display_item) in display_items.iter().enumerate() {
+                    match display_item {
+                        DisplayItem::Header(text) => {
+                            let item_id = LiveId::from_str(&text);
+                            if let Some(item) = list.item(cx, item_id, live_id!(header_entry)) {
+                                item.label(ids!(label)).set_text(cx, text);
+                                item.draw_all(cx, scope);
+                            }
+                            previous_was_header = true;
                         }
+                        DisplayItem::Bot(bot) => {
+                            let item_id = LiveId::from_str(&bot.name);
+                            if let Some(item) = list.item(cx, item_id, live_id!(model_entry)) {
+                                let show_separator = idx > 0 && !previous_was_header;
+                                item.view(ids!(separator)).set_visible(cx, show_separator);
 
-                        let name = model.human_readable_name();
-                        item.label(ids!(model_name)).set_text(cx, &name);
-                        item.check_box(ids!(enabled_switch))
-                            .set_active(cx, model.enabled && self.provider.enabled);
+                                item.label(ids!(model_name))
+                                    .set_text(cx, &bot.human_readable_name());
+                                item.check_box(ids!(enabled_switch))
+                                    .set_active(cx, bot.enabled && self.provider.enabled);
 
-                        item.as_model_entry().set_model_name(&model.name);
-                        item.as_model_entry().set_model_id(&model.id.to_string());
-                        item.draw_all(cx, scope);
+                                item.as_model_entry().set_model_name(&bot.name);
+                                item.as_model_entry().set_model_id(&bot.id.to_string());
+                                item.draw_all(cx, scope);
+                            }
+                            previous_was_header = false;
+                        }
                     }
                 }
             }
@@ -501,6 +668,12 @@ impl ProviderView {
 impl WidgetMatchEvent for ProviderView {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
+
+        if self.button(ids!(show_others_button)).clicked(actions) {
+            self.showing_others = true;
+            self.redraw(cx);
+        }
+
         // Handle provider enabled/disabled
         let provider_enabled_switch = self.check_box(ids!(provider_enabled_switch));
         if let Some(enabled) = provider_enabled_switch.changed(actions) {
@@ -640,6 +813,8 @@ impl ProviderViewRef {
     pub fn set_provider(&mut self, cx: &mut Cx, provider: &Provider) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.provider = provider.clone();
+            inner.text_input(ids!(model_search_input)).set_text(cx, "");
+            inner.showing_others = false;
 
             // Update the text inputs
             let api_key_input = inner.text_input(ids!(api_key));

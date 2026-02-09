@@ -207,6 +207,11 @@ live_design! {
                     }
                     api_host = <ModalTextInput> {
                         empty_text: "e.g. https://api.openai.com/v1"
+                        is_multiline: false
+                        input_mode: Url
+                        autocorrect: Disabled
+                        autocapitalize: None
+                        return_key_type: Go
                     }
                 }
 
@@ -216,6 +221,8 @@ live_design! {
                     }
                     api_key = <ModalTextInput> {
                         empty_text: "sk-..."
+                        is_password: true
+                        is_multiline: false
                     }
                 }
 

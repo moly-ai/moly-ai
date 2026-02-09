@@ -293,6 +293,58 @@ live_design! {
                     grapheme = {draw_bg: {color: #f003}}
                 }
             }
+            content_section = {
+                flow: Down,
+                padding: {bottom: 10},
+                error_details_section = <View> {
+                    flow: Down,
+                    width: Fill,
+                    height: Fit,
+                    visible: false,
+
+                    error_note = <Label> {
+                        width: Fill,
+                        margin: {top: 6},
+                        draw_text: {
+                            text_style: <THEME_FONT_ITALIC> {font_size: 10},
+                            color: #555,
+                            wrap: Word,
+                        }
+                    }
+                    error_details_toggle = <View> {
+                        width: Fit,
+                        height: Fit,
+                        cursor: Hand,
+                        margin: {top: 6},
+                        toggle_label = <Label> {
+                            text: "Show details",
+                            draw_text: {
+                                text_style: {font_size: 9.5},
+                                color: #1a5b9c,
+                            }
+                        }
+                    }
+                    error_details = <RoundedView> {
+                        width: Fill,
+                        height: Fit,
+                        visible: false,
+                        margin: {top: 4},
+                        padding: 8,
+                        draw_bg: {
+                            color: #0001,
+                            border_radius: 4.0,
+                        }
+                        details_text = <Label> {
+                            width: Fill,
+                            draw_text: {
+                                text_style: {font_size: 9},
+                                color: #333,
+                                wrap: Word,
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -388,6 +440,7 @@ pub enum ChatLineAction {
     ToolApprove,
     ToolDeny,
     EditorChanged,
+    ErrorDetailsToggle,
     None,
 }
 
@@ -450,6 +503,18 @@ impl Widget for ChatLine {
                 self.widget_uid(),
                 &scope.path,
                 ChatLineAction::EditorChanged,
+            );
+        }
+
+        if self
+            .view(ids!(error_details_toggle))
+            .finger_up(&actions)
+            .is_some()
+        {
+            cx.widget_action(
+                self.widget_uid(),
+                &scope.path,
+                ChatLineAction::ErrorDetailsToggle,
             );
         }
 

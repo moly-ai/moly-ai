@@ -110,11 +110,7 @@ impl Preferences {
                 api_key: provider.api_key.clone(),
                 enabled: provider.enabled,
                 provider_type: provider.provider_type.clone(),
-                models: provider
-                    .models
-                    .iter()
-                    .map(|m| (m.as_str().to_string(), true))
-                    .collect(),
+                models: vec![],
                 was_customly_added: provider.was_customly_added,
                 system_prompt: provider.system_prompt.clone(),
                 tools_enabled: provider.tools_enabled,

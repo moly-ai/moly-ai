@@ -29,6 +29,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
                     description: format!("Model from {}", provider_id),
                     provider_id: provider_id.clone(),
                     enabled: true,
+                    is_recommended: false,
                 },
                 Some(should_include_model),
             );
@@ -50,6 +51,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
                     description: "OpenAI Image Generation Model".to_string(),
                     provider_id: provider_id.clone(),
                     enabled: true,
+                    is_recommended: false,
                 },
                 None,
             );
@@ -71,6 +73,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
                     description: "OpenAI Realtime Model".to_string(),
                     provider_id: provider_id.clone(),
                     enabled: true,
+                    is_recommended: false,
                 },
                 None,
             );
@@ -91,6 +94,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
                     description: "A search assistant".to_string(),
                     provider_id: provider_id.clone(),
                     enabled: true,
+                    is_recommended: false,
                 },
                 None,
             );

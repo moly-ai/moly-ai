@@ -1,5 +1,6 @@
 use std::{
     cell::{Ref, RefMut},
+    collections::HashSet,
     sync::{Arc, Mutex},
 };
 
@@ -155,6 +156,10 @@ pub struct Messages {
 
     #[rust]
     custom_contents: Vec<Box<dyn CustomContent>>,
+
+    /// Tracks which error message indices have their details expanded.
+    #[rust]
+    expanded_error_details: HashSet<usize>,
 }
 
 impl Widget for Messages {
@@ -391,6 +396,40 @@ impl Messages {
                             .current()
                             .as_standard_message_content()
                             .set_content(cx, &error_content);
+
+                        let error_text = &message.content.text;
+                        let note = error_note_for(error_text);
+                        let has_note = !note.is_empty();
+
+                        if has_note {
+                            item.label(ids!(error_note)).set_text(cx, note);
+                        }
+
+                        let has_details = message
+                            .content
+                            .data
+                            .as_ref()
+                            .is_some_and(|d| !d.trim().is_empty());
+                        let show_section = has_note || has_details;
+                        item.view(ids!(error_details_section))
+                            .set_visible(cx, show_section);
+                        item.view(ids!(error_note)).set_visible(cx, has_note);
+                        item.view(ids!(error_details_toggle))
+                            .set_visible(cx, has_details);
+
+                        let is_expanded = self.expanded_error_details.contains(&index);
+                        item.view(ids!(error_details)).set_visible(cx, is_expanded);
+                        let toggle_text = if is_expanded {
+                            "Hide details"
+                        } else {
+                            "Show details"
+                        };
+                        item.label(ids!(toggle_label)).set_text(cx, toggle_text);
+
+                        if has_details && is_expanded {
+                            item.label(ids!(details_text))
+                                .set_text(cx, message.content.data.as_deref().unwrap_or(""));
+                        }
 
                         self.apply_editor_visibility(cx, &item, index);
                         item
@@ -694,6 +733,12 @@ impl Messages {
                         let text = item.text_input(ids!(input)).text();
                         self.current_editor.as_mut().unwrap().buffer = text;
                     }
+                    ChatLineAction::ErrorDetailsToggle => {
+                        if !self.expanded_error_details.remove(&index) {
+                            self.expanded_error_details.insert(index);
+                        }
+                        self.redraw(cx);
+                    }
                     ChatLineAction::None => {}
                 }
             }
@@ -731,6 +776,45 @@ impl Messages {
 
     pub fn register_custom_content<T: CustomContent + 'static>(&mut self, widget: T) {
         self.custom_contents.push(Box::new(widget));
+    }
+}
+
+/// Extracts an HTTP status code from error text matching the pattern "status {code}".
+fn extract_status_code(error_text: &str) -> Option<u16> {
+    let mut tokens = error_text.split_whitespace();
+    while let Some(token) = tokens.next() {
+        if token.eq_ignore_ascii_case("status") {
+            if let Some(code) = tokens.next().and_then(|t| t.parse::<u16>().ok()) {
+                return Some(code);
+            }
+        }
+    }
+    None
+}
+
+/// Returns a user-friendly note for common HTTP error status codes found in the
+/// error text, or an empty string if no match.
+fn error_note_for(error_text: &str) -> &'static str {
+    match extract_status_code(error_text) {
+        Some(429) => {
+            "This usually means you've hit a rate limit, run out of \
+             quota/credits, or do not have access to this resource/model \
+             in your current plan."
+        }
+        Some(401) => "This usually means your API key is invalid or expired.",
+        Some(403) => {
+            "This usually means you do not have permission to access \
+             this resource."
+        }
+        Some(400) => {
+            "This might be an error on our side. If the problem persists, \
+             please file an issue on GitHub."
+        }
+        Some(500 | 502 | 503 | 504) => {
+            "A server error occurred. This is likely a temporary issue \
+             with the provider."
+        }
+        _ => "",
     }
 }
 
