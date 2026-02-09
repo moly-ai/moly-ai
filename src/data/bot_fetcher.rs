@@ -115,6 +115,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
                     description: "OpenClaw local AI assistant".to_string(),
                     provider_id: provider_id.clone(),
                     enabled: true,
+                    is_recommended: false,
                 },
                 None,
             );
