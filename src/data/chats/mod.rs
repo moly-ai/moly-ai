@@ -235,8 +235,7 @@ impl Chats {
                         for model in &mut fetched_models {
                             if supported_models.iter().any(|supported_model| {
                                 let (_, raw_id) = RouterClient::unprefix(&model.id).unwrap_or(("", BotId::new("")));
-                                let raw_id_str = raw_id.as_str();
-                                raw_id_str == supported_model || raw_id_str == supported_model.trim_start_matches("models/")
+                                raw_id.as_str() == supported_model
                             }) {
                                 model.is_recommended = true;
                             }
