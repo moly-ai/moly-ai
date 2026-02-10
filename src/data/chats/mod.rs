@@ -234,7 +234,8 @@ impl Chats {
                         has_recommendation_list = true;
                         for model in &mut fetched_models {
                             if supported_models.iter().any(|supported_model| {
-                                let (_, raw_id) = RouterClient::unprefix(&model.id).unwrap_or(("", BotId::new("")));
+                                let (_, raw_id) = RouterClient::unprefix(&model.id)
+                                    .unwrap_or(("", BotId::new("")));
                                 raw_id.as_str() == supported_model
                             }) {
                                 model.is_recommended = true;
@@ -258,16 +259,12 @@ impl Chats {
                         .find(|pp| pp.id == provider_id)
                     {
                         // if there's a matching "(model_name, enabled)" in preferences, apply it
-                        if let Some((_, enabled_val)) = pref_entry
-                            .models
-                            .iter()
-                            .find(|(m, _)| {
-                                *m == provider_bot.name
-                                    || RouterClient::unprefix(&provider_bot.id)
-                                        .map(|(_, id)| id.as_str() == *m)
-                                        .unwrap_or(false)
-                            })
-                        {
+                        if let Some((_, enabled_val)) = pref_entry.models.iter().find(|(m, _)| {
+                            *m == provider_bot.name
+                                || RouterClient::unprefix(&provider_bot.id)
+                                    .map(|(_, id)| id.as_str() == *m)
+                                    .unwrap_or(false)
+                        }) {
                             final_enabled = *enabled_val;
                         }
                     }
