@@ -4,7 +4,7 @@ use moly_kit::prelude::*;
 
 use std::collections::HashMap;
 
-use crate::data::bot_fetcher::should_include_model;
+use crate::data::bot_fetcher::should_include_bot;
 use crate::data::deep_inquire_client::DeepInquireClient;
 use crate::data::openclaw_client::OpenClawClient;
 use crate::data::providers::{Provider, ProviderBot, ProviderId, ProviderType};
@@ -286,7 +286,7 @@ fn apply_bot_filters(
 
     // Apply filter type
     if matches!(filter, ClientFilter::ChatModels) {
-        bots.retain(|bot| should_include_model(bot.id.as_str()));
+        bots.retain(|bot| should_include_bot(&bot.id));
     }
 
     // Apply supported models whitelist

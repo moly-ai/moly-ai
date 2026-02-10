@@ -31,7 +31,7 @@ pub fn fetch_models_for_provider(provider: &Provider) {
                     enabled: true,
                     is_recommended: false,
                 },
-                Some(should_include_model),
+                Some(should_include_bot),
             );
         }
         ProviderType::OpenAiImage => {
@@ -128,7 +128,7 @@ fn fetch_models_with_client<F, M>(
     provider_id: ProviderId,
     client_factory: F,
     map_bot: M,
-    filter: Option<fn(&str) -> bool>,
+    filter: Option<fn(&BotId) -> bool>,
 ) where
     F: FnOnce() -> Box<dyn BotClient> + Send + 'static,
     M: Fn(Bot) -> ProviderBot + Send + 'static,
@@ -140,7 +140,7 @@ fn fetch_models_with_client<F, M>(
             Ok(bots) => {
                 let models: Vec<ProviderBot> = bots
                     .into_iter()
-                    .filter(|bot| filter.map_or(true, |f| f(&bot.id.to_string())))
+                    .filter(|bot| filter.map_or(true, |f| f(&bot.id)))
                     .map(|bot| Bot {
                         // The client Moly interacts with in the `Store` is a `RouterClient`.
                         // This module is creating specific clients to obtain the bots that will
@@ -170,18 +170,17 @@ fn fetch_models_with_client<F, M>(
 }
 
 /// Filter out non-chat models for OpenAI-compatible providers
-pub fn should_include_model(model_id: &str) -> bool {
-    // Filter out non-chat models
-    if model_id.contains("dall-e")
-        || model_id.contains("whisper")
-        || model_id.contains("tts")
-        || model_id.contains("davinci")
-        || (model_id.contains("audio") && !model_id.contains("gpt"))
-        || model_id.contains("babbage")
-        || model_id.contains("moderation")
-        || model_id.contains("embedding")
-    {
-        return false;
-    }
-    true
+pub fn should_include_bot(bot_id: &BotId) -> bool {
+    let keywords = [
+        "dall-e",
+        "whisper",
+        "tts",
+        "davinci",
+        "audio",
+        "babbage",
+        "moderation",
+        "embedding",
+    ];
+
+    bot_id.as_str().contains("gpt") || !keywords.iter().any(|k| bot_id.as_str().contains(k))
 }
