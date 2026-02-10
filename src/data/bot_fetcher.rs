@@ -171,6 +171,11 @@ fn fetch_models_with_client<F, M>(
 
 /// Filter out non-chat models for OpenAI-compatible providers
 pub fn should_include_bot(bot_id: &BotId) -> bool {
+    // TODO: This also filters models like [`gpt-5-image`](https://openrouter.ai/openai/gpt-5-image)
+    // (which is just an alias to `gpt-5` with the `image` built-in tool enabled),
+    // and [`gpt-4o-audio`](https://developers.openai.com/api/docs/models/gpt-4o-audio-preview)
+    // (which is a model that works over the completions endpoint).
+
     let keywords = [
         "dall-e",
         "whisper",
@@ -182,5 +187,5 @@ pub fn should_include_bot(bot_id: &BotId) -> bool {
         "embedding",
     ];
 
-    bot_id.as_str().contains("gpt") || !keywords.iter().any(|k| bot_id.as_str().contains(k))
+    !keywords.iter().any(|k| bot_id.as_str().contains(k))
 }
