@@ -233,7 +233,11 @@ impl Chats {
                     if let Some(supported_models) = &sp.supported_models {
                         has_recommendation_list = true;
                         for model in &mut fetched_models {
-                            if supported_models.contains(&model.name) {
+                            if supported_models.iter().any(|supported_model| {
+                                let (_, raw_id) = RouterClient::unprefix(&model.id).unwrap_or(("", BotId::new("")));
+                                let raw_id_str = raw_id.as_str();
+                                raw_id_str == supported_model || raw_id_str == supported_model.trim_start_matches("models/")
+                            }) {
                                 model.is_recommended = true;
                             }
                         }
@@ -258,7 +262,12 @@ impl Chats {
                         if let Some((_, enabled_val)) = pref_entry
                             .models
                             .iter()
-                            .find(|(m, _)| *m == provider_bot.name)
+                            .find(|(m, _)| {
+                                *m == provider_bot.name
+                                    || RouterClient::unprefix(&provider_bot.id)
+                                        .map(|(_, id)| id.as_str() == *m)
+                                        .unwrap_or(false)
+                            })
                         {
                             final_enabled = *enabled_val;
                         }

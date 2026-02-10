@@ -286,12 +286,12 @@ fn apply_bot_filters(
 
     // Apply filter type
     if matches!(filter, ClientFilter::ChatModels) {
-        bots.retain(|bot| should_include_model(&bot.name));
+        bots.retain(|bot| should_include_model(bot.id.as_str()));
     }
 
     // Apply supported models whitelist
     if let Some(models) = supported_models {
-        bots.retain(|bot| models.contains(&bot.name));
+        bots.retain(|bot| models.iter().any(|m| m == bot.id.as_str()));
     }
 }
 

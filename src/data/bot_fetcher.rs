@@ -140,7 +140,7 @@ fn fetch_models_with_client<F, M>(
             Ok(bots) => {
                 let models: Vec<ProviderBot> = bots
                     .into_iter()
-                    .filter(|bot| filter.map_or(true, |f| f(&bot.name)))
+                    .filter(|bot| filter.map_or(true, |f| f(&bot.id.to_string())))
                     .map(|bot| Bot {
                         // The client Moly interacts with in the `Store` is a `RouterClient`.
                         // This module is creating specific clients to obtain the bots that will
@@ -176,7 +176,7 @@ pub fn should_include_model(model_id: &str) -> bool {
         || model_id.contains("whisper")
         || model_id.contains("tts")
         || model_id.contains("davinci")
-        || model_id.contains("audio")
+        || (model_id.contains("audio") && !model_id.contains("gpt"))
         || model_id.contains("babbage")
         || model_id.contains("moderation")
         || model_id.contains("embedding")
