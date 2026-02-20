@@ -5,6 +5,7 @@ use makepad_widgets::*;
 #[derive(Clone, DefaultNone, Debug)]
 pub enum UtilitiesModalAction {
     ModalDismissed,
+    ManageMemories,
     None,
 }
 
@@ -52,6 +53,13 @@ live_design! {
         input = <View> {
             width: Fill, height: Fit
         }
+    }
+
+    Separator = <View> {
+        width: Fill, height: 1
+        show_bg: true
+        draw_bg: { color: #E0E0E0 }
+        margin: {top: 5, bottom: 5}
     }
 
     pub UtilitiesModal = {{UtilitiesModal}} <RoundedView> {
@@ -104,6 +112,76 @@ live_design! {
             flow: Down
             spacing: 10
 
+            // Memory section
+            <Label> {
+                width: Fill, height: Fit
+                draw_text: {
+                    wrap: Word
+                    text_style: <BOLD_FONT>{font_size: 11},
+                    color: #666
+                }
+                text: "Memory"
+            }
+
+            <View> {
+                width: Fill, height: Fit
+                flow: Right
+                align: {x: 0.0, y: 0.5}
+                spacing: 10
+
+                <View> {
+                    width: Fill, height: Fit
+                    flow: Down
+                    spacing: 2
+
+                    <Label> {
+                        width: Fit, height: Fit
+                        text: "Enable Memory"
+                        draw_text: {
+                            text_style: <REGULAR_FONT>{font_size: 10},
+                            color: #000
+                        }
+                    }
+
+                    <Label> {
+                        width: Fill, height: Fit
+                        draw_text: {
+                            wrap: Word
+                            text_style: <REGULAR_FONT>{font_size: 8},
+                            color: #999
+                        }
+                        text: "When enabled, the AI can remember facts about you across conversations and providers."
+                    }
+                }
+
+                memory_toggle = <MolySwitch> {
+                    animator: {
+                        selected = {
+                            default: off
+                        }
+                    }
+                }
+            }
+
+            manage_memories_button = <MolyButton> {
+                width: Fit, height: Fit
+                padding: {top: 6, bottom: 6, left: 12, right: 12}
+                text: "Manage Memories"
+                draw_text: {
+                    text_style: <REGULAR_FONT>{font_size: 9},
+                    color: #333
+                }
+                draw_bg: {
+                    color: #F5F5F5
+                    border_radius: 3.0
+                    border_size: 1.0
+                    border_color: #D0D5DD
+                }
+            }
+
+            <Separator> {}
+
+            // STT section
             <Label> {
                 width: Fill, height: Fit
                 draw_text: {
@@ -188,7 +266,7 @@ live_design! {
                     }
 
                     toggle_key_visibility = <IconButton> {
-                        text: "" // fa-eye
+                        text: "" // fa-eye
                     }
                 }
             }
@@ -227,6 +305,9 @@ pub struct UtilitiesModal {
 
     #[rust]
     stt_config: Option<Version>,
+
+    #[rust]
+    memory_config: Option<Version>,
 }
 
 impl Widget for UtilitiesModal {
@@ -247,8 +328,18 @@ impl WidgetMatchEvent for UtilitiesModal {
             cx.action(UtilitiesModalAction::ModalDismissed);
         }
 
+        if self.button(ids!(manage_memories_button)).clicked(actions) {
+            cx.action(UtilitiesModalAction::ManageMemories);
+        }
+
         let store = scope.data.get_mut::<Store>().unwrap();
         let prefs = &mut store.preferences;
+
+        if let Some(value) = self.check_box(ids!(memory_toggle)).changed(actions) {
+            prefs.update_memory_config(|config| {
+                config.enabled = value;
+            });
+        }
 
         if let Some(value) = self.check_box(ids!(enabled_toggle)).changed(actions) {
             prefs.update_stt_config(|config| {
@@ -272,9 +363,9 @@ impl WidgetMatchEvent for UtilitiesModal {
             let api_key_input = self.text_input(ids!(api_key_input));
             api_key_input.set_is_password(cx, !api_key_input.is_password());
             if api_key_input.is_password() {
-                self.button(ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye-slash
+                self.button(ids!(toggle_key_visibility)).set_text(cx, "\u{e8f4}"); // fa-eye-slash
             } else {
-                self.button(ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye
+                self.button(ids!(toggle_key_visibility)).set_text(cx, "\u{e8f4}"); // fa-eye
             }
             self.redraw(cx);
         }
@@ -290,6 +381,13 @@ impl WidgetMatchEvent for UtilitiesModal {
 impl UtilitiesModal {
     fn pull(&mut self, cx: &mut Cx, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
+
+        if let Some(memory_config) = self.memory_config.pull(store.preferences.memory_config()) {
+            self.check_box(ids!(memory_toggle))
+                .set_active(cx, memory_config.enabled);
+            self.redraw(cx);
+        }
+
         if let Some(stt_config) = self.stt_config.pull(store.preferences.stt_config()) {
             self.check_box(ids!(enabled_toggle))
                 .set_active(cx, stt_config.enabled);

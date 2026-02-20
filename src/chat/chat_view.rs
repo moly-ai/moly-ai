@@ -6,6 +6,7 @@ use moly_kit::widgets::stt_input::SttInputWidgetExt;
 
 use crate::data::chats::chat::ChatId;
 use crate::data::deep_inquire_client::DeepInquireCustomContent;
+use crate::data::memory_plugin::MemoryPlugin;
 use crate::data::store::{ProviderSyncingStatus, Store};
 use crate::shared::bot_context::BotContext;
 use crate::shared::utils::attachments::{
@@ -230,6 +231,12 @@ pub struct ChatView {
 
     #[rust]
     stt_config: Option<Version>,
+
+    #[rust]
+    memory_config: Option<Version>,
+
+    #[rust]
+    memory_plugin_id: Option<ChatControllerPluginRegistrationId>,
 }
 
 impl LiveHook for ChatView {
@@ -274,6 +281,7 @@ impl Widget for ChatView {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.bind_bot_context(scope);
         self.configure_stt(scope, cx);
+        self.configure_memory(scope);
 
         self.ui_runner().handle(cx, event, scope, self);
         self.view.handle_event(cx, event, scope);
@@ -613,6 +621,28 @@ impl ChatView {
                 .set_stt_utility(Some(stt_utility));
 
             self.redraw(cx);
+        }
+    }
+
+    fn configure_memory(&mut self, scope: &mut Scope) {
+        let store = scope.data.get_mut::<Store>().unwrap();
+        let Some(memory_config) = self.memory_config.pull(store.preferences.memory_config())
+        else {
+            return;
+        };
+
+        if memory_config.enabled {
+            if self.memory_plugin_id.is_none() {
+                let plugin = MemoryPlugin::new(store.memory_store.clone());
+                let id = self
+                    .chat_controller
+                    .lock()
+                    .unwrap()
+                    .prepend_plugin(plugin);
+                self.memory_plugin_id = Some(id);
+            }
+        } else if let Some(id) = self.memory_plugin_id.take() {
+            self.chat_controller.lock().unwrap().remove_plugin(id);
         }
     }
 

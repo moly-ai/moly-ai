@@ -5,7 +5,11 @@ use std::{
 };
 
 use crate::{
-    aitk::{controllers::chat::ChatController, protocol::*},
+    aitk::{
+        controllers::chat::ChatController,
+        protocol::*,
+        utils::tool::display_name_from_namespaced,
+    },
     utils::makepad::{events::EventExt, portal_list::ItemsRangeIter, ui_runner::DeferRedraw},
     widgets::{
         avatar::AvatarWidgetRefExt, chat_line::ChatLineAction,
@@ -45,6 +49,19 @@ live_design! {
             SystemLine = <SystemLine> {}
             ToolRequestLine = <ToolRequestLine> {}
             ToolResultLine = <ToolResultLine> {}
+            SilentLine = <View> {
+                width: Fill, height: Fit
+                align: {x: 1.0, y: 0.5}
+                padding: {top: 2, bottom: 2, right: 16}
+
+                silent_label = <Label> {
+                    draw_text: {
+                        text_style: {font_size: 8},
+                        color: #B0B0B0
+                    }
+                    text: ""
+                }
+            }
             Empty = <View> { height: 0 }
         }
         <View> {
@@ -264,6 +281,13 @@ impl Messages {
                 ..Default::default()
             });
 
+        let silent_tool_names: HashSet<String> = chat_controller
+            .get_all_tools()
+            .iter()
+            .filter(|t| t.silent)
+            .map(|t| t.name.clone())
+            .collect();
+
         let mut list = list_ref.borrow_mut().unwrap();
         list.set_item_range(cx, 0, chat_controller.state().messages.len());
 
@@ -279,6 +303,63 @@ impl Messages {
             }
 
             let message = &chat_controller.state().messages[index];
+
+            // Hide silent tool result messages and bot messages with only
+            // silent tool calls (no accompanying text).
+            let is_silent_tool_result = message.from == EntityId::Tool
+                && message.content.data.as_deref() == Some(MessageContent::SILENT_TOOL_DATA);
+            let is_silent_tool_request =
+                matches!(message.from, EntityId::Bot(_))
+                && !message.content.tool_calls.is_empty()
+                && message.content.text.is_empty()
+                && message.content.tool_calls.iter().all(|tc| {
+                    silent_tool_names.contains(&tc.name)
+                });
+
+            if is_silent_tool_request {
+                let item = list.item(cx, index, live_id!(Empty));
+                item.apply_over(cx, live! { height: 0 });
+                item.draw_all(cx, &mut Scope::empty());
+                continue;
+            }
+
+            if is_silent_tool_result {
+                let item = list.item(cx, index, live_id!(SilentLine));
+                // Derive display text from tool names in the preceding
+                // bot message's tool_calls.
+                let tool_names: Vec<String> = if index > 0 {
+                    let prev =
+                        &chat_controller.state().messages[index - 1];
+                    message
+                        .content
+                        .tool_results
+                        .iter()
+                        .filter_map(|tr| {
+                            prev.content
+                                .tool_calls
+                                .iter()
+                                .find(|tc| tc.id == tr.tool_call_id)
+                                .map(|tc| {
+                                    display_name_from_namespaced(&tc.name)
+                                })
+                        })
+                        .collect()
+                } else {
+                    Vec::new()
+                };
+
+                let label = if tool_names.len() == 1 {
+                    format!("{} executed", tool_names[0])
+                } else if tool_names.len() > 1 {
+                    format!("{} tools executed", tool_names.len())
+                } else {
+                    "Tool executed".to_string()
+                };
+
+                item.label(ids!(silent_label)).set_text(cx, &label);
+                item.draw_all(cx, &mut Scope::empty());
+                continue;
+            }
 
             let item = match &message.from {
                 EntityId::System => {

@@ -6,6 +6,7 @@ use crate::shared::bot_context::BotContext;
 use super::chats::chat::ChatId;
 use super::downloads::download::DownloadFileAction;
 use super::mcp_servers::McpServersConfig;
+use super::memory::MemoryStore;
 use super::moly_client::MolyClient;
 use super::preferences::Preferences;
 use super::providers::{ProviderFetchModelsResult, ProviderType};
@@ -72,6 +73,7 @@ pub struct Store {
     pub downloads: Downloads,
     pub chats: Chats,
     pub preferences: Preferences,
+    pub memory_store: MemoryStore,
     pub bot_context: Option<BotContext>,
     moly_client: MolyClient,
     pub provider_syncing_status: ProviderSyncingStatus,
@@ -85,6 +87,7 @@ impl Store {
     pub fn load_into_app() {
         spawn(async move {
             let preferences = Preferences::load().await;
+            let memory_store = MemoryStore::load().await;
 
             let server_port = std::env::var("MOLY_SERVER_PORT")
                 .ok()
@@ -101,6 +104,7 @@ impl Store {
                 chats,
                 moly_client,
                 preferences,
+                memory_store,
                 bot_context: None,
                 provider_syncing_status: ProviderSyncingStatus::NotSyncing,
                 provider_icons: vec![],

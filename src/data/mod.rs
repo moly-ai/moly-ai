@@ -4,6 +4,8 @@ pub mod chats;
 pub mod deep_inquire_client;
 pub mod downloads;
 pub mod mcp_servers;
+pub mod memory;
+pub mod memory_plugin;
 pub mod moly_client;
 pub mod openclaw_client;
 pub mod preferences;

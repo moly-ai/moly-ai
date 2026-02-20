@@ -1,4 +1,5 @@
 pub mod add_provider_modal;
+pub mod memory_modal;
 pub mod moly_server_screen;
 pub mod provider_view;
 pub mod providers;
@@ -15,4 +16,5 @@ pub fn live_design(cx: &mut Cx) {
     add_provider_modal::live_design(cx);
     sync_modal::live_design(cx);
     utilities_modal::live_design(cx);
+    memory_modal::live_design(cx);
 }

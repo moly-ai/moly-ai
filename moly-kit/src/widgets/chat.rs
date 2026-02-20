@@ -520,6 +520,54 @@ impl Chat {
         self.plugin_id = None;
     }
 
+    /// Checks the last message for pending auto-executable tool calls and
+    /// dispatches execution immediately without showing the permission UI.
+    fn try_auto_execute_tools(&mut self) {
+        let Some(controller) = &self.chat_controller else {
+            return;
+        };
+        let mut lock = controller.lock().unwrap();
+
+        // Gather info needed for the check without holding borrows across calls.
+        let Some(last_msg) = lock.state().messages.last().cloned() else {
+            return;
+        };
+
+        if last_msg.content.tool_calls.is_empty() {
+            return;
+        }
+
+        let all_pending = last_msg.content.tool_calls.iter().all(|tc| {
+            tc.permission_status == ToolCallPermissionStatus::Pending
+        });
+        if !all_pending {
+            return;
+        }
+
+        let tools = lock.get_all_tools();
+        let all_auto = last_msg.content.tool_calls.iter().all(|tc| {
+            tools.iter().any(|t| t.name == tc.name && t.auto_execute)
+        });
+        if !all_auto {
+            return;
+        }
+
+        // Auto-approve and execute.
+        let index = lock.state().messages.len() - 1;
+        let mut updated = last_msg;
+        for tc in &mut updated.content.tool_calls {
+            tc.permission_status = ToolCallPermissionStatus::Approved;
+        }
+        lock.dispatch_mutation(VecMutation::Update(index, updated));
+
+        let tool_calls = lock.state().messages[index]
+            .content
+            .tool_calls
+            .clone();
+        let bot_id = lock.state().bot_id.clone();
+        lock.dispatch_task(ChatTask::Execute(tool_calls, bot_id));
+    }
+
     fn handle_streaming_start(&mut self, cx: &mut Cx) {
         self.prompt_input_ref().write().set_stop();
         self.messages_ref().write().animated_scroll_to_bottom(cx);
@@ -592,6 +640,7 @@ impl ChatControllerPlugin for Plugin {
                 ChatStateMutation::SetIsStreaming(false) => {
                     self.ui.defer(|chat, cx, _| {
                         chat.handle_streaming_end(cx);
+                        chat.try_auto_execute_tools();
                     });
                 }
                 ChatStateMutation::MutateBots(_) => {

@@ -9,7 +9,9 @@ use makepad_widgets::*;
 use moly_kit::prelude::*;
 
 use super::{
-    add_provider_modal::AddProviderModalAction, provider_view::ProviderViewAction,
+    add_provider_modal::AddProviderModalAction,
+    memory_modal::MemoryModalAction,
+    provider_view::ProviderViewAction,
     utilities_modal::UtilitiesModalAction,
 };
 
@@ -23,6 +25,7 @@ live_design! {
     use crate::settings::add_provider_modal::*;
     use crate::settings::sync_modal::SyncModal;
     use crate::settings::utilities_modal::UtilitiesModal;
+    use crate::settings::memory_modal::MemoryModal;
 
     use moly_kit::widgets::moly_modal::*;
 
@@ -268,6 +271,12 @@ live_design! {
                     utilities_modal_inner = <UtilitiesModal> {}
                 }
             }
+
+            memory_modal = <MolyModal> {
+                content: {
+                    memory_modal_inner = <MemoryModal> {}
+                }
+            }
         }
     }
 }
@@ -406,6 +415,16 @@ impl WidgetMatchEvent for Providers {
 
             if let UtilitiesModalAction::ModalDismissed = action.cast() {
                 self.moly_modal(ids!(utilities_modal)).close(cx);
+                self.redraw(cx);
+            }
+
+            if let UtilitiesModalAction::ManageMemories = action.cast() {
+                self.moly_modal(ids!(utilities_modal)).close(cx);
+                self.moly_modal(ids!(memory_modal)).open_as_dialog(cx);
+            }
+
+            if let MemoryModalAction::ModalDismissed = action.cast() {
+                self.moly_modal(ids!(memory_modal)).close(cx);
                 self.redraw(cx);
             }
 

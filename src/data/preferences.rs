@@ -24,6 +24,8 @@ pub struct Preferences {
     pub mcp_servers_config: McpServersConfig,
     #[serde(default)]
     stt_config: Versioned<SttConfig>,
+    #[serde(default)]
+    memory_config: Versioned<MemoryConfig>,
 }
 
 impl Default for Preferences {
@@ -34,6 +36,7 @@ impl Default for Preferences {
             providers_preferences: vec![],
             mcp_servers_config: McpServersConfig::new(),
             stt_config: Versioned::default(),
+            memory_config: Versioned::default(),
         }
     }
 }
@@ -77,6 +80,18 @@ impl Preferences {
         F: FnOnce(&mut SttConfig),
     {
         self.stt_config.update_and_notify(update_fn);
+        self.save();
+    }
+
+    pub fn memory_config(&self) -> &Versioned<MemoryConfig> {
+        &self.memory_config
+    }
+
+    pub fn update_memory_config<F>(&mut self, update_fn: F)
+    where
+        F: FnOnce(&mut MemoryConfig),
+    {
+        self.memory_config.update_and_notify(update_fn);
         self.save();
     }
 
@@ -320,5 +335,17 @@ impl Default for SttConfig {
             api_key: String::new(),
             model_name: "whisper-1".to_string(),
         }
+    }
+}
+
+/// Configuration for the built-in memory feature.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct MemoryConfig {
+    pub enabled: bool,
+}
+
+impl Default for MemoryConfig {
+    fn default() -> Self {
+        Self { enabled: false }
     }
 }
