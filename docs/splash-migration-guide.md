@@ -1264,6 +1264,8 @@ res: crate_resource("self:resources/fonts/MyFont.ttf")
 
 The `crate_resource` function is registered in the script VM as a builtin. The URL scheme simplified from `crate://self/` to `self:`.
 
+> **Note:** Font resource paths were recently simplified in theme files. For example, `crate_resource("self:fonts/chinese_regular/resources/LXGWWenKaiRegular.ttf")` became `crate_resource("self:fonts/LXGWWenKaiRegular.ttf")`. The old `res.split_crate(...)` syntax for split-file fonts has been removed; use `res.crate("self:fonts/...")` or `crate_resource("self:fonts/...")` with the simplified paths.
+
 ---
 
 ## 25. Theme Linking (`link` and `cx.link`)
@@ -1610,6 +1612,45 @@ let encoded = query.url_encode()
 let parts = response.body.to_string().split("vqd=\"")
 let data = json_string.parse_json()
 ```
+
+### TextInput enhanced properties (new in Splash)
+
+TextInput now has several new properties with no old DSL equivalent:
+
+```
+TextInput{
+    width: Fill height: 200
+    is_multiline: true              // Enter inserts newlines instead of submitting
+    input_mode: InputMode.Email     // Mobile soft keyboard type
+    autocapitalize: AutoCapitalize.None
+    autocorrect: AutoCorrect.No
+    return_key_type: ReturnKeyType.Send
+}
+```
+
+| Property | Type / Values | Description |
+|----------|--------------|-------------|
+| `is_multiline` | `bool` | Multiline editing with Enter = newline |
+| `input_mode` | `InputMode.{Text,Numeric,Decimal,Tel,Ascii,Url,Email,Search}` | Soft keyboard type |
+| `autocapitalize` | `AutoCapitalize.{None,Characters,Words,Sentences}` | Auto-capitalization |
+| `autocorrect` | `AutoCorrect.{Default,Yes,No}` | Autocorrect behavior |
+| `return_key_type` | `ReturnKeyType.{Default,Go,Next,Search,Send,Done}` | Mobile return key label |
+
+These enums are in the prelude. The Rust `TextInput` struct also gained a `Hit::ImeAction` event handler for mobile keyboard action buttons.
+
+### Video texture sampling in shaders (new)
+
+```
+draw_bg +: {
+    vid: texture_video(float)
+
+    pixel: fn() {
+        return vid.sample_video(self.pos)
+    }
+}
+```
+
+`texture_video` and `.sample_video(coord)` are for external/video textures (camera, video playback). On GLSL this maps to `sample2dOES()`.
 
 ---
 
