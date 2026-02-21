@@ -4,6 +4,8 @@
 
 Splash is a full scripting language (not just a layout DSL). It can define UI layouts, shaders, animations, and also execute logic: HTTP requests, JSON parsing, promises, state management, and more. Think of it as Makepad's own "Lua" — embedded in Rust via the `script_mod!{}` macro.
 
+For a migration guide from old `live_design!` to new `script_mod!`, see [splash-migration-guide.md](./splash-migration-guide.md). For Moly-specific architecture context, see [moly-handbook.md](./moly-handbook.md).
+
 ---
 
 ## Table of Contents

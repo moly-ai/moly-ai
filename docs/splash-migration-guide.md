@@ -4,7 +4,7 @@
 
 This guide provides side-by-side comparisons for every pattern you need to change when migrating a Makepad application from the old `live_design!` macro system to the new Splash scripting system. It is organized by category so you can look up specific patterns quickly.
 
-For a comprehensive reference on the Splash language itself, see [splash-language-reference.md](./splash-language-reference.md).
+For a comprehensive reference on the Splash language itself, see [splash-language-reference.md](./splash-language-reference.md). For Moly-specific architecture context, see [moly-handbook.md](./moly-handbook.md).
 
 ---
 
@@ -33,8 +33,16 @@ For a comprehensive reference on the Splash language itself, see [splash-languag
 21. [Rust Widget Trait Changes](#21-rust-widget-trait-changes)
 22. [Action Enum Changes](#22-action-enum-changes)
 23. [Library `lib.rs` Registration](#23-library-librs-registration)
-24. [New Capabilities (No Old Equivalent)](#24-new-capabilities-no-old-equivalent)
-25. [Quick Reference Cheat Sheet](#25-quick-reference-cheat-sheet)
+24. [Resource References (`dep` to `crate_resource`)](#24-resource-references-dep-to-crate_resource)
+25. [Theme Linking (`link` and `cx.link`)](#25-theme-linking-link-and-cxlink)
+26. [Dynamic Styling (`apply_over` + `live!`)](#26-dynamic-styling-apply_over--live)
+27. [Dynamic Widget Creation (`new_from_ptr`)](#27-dynamic-widget-creation-new_from_ptr)
+28. [DrawList2d Overlay Initialization](#28-drawlist2d-overlay-initialization)
+29. [Template Storage (`LivePtr` to `ScriptObjectRef`)](#29-template-storage-liveptr-to-scriptobjectref)
+30. [DSL Constants](#30-dsl-constants)
+31. [Unchanged Patterns (Confirm Still Work)](#31-unchanged-patterns-confirm-still-work)
+32. [New Capabilities (No Old Equivalent)](#32-new-capabilities-no-old-equivalent)
+33. [Quick Reference Cheat Sheet](#33-quick-reference-cheat-sheet)
 
 ---
 
@@ -1230,7 +1238,290 @@ Key differences:
 
 ---
 
-## 24. New Capabilities (No Old Equivalent)
+## 24. Resource References (`dep` to `crate_resource`)
+
+The old `dep("crate://self/...")` syntax for referencing SVG, PNG, and font resources has been replaced.
+
+**Old:**
+```
+svg_file: dep("crate://self/resources/icons/icon.svg")
+source: dep("crate://self/resources/images/ducky.png")
+font: dep("crate://self/resources/fonts/MyFont.ttf")
+```
+
+**New:**
+```
+svg_file: crate_resource("self:resources/icons/icon.svg")
+src: crate_resource("self:resources/images/ducky.png")
+res: crate_resource("self:resources/fonts/MyFont.ttf")
+```
+
+| Old | New |
+|-----|-----|
+| `dep("crate://self/path")` | `crate_resource("self:path")` |
+| `source:` (Image property) | `src:` |
+| `font:` (Font property) | `res:` (in `FontMember`) |
+
+The `crate_resource` function is registered in the script VM as a builtin. The URL scheme simplified from `crate://self/` to `self:`.
+
+---
+
+## 25. Theme Linking (`link` and `cx.link`)
+
+The old system used `link` directives and `cx.link()` for theme selection. Both are removed.
+
+**Old (in DSL):**
+```
+live_design! {
+    link widgets;
+    link theme_moly_kit_light;
+    use link::theme::*;
+    use link::moly_kit_theme::*;
+}
+```
+
+**Old (in Rust):**
+```rust
+pub fn live_design(cx: &mut Cx) {
+    cx.link(live_id!(theme), live_id!(theme_desktop_dark));
+    cx.link(live_id!(moly_kit_theme), live_id!(theme_moly_kit_light));
+}
+```
+
+**New:** Themes are defined as named modules in `script_mod!` blocks. Theme selection happens at module registration time:
+
+```rust
+script_mod! {
+    mod.themes.dark = {
+        mod.theme = me          // this theme becomes active
+        let theme = me          // self-reference for computed values
+
+        color_text: #xffffff
+        space_factor: 6.
+        space_1: 0.5 * theme.space_factor
+        // ...
+    }
+}
+```
+
+The prelude wires `theme:mod.theme` making `theme.color_text` etc. available everywhere:
+```rust
+script_mod! {
+    mod.prelude.widgets = {
+        ..mod.widgets,
+        theme:mod.theme,
+        // ...
+    }
+}
+```
+
+For custom library themes (like moly-kit's theme), the library's `script_mod(vm)` function registers additional theme properties into the `mod.theme` namespace.
+
+---
+
+## 26. Dynamic Styling (`apply_over` + `live!`)
+
+The `apply_over` + `live!{}` pattern for runtime property changes has been **completely removed**.
+
+**Old:**
+```rust
+self.apply_over(cx, live!{ visible: false });
+self.view(id!(my_view)).apply_over(cx, live!{ draw_bg: { color: #f00 } });
+self.draw_bg.apply_over(cx, live!{ active: 1.0 });
+```
+
+**New:** There is no direct equivalent. Use these alternatives:
+
+### Direct field mutation
+```rust
+self.visible = false;
+self.redraw(cx);
+```
+
+### Animator-driven changes
+Use the animator system for animated property transitions — this already existed in the old system but now becomes the primary way to change draw properties at runtime.
+
+### Script VM evaluation (for Splash-only widgets)
+```rust
+// For widgets that exist in Splash script context
+vm.eval_with_append_source("widget_name.property = value");
+```
+
+### Widget query methods
+```rust
+self.widget(id!(my_label)).set_text("updated");
+```
+
+### Key implications for migration
+Every `apply_over(cx, live!{...})` call in moly/moly-kit must be replaced with one of the above patterns. This is likely the **most labor-intensive** part of the migration since moly-kit uses `apply_over` extensively (in `prompt_input.rs`, `moly_modal.rs`, `messages.rs`, `attachment_view.rs`, `message_thinking_block.rs`, `model_selector.rs`, and many moly app files).
+
+---
+
+## 27. Dynamic Widget Creation (`new_from_ptr`)
+
+The `WidgetRef::new_from_ptr(cx, Some(*ptr))` pattern for creating widgets from templates at runtime has been replaced.
+
+**Old:**
+```rust
+// Template stored as Option<LivePtr>
+#[live]
+item_template: Option<LivePtr>,
+
+// Creation
+let widget = WidgetRef::new_from_ptr(cx, self.item_template);
+```
+
+**New:**
+```rust
+// Template stored as ScriptObjectRef
+#[live]
+item_template: ScriptObjectRef,
+
+// Creation
+let widget = cx.with_vm(|vm| {
+    WidgetRef::script_from_value(vm, self.item_template.clone())
+});
+```
+
+| Old | New |
+|-----|-----|
+| `Option<LivePtr>` | `ScriptObjectRef` |
+| `WidgetRef::new_from_ptr(cx, ptr)` | `WidgetRef::script_from_value(vm, value)` |
+| `View::new_from_ptr(cx, ptr)` | `cx.with_vm(\|vm\| WidgetRef::script_from_value(vm, value))` |
+
+The `cx.with_vm(|vm| ...)` pattern is common because `draw_walk` and `handle_event` have access to `Cx` but not `ScriptVm`.
+
+---
+
+## 28. DrawList2d Overlay Initialization
+
+The `DrawList2d` type (used for overlays, modals, popups) changed its initialization pattern.
+
+**Old:**
+```rust
+#[derive(Live, LiveHook, Widget)]
+pub struct MyModal {
+    #[rust(DrawList2d::new(cx))]
+    draw_list: DrawList2d,
+}
+```
+
+**New:**
+```rust
+#[derive(Script, ScriptHook, Widget)]
+pub struct MyModal {
+    #[rust]
+    draw_list: Option<DrawList2d>,
+}
+
+impl ScriptHook for MyModal {
+    fn on_after_new(&mut self, vm: &mut ScriptVm) {
+        self.draw_list = Some(DrawList2d::script_new(vm));
+    }
+}
+```
+
+| Old | New |
+|-----|-----|
+| `#[rust(DrawList2d::new(cx))]` | `#[rust] draw_list: Option<DrawList2d>` + `on_after_new` |
+| `DrawList2d::new(cx)` | `DrawList2d::script_new(vm)` |
+| Direct field initialization | Two-phase: declare as Option, init in `on_after_new` |
+
+The overlay API itself (`begin_overlay_reuse`, `begin_overlay_last`, etc.) is unchanged.
+
+---
+
+## 29. Template Storage (`LivePtr` to `ScriptObjectRef`)
+
+Anywhere the old codebase stored template references as `LivePtr`, the new system uses `ScriptObjectRef`.
+
+**Old:**
+```rust
+#[live]
+my_template: Option<LivePtr>,
+
+// In ComponentMap
+items: ComponentMap<LiveId, (LivePtr, WidgetRef)>,
+```
+
+**New:**
+```rust
+#[live]
+my_template: ScriptObjectRef,
+
+// In ComponentMap
+items: ComponentMap<LiveId, (ScriptObjectRef, WidgetRef)>,
+```
+
+This affects:
+- `AdaptiveView`: `ComponentMap<LiveId, ScriptObjectRef>` instead of `ComponentMap<LiveId, LivePtr>`
+- `PortalList` templates
+- `ChatsDeck` (moly) which uses `WidgetRef::new_from_ptr`
+- `SubStages` (moly) which uses `Option<LivePtr>` for stage templates
+- Any custom list widget that creates items from templates
+
+---
+
+## 30. DSL Constants
+
+**Old:** Constants were defined with `=` in `live_design!` and referenced with `(NAME)`:
+```
+live_design! {
+    ANIMATION_SPEED = 0.33
+    ITEM_HEIGHT = 200.0
+    MY_COLOR = #ff0000
+
+    // Usage:
+    duration: (ANIMATION_SPEED)
+    height: (ITEM_HEIGHT)
+    color: (MY_COLOR)
+}
+```
+
+**New:** Constants use `let` in `script_mod!` and are referenced directly by name:
+```
+script_mod! {
+    let animation_speed = 0.33
+    let item_height = 200.0
+    let my_color = #xff0000
+
+    // Usage:
+    duration: animation_speed
+    height: item_height
+    color: my_color
+}
+```
+
+For resource constants:
+```
+let ICO_SEARCH = crate_resource("self:resources/icons/search.svg")
+```
+
+Note: Theme-level constants that were `THEME_*` become `theme.*` properties (covered in section 5). App-level constants use `let`.
+
+---
+
+## 31. Unchanged Patterns (Confirm Still Work)
+
+These patterns are used heavily in moly/moly-kit and remain unchanged in the new system:
+
+| Pattern | Status |
+|---------|--------|
+| `#[deref]` attribute on widget structs | **Unchanged** — still delegates to parent widget |
+| `#[wrap]` attribute (Slot pattern) | **Unchanged** — still wraps child widget |
+| `ComponentMap` for custom list rendering | **Unchanged** — same API (but stores `ScriptObjectRef` instead of `LivePtr`) |
+| `sweep_lock` / `sweep_unlock` for modal event capture | **Unchanged** |
+| `DrawList2d` overlay API (`begin_overlay_reuse`, etc.) | **Unchanged** |
+| `AdaptiveView` (Desktop/Mobile variants) | **Unchanged** concept — derives changed to `Script`/`ScriptHook` |
+| `Scope::with_data` for passing data down widget tree | **Unchanged** |
+| `WidgetMatchEvent` trait | **Unchanged** |
+| `cx.widget_action` for emitting actions | Changed to `cx.widget_action_with_data(&self.action_data, uid, action)` |
+| `spawn` for async tasks | **Unchanged** (from aitk) |
+| `UiRunner` pattern (async → UI bridge) | **Unchanged** (moly-kit utility) |
+
+---
+
+## 32. New Capabilities (No Old Equivalent)
 
 These features exist only in Splash and have no migration counterpart — they're purely new functionality.
 
@@ -1322,7 +1613,7 @@ let data = json_string.parse_json()
 
 ---
 
-## 25. Quick Reference Cheat Sheet
+## 33. Quick Reference Cheat Sheet
 
 ### Macros and imports
 
@@ -1395,6 +1686,23 @@ let data = json_string.parse_json()
 | `fn live_register(cx)` | `fn script_register(vm)` |
 | `live_design(cx)` | `script_mod(vm)` |
 
+### Resources and Rust-side APIs
+
+| Old | New |
+|-----|-----|
+| `dep("crate://self/path")` | `crate_resource("self:path")` |
+| `Image { source: dep(...) }` | `Image { src: crate_resource(...) }` |
+| `MY_CONST = 0.33` then `(MY_CONST)` | `let my_const = 0.33` then `my_const` |
+| `link widgets;` / `link my_theme;` | (removed — use `mod.prelude.*` imports) |
+| `cx.link(live_id!(a), live_id!(b))` | (removed — theme set via `mod.theme = me` in script_mod) |
+| `apply_over(cx, live!{...})` | Direct field mutation + `redraw(cx)`, or Animator |
+| `live!{ prop: val }` | (removed entirely) |
+| `WidgetRef::new_from_ptr(cx, ptr)` | `cx.with_vm(\|vm\| WidgetRef::script_from_value(vm, val))` |
+| `Option<LivePtr>` (template ref) | `ScriptObjectRef` |
+| `#[rust(DrawList2d::new(cx))]` | `#[rust] Option<DrawList2d>` + `on_after_new` init |
+| `DrawList2d::new(cx)` | `DrawList2d::script_new(vm)` |
+| `ComponentMap<K, LivePtr>` | `ComponentMap<K, ScriptObjectRef>` |
+
 ### Dock/Tabs
 
 | Old | New |
@@ -1414,6 +1722,8 @@ let data = json_string.parse_json()
 
 When migrating a file from old to new:
 
+### DSL Syntax (in `script_mod!` blocks)
+
 1. **Replace macro**: `live_design!` → `script_mod!`
 2. **Replace imports**: `link widgets; use link::*;` → `use mod.prelude.widgets.*`
 3. **Remove all commas** between properties
@@ -1425,10 +1735,29 @@ When migrating a file from old to new:
 9. **Update animators**: Add `Animator{}`, `AnimatorState{}`, `@off`, `snap()`, `timeline()`
 10. **Update shaders**: `fn pixel(self) -> vec4` → `pixel: fn()`, `::` → `.`
 11. **Add `let mut`** for mutable shader variables
-12. **Update Rust derives**: `Live` → `Script`, `LiveHook` → `ScriptHook`, add `Animator`
-13. **Add required fields**: `#[uid] uid: WidgetUid`, `#[source] source: ScriptObjectRef`
-14. **Replace `#[animator]`** with `#[apply_default]`
-15. **Replace `DrawIcon`** with `DrawSvg`
-16. **Replace `DefaultNone`** with `Default` + `#[default]`
-17. **Update `lib.rs`**: `live_design(cx)` → `script_mod(vm)`, `LiveRegister` → `ScriptRegister`
-18. **Test**: Compile and run to verify rendering matches
+12. **Replace resource refs**: `dep("crate://self/path")` → `crate_resource("self:path")`
+13. **Replace image source**: `Image { source: ... }` → `Image { src: ... }`
+14. **Replace DSL constants**: `MY_CONST = 0.33` then `(MY_CONST)` → `let my_const = 0.33` then `my_const`
+
+### Rust-Side Changes
+
+15. **Update Rust derives**: `Live` → `Script`, `LiveHook` → `ScriptHook`, add `Animator`
+16. **Add required fields**: `#[uid] uid: WidgetUid`, `#[source] source: ScriptObjectRef`
+17. **Replace `#[animator]`** with `#[apply_default]`
+18. **Replace `DrawIcon`** with `DrawSvg`
+19. **Replace `DefaultNone`** with `Default` + `#[default]` on the `None` variant
+20. **Update `lib.rs`**: `live_design(cx)` → `script_mod(vm)`, `LiveRegister` → `ScriptRegister`
+21. **Replace `apply_over` + `live!{}`** — No direct replacement. Use direct field mutation + `redraw(cx)`, `AdaptiveView`, or Animator (case-by-case analysis required)
+22. **Replace `WidgetRef::new_from_ptr(cx, ptr)`** → `cx.with_vm(|vm| WidgetRef::script_from_value(vm, val))`
+23. **Replace `Option<LivePtr>`** template storage → `ScriptObjectRef`
+24. **Replace `DrawList2d::new(cx)`** → `DrawList2d::script_new(vm)` with `on_after_new` initialization
+25. **Replace `ComponentMap<K, LivePtr>`** → `ComponentMap<K, ScriptObjectRef>`
+26. **Remove `cx.link()` calls** — Replace with `mod.theme = me` in `script_mod!`
+27. **Remove `link` directives** — Replace with `mod.prelude.*` imports
+
+### Verification
+
+28. **Compile** and fix all errors
+29. **Test visually** — verify rendering matches original
+30. **Test mobile layout** — `AdaptiveView`, responsive padding (especially former `apply_over` sites)
+31. **Test dynamic features** — streaming chat, bot switching, attachment handling, provider connections
