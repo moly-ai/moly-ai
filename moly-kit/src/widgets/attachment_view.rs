@@ -8,56 +8,53 @@ use crate::{
 };
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::widgets::image_view::*;
-
-    pub AttachmentView = {{AttachmentView}} {
-        flow: Overlay,
-        icon_wrapper = <View> {
-            flow: Down,
-            align: {x: 0.5, y: 0.5},
-            spacing: 2,
-            icon = <Label> {
-                text: "",
-                draw_text: {
-                    color: #000,
-                    text_style: <THEME_FONT_ICONS>{font_size: 28}
+    mod.widgets.AttachmentView = #(AttachmentView::register_widget(vm)) View {
+        flow: Overlay
+        icon_wrapper := View {
+            flow: Down
+            align: Align { x: 0.5, y: 0.5 }
+            spacing: 2
+            icon := Label {
+                text: ""
+                draw_text +: {
+                    color: #000
+                    text_style: theme.font_icons { font_size: 28 }
                 }
             }
-            title = <Label> {
-                text: "document.pdf",
-                draw_text: {
-                    color: #000,
-                    text_style: {font_size: 11}
+            title := Label {
+                text: "document.pdf"
+                draw_text +: {
+                    text_style +: { font_size: 11 }
+                    color: #000
                 }
             }
         }
 
-        image_wrapper = <View> {
-            image = <ImageView> {contain: true}
+        image_wrapper := View {
+            image := ImageView { contain: true }
         }
 
-        tag_wrapper = <View> {
-            visible: false,
-            align: {x: 1}
-            tag_bg = <RoundedView> {
-                width: Fit,
-                height: Fit,
-                margin: 8,
-                draw_bg: {
-                    color: #000,
-                    border_radius: 4.0,
+        tag_wrapper := View {
+            visible: false
+            align: Align { x: 1 }
+            tag_bg := RoundedView {
+                width: Fit
+                height: Fit
+                margin: 8
+                draw_bg +: {
+                    color: #000
+                    border_radius: 4.0
                 }
-                tag_label = <Label> {
-                    text: "PDF",
-                    padding: {left: 2, right: 2, top: 1.6, bottom: 1.6},
-                    draw_text: {
-                        color: #fff,
-                        text_style: <THEME_FONT_BOLD>{font_size: 8}
+                tag_label := Label {
+                    text: "PDF"
+                    padding: Inset { left: 2, right: 2, top: 1.6, bottom: 1.6 }
+                    draw_text +: {
+                        color: #fff
+                        text_style: theme.font_bold { font_size: 8 }
                     }
                 }
             }
@@ -65,8 +62,11 @@ live_design! {
     }
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct AttachmentView {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     deref: View,
 
@@ -90,9 +90,7 @@ impl Widget for AttachmentView {
 
 impl AttachmentView {
     pub fn set_attachment(&mut self, cx: &mut Cx, attachment: Attachment) {
-        // Only trigger stuff if attachment has changed.
         if self.attachment != attachment {
-            // Preserve for future comparisons.
             self.attachment = attachment;
 
             let icon = self.label(ids!(icon));
@@ -112,14 +110,13 @@ impl AttachmentView {
                     .as_str(),
             );
 
-            self.tag_bg_ref().apply_over(
-                cx,
-                live! {
-                    draw_bg: {
-                        color: (no_preview_color()),
-                    }
-                },
-            );
+            let color = no_preview_color();
+            let tag_bg = self.tag_bg_ref();
+            script_apply_eval!(cx, tag_bg, {
+                draw_bg +: {
+                    color: #(color)
+                }
+            });
 
             title.set_text(cx, &self.attachment.name);
 
@@ -133,14 +130,13 @@ impl AttachmentView {
             } else {
                 icon.set_text(cx, "\u{f127}");
                 tag_label.set_text(cx, "Unavailable");
-                self.tag_bg_ref().apply_over(
-                    cx,
-                    live! {
-                        draw_bg: {
-                            color: (unavailable_color()),
-                        }
-                    },
-                );
+                let color = unavailable_color();
+                let tag_bg = self.tag_bg_ref();
+                script_apply_eval!(cx, tag_bg, {
+                    draw_bg +: {
+                        color: #(color)
+                    }
+                });
             }
         }
     }
@@ -171,8 +167,9 @@ impl AttachmentView {
     }
 
     fn try_load_preview(&mut self) {
-        // Not even try if not a supported image.
-        if !crate::widgets::image_view::can_load(self.attachment.content_type_or_octet_stream()) {
+        if !crate::widgets::image_view::can_load(
+            self.attachment.content_type_or_octet_stream(),
+        ) {
             return;
         }
 
@@ -190,11 +187,16 @@ impl AttachmentView {
             };
 
             ui.defer_with_redraw(move |me, cx, _| {
-                if let Err(e) = me.image_ref().borrow_mut().unwrap().load_with_contet_type(
-                    cx,
-                    &content,
-                    attachment.content_type_or_octet_stream(),
-                ) {
+                if let Err(e) = me
+                    .image_ref()
+                    .borrow_mut()
+                    .unwrap()
+                    .load_with_contet_type(
+                        cx,
+                        &content,
+                        attachment.content_type_or_octet_stream(),
+                    )
+                {
                     ::log::warn!(
                         "Failed to load attachment {} as {}: {}",
                         attachment.name,
@@ -205,14 +207,13 @@ impl AttachmentView {
 
                 me.icon_wrapper_ref().set_visible(cx, false);
                 me.image_wrapper_ref().set_visible(cx, true);
-                me.tag_bg_ref().apply_over(
-                    cx,
-                    live! {
-                        draw_bg: {
-                            color: (preview_color()),
-                        }
-                    },
-                );
+                let color = preview_color();
+                let tag_bg = me.tag_bg_ref();
+                script_apply_eval!(cx, tag_bg, {
+                    draw_bg +: {
+                        color: #(color)
+                    }
+                });
             });
         };
 
@@ -242,5 +243,7 @@ fn preview_color() -> Vec4 {
 /// If this widget could generate a preview for the attachment.
 pub fn can_preview(attachment: &Attachment) -> bool {
     attachment.is_available()
-        && crate::widgets::image_view::can_load(attachment.content_type_or_octet_stream())
+        && crate::widgets::image_view::can_load(
+            attachment.content_type_or_octet_stream(),
+        )
 }

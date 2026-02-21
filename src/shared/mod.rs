@@ -1,4 +1,4 @@
-use makepad_widgets::Cx;
+use makepad_widgets::ScriptVm;
 
 pub mod actions;
 pub mod bot_context;
@@ -15,16 +15,16 @@ pub mod tooltip;
 pub mod utils;
 pub mod widgets;
 
-pub fn live_design(cx: &mut Cx) {
-    meta::live_design(cx);
-    list::live_design(cx);
-    styles::live_design(cx);
-    resource_imports::live_design(cx);
-    widgets::live_design(cx);
-    popup_notification::live_design(cx);
-    external_link::live_design(cx);
-    download_notification_popup::live_design(cx);
-    tooltip::live_design(cx);
-    desktop_buttons::live_design(cx);
-    moly_server_popup::live_design(cx);
+pub fn script_mod(vm: &mut ScriptVm) {
+    meta::script_mod(vm);
+    list::script_mod(vm);
+    styles::script_mod(vm);
+    resource_imports::script_mod(vm);
+    widgets::script_mod(vm);
+    popup_notification::script_mod(vm);
+    external_link::script_mod(vm);
+    download_notification_popup::script_mod(vm);
+    tooltip::script_mod(vm);
+    desktop_buttons::script_mod(vm);
+    moly_server_popup::script_mod(vm);
 }

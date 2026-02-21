@@ -8,189 +8,176 @@ use crate::{
     widgets::attachment_list::{AttachmentListRef, AttachmentListWidgetExt},
 };
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
-    use link::shaders::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    use crate::widgets::attachment_list::*;
-    use crate::widgets::model_selector::*;
-
-    SubmitButton = <Button> {
+    let SubmitButton = Button {
         width: 28,
         height: 28,
-        padding: {right: 2},
-        margin: {bottom: 2},
+        padding: Inset { right: 2 },
+        margin: Inset { bottom: 2 },
 
-        draw_icon: {
+        draw_icon +: {
             color: #fff
         }
 
-        draw_bg: {
-            fn get_color(self) -> vec4 {
+        draw_bg +: {
+            get_color: fn() {
                 if self.enabled == 0.0 {
-                    return #D0D5DD;
+                    return #xD0D5DD;
                 }
                 return #000;
             }
 
-            fn pixel(self) -> vec4 {
-                let sdf = Sdf2d::viewport(self.pos * self.rect_size);
-                let center = self.rect_size * 0.5;
-                let radius = min(self.rect_size.x, self.rect_size.y) * 0.5;
+            pixel: fn() {
+                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
+                let center = self.rect_size * 0.5
+                let radius = min(self.rect_size.x self.rect_size.y) * 0.5
 
-                sdf.circle(center.x, center.y, radius);
-                sdf.fill_keep(self.get_color());
+                sdf.circle(center.x center.y radius)
+                sdf.fill_keep(self.get_color())
 
                 return sdf.result
             }
         }
-        icon_walk: {
+        icon_walk: Walk {
             width: 12,
             height: 12
-            margin: {top: 0, left: 2},
+            margin: Inset { top: 0, left: 2 },
         }
     }
 
-    AttachButton = <Button> {
+    let AttachButton = Button {
         visible: false
-        text: "",
+        text: "",
         width: Fit,
         height: Fit,
-        padding: {left: 8, right: 8, top: 6, bottom: 6}
-        draw_text: {
-            text_style: <THEME_FONT_ICONS> {
-                font_size: 13.
-            }
+        padding: Inset { left: 8, right: 8, top: 6, bottom: 6 }
+        draw_text +: {
+            text_style: theme.font_icons { font_size: 13. }
             color: #333,
             color_hover: #111,
             color_focus: #111
             color_down: #000
         }
-        draw_bg: {
+        draw_bg +: {
             color_down: #0000
             border_radius: 7.
             border_size: 0.
-            color_hover: #f2
+            color_hover: #xf2
         }
     }
 
-
-    AudioButton = <Button> {
+    let AudioButton = Button {
         visible: false
         width: 28, height: 28
-        text: ""
-        draw_text: {
-            text_style: <THEME_FONT_ICONS> {
-                font_size: 13.
-            }
+        text: ""
+        draw_text +: {
+            text_style: theme.font_icons { font_size: 13. }
             color: #333,
             color_hover: #111,
             color_focus: #111
             color_down: #000
         }
-        draw_bg: {
+        draw_bg +: {
             color_down: #0000
             border_radius: 7.
             border_size: 0.
         }
     }
 
-    SttButton = <Button> {
+    let SttButton = Button {
         visible: false
         width: 28, height: 28
-        text: ""
-        draw_text: {
-            text_style: <THEME_FONT_ICONS> {
-                font_size: 13.
-            }
+        text: ""
+        draw_text +: {
+            text_style: theme.font_icons { font_size: 13. }
             color: #333,
             color_hover: #111,
             color_focus: #111
             color_down: #000
         }
-        draw_bg: {
+        draw_bg +: {
             color_down: #0000
             border_radius: 7.
             border_size: 0.
         }
     }
 
-    SendControls = <View> {
+    let SendControls = View {
         width: Fit, height: Fit
-        align: {x: 0.5, y: 0.5}
+        align: Align { x: 0.5, y: 0.5 }
         spacing: 10
-        stt = <SttButton> {}
-        audio = <AudioButton> {}
-        submit = <SubmitButton> {}
+        stt := SttButton {}
+        audio := AudioButton {}
+        submit := SubmitButton {}
     }
 
-    pub PromptInput = {{PromptInput}} <CommandTextInput> {
-        send_icon: dep("crate://self/resources/send.svg"),
-        stop_icon: dep("crate://self/resources/stop.svg"),
+    mod.widgets.PromptInput = #(PromptInput::register_widget(vm)) CommandTextInput {
+        send_icon: crate_resource("self://resources/send.svg"),
+        stop_icon: crate_resource("self://resources/stop.svg"),
         height: Fit { max: 350 }
-        persistent = {
+        persistent := {
             height: Fit
-            padding: {top: 10, bottom: 10, left: 10, right: 10}
-            draw_bg: {
+            padding: Inset { top: 10, bottom: 10, left: 10, right: 10 }
+            draw_bg +: {
                 color: #fff,
                 border_radius: 10.0,
-                border_color: #D0D5DD,
+                border_color: #xD0D5DD,
                 border_size: 1.0,
             }
-            top = {
+            top := {
                 height: Fit
-                attachments = <DenseAttachmentList> {
-                    wrapper = {}
+                attachments := DenseAttachmentList {
+                    wrapper := {}
                 }
             }
-            center = {
+            center := {
                 height: Fit
-                text_input = {
+                text_input := {
                     height: Fit {
                         min: 35
                         max: 180
                     }
                     width: Fill
                     empty_text: "Start typing...",
-                    draw_bg: {
-                        fn pixel(self) -> vec4 {
-                            return vec4(0.);
+                    draw_bg +: {
+                        pixel: fn() {
+                            return vec4(0.)
                         }
                     }
-                    draw_text: {
+                    draw_text +: {
                         color: #000
                         color_hover: #000
                         color_focus: #000
-                        color_empty: #98A2B3
-                        color_empty_focus: #98A2B3
-                        text_style: {font_size: 11}
+                        color_empty: #x98A2B3
+                        color_empty_focus: #x98A2B3
+                        text_style: { font_size: 11 }
                     }
-                    draw_selection: {
-                        color: #d9e7e9
-                        color_hover: #d9e7e9
-                        color_focus: #d9e7e9
+                    draw_selection +: {
+                        color: #xd9e7e9
+                        color_hover: #xd9e7e9
+                        color_focus: #xd9e7e9
                     }
-                    draw_cursor: {
+                    draw_cursor +: {
                         color: #000
                     }
                 }
-                right = {
-                    // In mobile, show the send controsl here, right to the input
+                right := {
+                    // In mobile, show the send controls here, right to the input
                 }
             }
-            bottom = {
+            bottom := {
                 height: Fit
-                left = <View> {
+                left := View {
                     width: Fit, height: Fit
-                    align: {x: 0.0, y: 0.5}
-                    attach = <AttachButton> {}
-                    model_selector = <ModelSelector> {}
+                    align: Align { x: 0.0, y: 0.5 }
+                    attach := AttachButton {}
+                    model_selector := ModelSelector {}
                 }
                 width: Fill, height: Fit
-                separator = <View> { width: Fill, height: 1}
-                <SendControls> {}
+                separator := View { width: Fill, height: 1 }
+                SendControls {}
             }
         }
     }
@@ -213,18 +200,18 @@ pub enum Interactivity {
 /// A prepared text input for conversation with bots.
 ///
 /// This is mostly a dummy widget. Prefer using and adapting [crate::widgets::chat::Chat] instead.
-#[derive(Live, Widget)]
+#[derive(Script, Widget)]
 pub struct PromptInput {
     #[deref]
     deref: CommandTextInput,
 
     /// Icon used by this widget when the task is set to [Task::Send].
     #[live]
-    pub send_icon: LiveValue,
+    pub send_icon: Option<ScriptHandleRef>,
 
     /// Icon used by this widget when the task is set to [Task::Stop].
     #[live]
-    pub stop_icon: LiveValue,
+    pub stop_icon: Option<ScriptHandleRef>,
 
     /// If this widget should provoke sending a message or stopping the current response.
     #[rust]
@@ -239,10 +226,10 @@ pub struct PromptInput {
     pub bot_capabilities: Option<BotCapabilities>,
 }
 
-impl LiveHook for PromptInput {
-    #[allow(unused)]
-    fn after_new_from_doc(&mut self, cx: &mut Cx) {
-        self.update_button_visibility(cx);
+impl ScriptHook for PromptInput {
+    fn on_after_new(&mut self, _vm: &mut ScriptVm) {
+        // Cannot call update_button_visibility here because we don't have cx.
+        // It will be called later when bot capabilities are set.
     }
 }
 
@@ -281,48 +268,38 @@ impl Widget for PromptInput {
 
         match self.task {
             Task::Send => {
-                button.apply_over(
-                    cx,
-                    live! {
-                        draw_icon: {
-                            svg_file: (self.send_icon),
-                        }
-                    },
-                );
+                if let Some(icon) = &self.send_icon {
+                    let icon = icon.clone();
+                    script_apply_eval!(cx, button, {
+                        draw_icon: { svg: #(icon) }
+                    });
+                }
             }
             Task::Stop => {
-                button.apply_over(
-                    cx,
-                    live! {
-                        draw_icon: {
-                            svg_file: (self.stop_icon),
-                        }
-                    },
-                );
+                if let Some(icon) = &self.stop_icon {
+                    let icon = icon.clone();
+                    script_apply_eval!(cx, button, {
+                        draw_icon: { svg: #(icon) }
+                    });
+                }
             }
         }
 
         match self.interactivity {
             Interactivity::Enabled => {
-                button.apply_over(
-                    cx,
-                    live! {
-                        draw_bg: {
-                            enabled: 1.0
-                        }
-                    },
-                );
+                script_apply_eval!(cx, button, {
+                    draw_bg: {
+                        enabled: 1.0
+                    }
+                });
                 button.set_enabled(cx, true);
             }
             Interactivity::Disabled => {
-                button.apply_over(
-                    cx,
-                    live! {
-                        draw_bg: {
-                            enabled: 0.0
-                        }
-                    },
-                );
+                script_apply_eval!(cx, button, {
+                    draw_bg: {
+                        enabled: 0.0
+                    }
+                });
                 button.set_enabled(cx, false);
             }
         }
@@ -432,7 +409,6 @@ impl PromptInput {
             .map(|caps| caps.has_capability(&BotCapability::AudioCall))
             .unwrap_or(false);
 
-        // Show attach button only if bot supports attachments AND we're on a supported platform
         #[cfg(any(
             target_os = "windows",
             target_os = "macos",
@@ -450,12 +426,9 @@ impl PromptInput {
         )))]
         self.button(ids!(attach)).set_visible(cx, false);
 
-        // Show audio/call button only if bot supports realtime, we're on a supported platform
-        // and realtime feature is enabled
         #[cfg(not(target_arch = "wasm32"))]
         self.button(ids!(audio)).set_visible(cx, supports_realtime);
 
-        // Hide send button for realtime models since audio button serves same purpose
         self.button(ids!(submit))
             .set_visible(cx, !supports_realtime);
 

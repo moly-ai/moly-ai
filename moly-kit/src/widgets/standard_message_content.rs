@@ -12,33 +12,28 @@ use super::{
     citation_list::CitationListWidgetExt, message_thinking_block::MessageThinkingBlockWidgetExt,
 };
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::widgets::message_thinking_block::*;
-    use crate::widgets::message_markdown::*;
-    use crate::widgets::citation_list::*;
-    use crate::widgets::attachment_list::*;
-    use crate::widgets::attachment_viewer_modal::*;
-
-    pub StandardMessageContent = {{StandardMessageContent}} {
+    mod.widgets.StandardMessageContent = StandardMessageContent {{StandardMessageContent}} {
         flow: Down
         height: Fit,
         spacing: 5
-        thinking_block = <MessageThinkingBlock> {}
-        markdown = <MessageMarkdown> {}
-        citations = <CitationList> { visible: false }
-        attachments = <AttachmentList> {}
-        attachment_viewer_modal = <AttachmentViewerModal> {}
+        thinking_block := MessageThinkingBlock {}
+        markdown := MessageMarkdown {}
+        citations := CitationList { visible: false }
+        attachments := AttachmentList {}
+        attachment_viewer_modal := AttachmentViewerModal {}
     }
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct StandardMessageContent {
     #[deref]
     deref: View,
+    #[source]
+    source: ScriptObjectRef,
 }
 
 impl Widget for StandardMessageContent {
@@ -112,7 +107,6 @@ impl StandardMessageContent {
     }
 
     fn generate_tool_calls_text(content: &MessageContent) -> String {
-        // Create enhanced text that includes tool calls
         if !content.tool_calls.is_empty() {
             let mut text = content.text.clone();
 
@@ -168,8 +162,8 @@ impl StandardMessageContent {
         self.set_content_impl(cx, content, &MessageMetadata::new());
     }
 
-    /// Same as [`set_content`], but also passes down metadata which is required
-    /// by certain features.
+    /// Same as [`set_content`], but also passes down metadata which is
+    /// required by certain features.
     pub fn set_content_with_metadata(
         &mut self,
         cx: &mut Cx,

@@ -1,68 +1,66 @@
 use crate::aitk::protocol::*;
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    pub ModelSelectorItem = {{ModelSelectorItem}} {
-        width: Fill,
-        height: Fit,
-        padding: {left: 24, right: 16, top: 8, bottom: 8}
+    mod.widgets.ModelSelectorItem = ModelSelectorItem {
+        width: Fill
+        height: Fit
+        padding: Inset { left: 24, right: 16, top: 8, bottom: 8 }
         spacing: 10
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0, y: 0.5 }
 
-        show_bg: true,
-        draw_bg: {
-            color: #F9
-            instance hover: 0.0,
-            instance selected: 0.0,
-            instance color_hover: #E9,
+        show_bg: true
+        draw_bg +: {
+            color: #xF9
+            hover: instance(0.0)
+            selected: instance(0.0)
+            color_hover: instance(#xE9)
 
-            fn pixel(self) -> vec4 {
-                return mix(self.color, self.color_hover, self.hover);
+            pixel: fn() -> vec4 {
+                return mix(self.color self.color_hover self.hover);
             }
         }
 
-        cursor: Hand,
+        cursor: MouseCursor.Hand
 
         animator: {
-            hover = {
-                default: off
-                off = {
-                    from: {all: Forward {duration: 0.2}}
+            hover: {
+                default: @off
+                off: AnimatorState {
+                    from: { all: Forward { duration: 0.2 } }
                     apply: {
-                        draw_bg: {hover: 0.0}
+                        draw_bg: { hover: 0.0 }
                     }
                 }
 
-                on = {
-                    from: {all: Snap}
+                on: AnimatorState {
+                    from: { all: Snap }
                     apply: {
-                        draw_bg: {hover: 1.0}
-                    },
+                        draw_bg: { hover: 1.0 }
+                    }
                 }
             }
         }
 
-        label = <Label> {
+        label := Label {
             width: Fill
-            draw_text:{
-                text_style: <THEME_FONT_REGULAR>{font_size: 11},
+            draw_text: {
+                text_style: theme.font_regular { font_size: 11 }
                 color: #000
             }
         }
 
-        icon_tick_view = <View> {
+        icon_tick_view := View {
             width: Fit, height: Fit
             visible: false
-            icon_tick = <Label> {
+            icon_tick := Label {
                 width: Fit, height: Fit
-                align: {x: 1.0, y: 0.5}
-                text: "" // fa-check
+                align: Align { x: 1.0, y: 0.5 }
+                text: "\u{f00c}" // fa-check
                 draw_text: {
-                    text_style: <THEME_FONT_ICONS> {
+                    text_style: theme.font_icons {
                         font_size: 12.
                     }
                     color: #000
@@ -72,13 +70,15 @@ live_design! {
     }
 }
 
-#[derive(Clone, DefaultNone, Debug)]
+/// Action dispatched when a bot is selected in the model selector item.
+#[derive(Clone, Default, Debug)]
 pub enum ModelSelectorItemAction {
     BotSelected(BotId),
+    #[default]
     None,
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget, Animator)]
 pub struct ModelSelectorItem {
     #[deref]
     view: View,
@@ -89,7 +89,7 @@ pub struct ModelSelectorItem {
     #[rust]
     selected: bool,
 
-    #[animator]
+    #[apply_default]
     animator: Animator,
 }
 
@@ -112,7 +112,6 @@ impl Widget for ModelSelectorItem {
                     if let Some(bot) = &self.bot {
                         cx.widget_action(
                             self.widget_uid(),
-                            &scope.path,
                             ModelSelectorItemAction::BotSelected(bot.id.clone()),
                         );
                     }
@@ -142,12 +141,14 @@ impl Widget for ModelSelectorItem {
 }
 
 impl ModelSelectorItemRef {
+    /// Sets the bot to display in this selector item.
     pub fn set_bot(&mut self, bot: Bot) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.bot = Some(bot);
         }
     }
 
+    /// Sets whether this selector item is currently selected.
     pub fn set_selected(&mut self, selected: bool) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.selected = selected;

@@ -5,43 +5,42 @@ use crate::utils::makepad::events::EventExt;
 use crate::widgets::attachment_view::AttachmentViewWidgetExt;
 use crate::widgets::moly_modal::{MolyModalRef, MolyModalWidgetExt};
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::widgets::moly_modal::*;
-    use crate::widgets::attachment_view::*;
-
-    pub AttachmentViewerModal = {{AttachmentViewerModal}} {
-        flow: Overlay,
-        width: 0,
-        height: 0,
-        modal = <MolyModal> {
-            content: {
-                // TODO: Using fill in the content breaks the underlying modal backdrop
-                // close on click behavior.
-                width: Fill,
-                height: Fill,
-                <View> {
-                    flow: Down,
-                    padding: 16,
-                    spacing: 16,
-                    <View> {
-                        height: Fit,
-                        align: {x: 1},
-                        spacing: 4,
-                        save = <Button> {text: "Save"}
-                        close = <Button> {text: "X"}
+    mod.widgets.AttachmentViewerModal =
+        #(AttachmentViewerModal::register_widget(vm)) View {
+        flow: Overlay
+        width: 0
+        height: 0
+        modal := MolyModal {
+            content +: {
+                width: Fill
+                height: Fill
+                View {
+                    flow: Down
+                    padding: 16
+                    spacing: 16
+                    View {
+                        height: Fit
+                        align: Align { x: 1 }
+                        spacing: 4
+                        save := Button { text: "Save" }
+                        close := Button { text: "X" }
                     }
-                    attachment = <AttachmentView> {}
+                    attachment := AttachmentView {}
                 }
             }
         }
     }
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct AttachmentViewerModal {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     deref: View,
 }

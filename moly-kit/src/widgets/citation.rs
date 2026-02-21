@@ -3,57 +3,59 @@ use crate::utils::scraping::*;
 use makepad_widgets::*;
 use url::Url;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    pub Citation = {{Citation}} <RoundedView> {
-        flow: Down,
-        height: Fit,
-        cursor: Hand,
-        width: 170,
-        padding: 6,
-        spacing: 5,
-        draw_bg: {
-            color: #f2f2f2
+    mod.widgets.Citation = #(Citation::register_widget(vm)) RoundedView {
+        flow: Down
+        height: Fit
+        cursor: MouseCursor.Hand
+        width: 170
+        padding: 6
+        spacing: 5
+        draw_bg +: {
+            color: #xf2f2f2
             border_radius: 3
         }
 
-        <View> {
-            height: Fit,
-            align: {y: 0.5},
-            icon = <Image> {
-                width: 16,
-                height: 16,
-                source: dep("crate://self/resources/link.png")
+        View {
+            height: Fit
+            align: Align { y: 0.5 }
+            icon := Image {
+                width: 16
+                height: 16
+                source: crate_resource("self://resources/link.png")
             }
 
-            site = <Label> {
-                draw_text: {
-                    text_style: <THEME_FONT_BOLD>{font_size: 9},
-                    color: #555,
+            site := Label {
+                draw_text +: {
+                    text_style: theme.font_bold { font_size: 9 }
+                    color: #555
                 }
             }
         }
 
-        title = <Label> {
-            draw_text: {
-                text_style: {font_size: 9},
-                color: #000,
+        title := Label {
+            draw_text +: {
+                text_style +: { font_size: 9 }
+                color: #000
             }
         }
     }
 }
 
-#[derive(Debug, Clone, DefaultNone)]
+#[derive(Debug, Clone, Default)]
 pub enum CitationAction {
     Open(String),
+    #[default]
     None,
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct Citation {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     deref: View,
 
@@ -95,17 +97,12 @@ impl Citation {
 
     fn set_url(&mut self, cx: &mut Cx, url: String) {
         self.url = Some(url);
-
-        // Step 1 is to set texts to something that will not fail.
         self.set_initial_info(cx);
 
-        // Step 2 is to try refining the texts if the URL is valid, without fetching any data.
         let Ok(()) = self.try_refine_info(cx) else {
             return;
         };
 
-        // Step 3 is to try fetching actual title and favicon from the internet and
-        // use that. This is async and has a delay. Not possible if step 2 failed.
         self.try_fetch_info(cx);
     }
 
@@ -145,11 +142,6 @@ impl Citation {
                     me.label(ids!(title)).set_text(cx, &title);
                 });
             }
-
-            // TODO: Extract favicon
-            // TODO: Support .ico and .svg.
-            // TODO: Support relative and data urls.
-            // TODO: Support jpg, png, and gif (less common favicon types).
         });
     }
 }

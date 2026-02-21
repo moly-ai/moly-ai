@@ -18,7 +18,6 @@
 
 pub mod utils;
 pub mod widgets;
-pub use math_widget;
 
 pub use aitk;
 

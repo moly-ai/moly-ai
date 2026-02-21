@@ -13,7 +13,7 @@ use super::search::SortCriteria;
 use super::supported_providers;
 use super::{chats::Chats, downloads::Downloads, search::Search};
 use chrono::{DateTime, Utc};
-use makepad_widgets::{Action, ActionDefaultRef, DefaultNone};
+use makepad_widgets::Action;
 use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
 
@@ -25,11 +25,12 @@ use makepad_widgets::*;
 #[allow(dead_code)]
 const DEFAULT_MOFA_ADDRESS: &str = "http://localhost:8000";
 
-#[derive(Clone, DefaultNone, Debug)]
+#[derive(Clone, Default, Debug)]
 pub enum StoreAction {
     Search(String),
     ResetSearch,
     Sort(SortCriteria),
+    #[default]
     None,
 }
 

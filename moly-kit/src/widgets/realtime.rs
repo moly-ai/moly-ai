@@ -12,253 +12,254 @@ use makepad_widgets::permission::PermissionStatus;
 use makepad_widgets::{makepad_platform::AudioDeviceType, *};
 use std::sync::{Arc, Mutex};
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    use crate::widgets::chat_line::*;
-    use crate::widgets::standard_message_content::*;
-
-    AIAnimation = <RoundedView> {
+    let AIAnimation = RoundedView {
         width: 200, height: 200
         show_bg: true
-        // Shader based on "Branded AI assistant" by Vickone (https://www.shadertoy.com/view/tfcGD8)
-        // Licensed under CC BY-NC-SA 3.0
-        draw_bg: {
-            // Simple hash function
-            fn hash21(self, p: vec2) -> float {
-                let mut p = fract(p * vec2(234.34, 435.345));
-                p += dot(p, p + 34.23);
-                return fract(p.x * p.y);
+        draw_bg +: {
+            hash21: fn(p: vec2) -> float {
+                let mut p = fract(p * vec2(234.34 435.345))
+                p += dot(p p + 34.23)
+                return fract(p.x * p.y)
             }
 
-            // Simple noise function
-            fn noise(self, p: vec2) -> float {
-                let i = floor(p);
-                let f = fract(p);
-                let f_smooth = f * f * (3.0 - 2.0 * f);
-                let a = self.hash21(i);
-                let b = self.hash21(i + vec2(1.0, 0.0));
-                let c = self.hash21(i + vec2(0.0, 1.0));
-                let d = self.hash21(i + vec2(1.0, 1.0));
-                return mix(mix(a, b, f_smooth.x), mix(c, d, f_smooth.x), f_smooth.y);
+            noise: fn(p: vec2) -> float {
+                let i = floor(p)
+                let f = fract(p)
+                let f_smooth = f * f * (3.0 - 2.0 * f)
+                let a = self.hash21(i)
+                let b = self.hash21(i + vec2(1.0 0.0))
+                let c = self.hash21(i + vec2(0.0 1.0))
+                let d = self.hash21(i + vec2(1.0 1.0))
+                return mix(
+                    mix(a b f_smooth.x)
+                    mix(c d f_smooth.x)
+                    f_smooth.y
+                )
             }
 
-            // Simplified FBM (fractal brownian motion)
-            fn fbm(self, p: vec2) -> float {
-                let mut sum = 0.0;
-                let mut amp = 0.5;
-                let mut freq = 1.0;
+            fbm: fn(p: vec2) -> float {
+                let mut sum = 0.0
+                let mut amp = 0.5
+                let mut freq = 1.0
 
-                // Unroll the loop for compatibility
-                sum += self.noise(p * freq) * amp;
-                amp *= 0.5;
-                freq *= 2.0;
+                sum += self.noise(p * freq) * amp
+                amp *= 0.5
+                freq *= 2.0
 
-                sum += self.noise(p * freq) * amp;
-                amp *= 0.5;
-                freq *= 2.0;
+                sum += self.noise(p * freq) * amp
+                amp *= 0.5
+                freq *= 2.0
 
-                sum += self.noise(p * freq) * amp;
-                amp *= 0.5;
-                freq *= 2.0;
+                sum += self.noise(p * freq) * amp
+                amp *= 0.5
+                freq *= 2.0
 
-                sum += self.noise(p * freq) * amp;
-                amp *= 0.5;
-                freq *= 2.0;
+                sum += self.noise(p * freq) * amp
+                amp *= 0.5
+                freq *= 2.0
 
-                return sum;
+                return sum
             }
 
-            fn pixel(self) -> vec4 {
-                // Center and aspect-correct UV coordinates
-                let uv = (self.pos - 0.5) * 2.0;
+            pixel: fn() -> vec4 {
+                let uv = (self.pos - 0.5) * 2.0
 
-                let mut col = vec3(0.1, 0.1, 0.1);
-                // let mut col = vec3(0.0, 0.0, 0.0);
+                let mut col = vec3(0.1 0.1 0.1)
 
-                let radius = 0.3 + sin(self.time * 0.5) * 0.02;
-                let d = length(uv);
+                let radius = 0.3 + sin(self.time * 0.5) * 0.02
+                let d = length(uv)
 
-                let angle = atan(uv.y, uv.x);
-                let wave = sin(angle * 3.0 + self.time) * 0.1;
-                let wave2 = cos(angle * 5.0 - self.time * 1.3) * 0.08;
+                let angle = atan(uv.y uv.x)
+                let wave = sin(angle * 3.0 + self.time) * 0.1
+                let wave2 = cos(angle * 5.0 - self.time * 1.3) * 0.08
 
-                let noise1 = self.fbm(uv * 3.0 + self.time * 0.1);
-                let noise2 = self.fbm(uv * 5.0 - self.time * 0.2);
+                let noise1 = self.fbm(uv * 3.0 + self.time * 0.1)
+                let noise2 = self.fbm(uv * 5.0 - self.time * 0.2)
 
-                let orb_color = vec3(0.2, 0.6, 1.0);
-                let orb = smoothstep(radius + wave + wave2, radius - 0.1 + wave + wave2, d);
+                let orb_color = vec3(0.2 0.6 1.0)
+                let orb = smoothstep(
+                    radius + wave + wave2
+                    radius - 0.1 + wave + wave2
+                    d
+                )
 
-                let gradient1 = vec3(0.8, 0.2, 0.5) * sin(angle + self.time);
-                let gradient2 = vec3(0.2, 0.5, 1.0) * cos(angle - self.time * 0.7);
+                let gradient1 = vec3(0.8 0.2 0.5) * sin(angle + self.time)
+                let gradient2 = vec3(0.2 0.5 1.0) * cos(
+                    angle - self.time * 0.7
+                )
 
-                // Simplified particles (unrolled loop)
-                let mut particles = 0.0;
+                let mut particles = 0.0
 
-                // Particle 1
                 let particle_pos1 = vec2(
-                    sin(self.time * 0.5) * 0.5,
+                    sin(self.time * 0.5) * 0.5
                     cos(self.time * 0.3) * 0.5
-                );
-                particles += smoothstep(0.05, 0.0, length(uv - particle_pos1));
+                )
+                particles += smoothstep(
+                    0.05 0.0 length(uv - particle_pos1)
+                )
 
-                // Particle 2
                 let particle_pos2 = vec2(
-                    sin(self.time * 0.7) * 0.5,
+                    sin(self.time * 0.7) * 0.5
                     cos(self.time * 0.5) * 0.5
-                );
-                particles += smoothstep(0.05, 0.0, length(uv - particle_pos2));
+                )
+                particles += smoothstep(
+                    0.05 0.0 length(uv - particle_pos2)
+                )
 
-                // Particle 3
                 let particle_pos3 = vec2(
-                    sin(self.time * 0.9) * 0.5,
+                    sin(self.time * 0.9) * 0.5
                     cos(self.time * 0.7) * 0.5
-                );
-                particles += smoothstep(0.05, 0.0, length(uv - particle_pos3));
+                )
+                particles += smoothstep(
+                    0.05 0.0 length(uv - particle_pos3)
+                )
 
-                // Combine all effects
-                col += orb * mix(orb_color, gradient1, noise1);
-                col += orb * mix(gradient2, orb_color, noise2) * 0.5;
-                col += particles * vec3(0.5, 0.8, 1.0);
-                col += exp(-d * 4.0) * vec3(0.2, 0.4, 0.8) * 0.5;
+                col += orb * mix(orb_color gradient1 noise1)
+                col += orb * mix(gradient2 orb_color noise2) * 0.5
+                col += particles * vec3(0.5 0.8 1.0)
+                col += exp(-d * 4.0) * vec3(0.2 0.4 0.8) * 0.5
 
-                // return vec4(col, 1.0);
-
-                // Clip the final output to a circle
-                let sdf = Sdf2d::viewport(self.pos * self.rect_size);
-                let radius = min(self.rect_size.x, self.rect_size.y) * 0.5;
+                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
+                let radius = min(self.rect_size.x self.rect_size.y) * 0.5
                 sdf.circle(
-                    self.rect_size.x * 0.5,
-                    self.rect_size.y * 0.5,
+                    self.rect_size.x * 0.5
+                    self.rect_size.y * 0.5
                     radius
-                );
+                )
 
-                sdf.fill_keep(vec4(col, 1.0));
+                sdf.fill_keep(vec4(col 1.0))
 
-                return sdf.result;
+                return sdf.result
             }
         }
     }
 
-    SimpleDropDown = <DropDown> {
-        draw_text: {
-            text_style: {font_size: 12}
-            fn get_color(self) -> vec4 {
+    let SimpleDropDown = DropDown {
+        draw_text +: {
+            text_style: { font_size: 12 }
+            get_color: fn() -> vec4 {
                 return mix(
-                    #2,
-                    #x0,
+                    #2
+                    #x0
                     self.down
                 )
             }
         }
 
-        popup_menu: {
+        popup_menu: PopupMenu {
             width: 300, height: Fit,
             flow: Down,
-            padding: <THEME_MSPACE_1> {}
+            padding: theme.mspace_1
 
-            menu_item: <PopupMenuItem> {
+            menu_item: PopupMenuItem {
                 width: Fill, height: Fit,
-                align: { y: 0.5 }
-                padding: {left: 15, right: 15, top: 10, bottom: 10}
+                align: Align { y: 0.5 }
+                padding: Inset {
+                    left: 15, right: 15, top: 10, bottom: 10
+                }
 
-                draw_text: {
-                    fn get_color(self) -> vec4 {
+                draw_text +: {
+                    get_color: fn() -> vec4 {
                         return mix(
                             mix(
-                                #3,
-                                #x0,
+                                #3
+                                #x0
                                 self.active
-                            ),
-                            #x0,
+                            )
+                            #x0
                             self.hover
                         )
                     }
                 }
 
-                draw_bg: {
-                    instance color: #f //(THEME_COLOR_FLOATING_BG)
-                    instance color_active: #e9 //(THEME_COLOR_CTRL_HOVER)
+                draw_bg +: {
+                    color: instance(#xf)
+                    color_active: instance(#xe9)
                 }
             }
 
-            draw_bg: {
-                instance color: #f9 //(THEME_COLOR_FLOATING_BG)
+            draw_bg +: {
+                color: instance(#xf9)
                 border_size: 1.0
             }
         }
     }
 
-    TranscriptionModelSelector = <View> {
+    let TranscriptionModelSelector = View {
         height: Fit
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0, y: 0.5 }
         spacing: 10
 
-        <Label> {
+        Label {
             text: "Transcription model:"
-            draw_text: {
+            draw_text +: {
                 color: #222
-                text_style: {font_size: 11}
+                text_style: { font_size: 11 }
             }
         }
 
-        transcription_model_selector = <SimpleDropDown> {
+        transcription_model_selector := SimpleDropDown {
             margin: 5
-            labels: ["whisper-1", "whisper", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
-            values: [whisper_1, whisper, gpt_4o_transcribe, gpt_4o_mini_transcribe]
+            labels: ["whisper-1", "whisper",
+                "gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
+            values: [whisper_1, whisper,
+                gpt_4o_transcribe, gpt_4o_mini_transcribe]
 
-            draw_text: {
+            draw_text +: {
                 color: #222
-                text_style: {font_size: 11}
+                text_style: { font_size: 11 }
             }
 
-            popup_menu = {
-                draw_text: {
+            popup_menu: PopupMenu {
+                draw_text +: {
                     color: #222
-                    text_style: {font_size: 11}
+                    text_style: { font_size: 11 }
                 }
             }
         }
     }
 
-    VoiceSelector = <View> {
+    let VoiceSelector = View {
         height: Fit
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0, y: 0.5 }
         spacing: 10
 
-        <Label> {
+        Label {
             text: "Voice:"
-            draw_text: {
+            draw_text +: {
                 color: #222
-                text_style: {font_size: 11}
+                text_style: { font_size: 11 }
             }
         }
 
-        voice_selector = <SimpleDropDown> {
+        voice_selector := SimpleDropDown {
             margin: 5
-            labels: ["marin", "cedar", "alloy", "shimmer", "ash", "ballad", "coral", "echo", "sage", "verse"]
-            values: [marin, cedar, alloy, shimmer, ash, ballad, coral, echo, sage, verse]
+            labels: ["marin", "cedar", "alloy", "shimmer",
+                "ash", "ballad", "coral", "echo", "sage", "verse"]
+            values: [marin, cedar, alloy, shimmer,
+                ash, ballad, coral, echo, sage, verse]
 
-            draw_text: {
+            draw_text +: {
                 color: #222
-                text_style: {font_size: 11}
+                text_style: { font_size: 11 }
             }
 
-            popup_menu = {
-                draw_text: {
+            popup_menu: PopupMenu {
+                draw_text +: {
                     color: #222
-                    text_style: {font_size: 11}
+                    text_style: { font_size: 11 }
                 }
             }
         }
     }
 
-    IconButton = <Button> {
+    let IconButton = Button {
         width: Fit, height: Fit
-        draw_text: {
-            text_style: <THEME_FONT_ICONS> {
+        draw_text +: {
+            text_style: theme.font_icons {
                 font_size: 14.
             }
             color: #5,
@@ -266,247 +267,259 @@ live_design! {
             color_focus: #2
             color_down: #5
         }
-        draw_bg: {
+        draw_bg +: {
             color_down: #0000
             border_radius: 7.
             border_size: 0.
         }
     }
 
-    DeviceSelector = <View> {
+    let DeviceSelector = View {
         height: Fit
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0, y: 0.5 }
         spacing: 5
 
-        label = <Label> {
-            draw_text: {
+        label := Label {
+            draw_text +: {
                 color: #222
-                text_style: {font_size: 11}
+                text_style: { font_size: 11 }
             }
         }
 
-        device_selector = <SimpleDropDown> {
+        device_selector := SimpleDropDown {
             margin: 5
             labels: ["default"]
             values: [default]
 
-            draw_text: {
+            draw_text +: {
                 color: #222
-                text_style: {font_size: 11}
+                text_style: { font_size: 11 }
             }
 
-            popup_menu = {
-                draw_text: {
+            popup_menu: PopupMenu {
+                draw_text +: {
                     color: #222
-                    text_style: {font_size: 11}
+                    text_style: { font_size: 11 }
                 }
             }
         }
     }
 
-    MuteControl = <View> {
+    let MuteControl = View {
         width: Fit, height: Fit
-        align: {x: 0.5, y: 0.5}
-        cursor: Hand
-        mute_button = <IconButton> {
-            text: ""
+        align: Align { x: 0.5, y: 0.5 }
+        cursor: MouseCursor.Hand
+        mute_button := IconButton {
+            text: "\u{f130}"
         }
-        mute_status = <Label> {
+        mute_status := Label {
             padding: 0
             text: "Mute"
-            draw_text: {
+            draw_text +: {
                 color: #222
-                text_style: {font_size: 11}
+                text_style: { font_size: 11 }
             }
         }
     }
 
-    DevicesSelector = <View> {
+    let DevicesSelector = View {
         height: Fit, width: Fill
         flow: Down, spacing: 5
-        <View> {
+        View {
             height: Fit
-            mic_selector = <DeviceSelector> {
+            mic_selector := DeviceSelector {
                 width: Fit
-                label = { text: "Mic:"}
+                label: Label { text: "Mic:" }
             }
-            mute_control = <MuteControl> {}
+            mute_control := MuteControl {}
         }
-        speaker_selector = <DeviceSelector> {
-            label = { text: "Speaker:"}
+        speaker_selector := DeviceSelector {
+            label: Label { text: "Speaker:" }
         }
     }
 
-    Controls = <View> {
+    let Controls = View {
         width: Fill, height: Fit
         flow: Down
         spacing: 10
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0, y: 0.5 }
         padding: 20
 
-        devices_selector = <DevicesSelector> {}
-        selected_devices_view = <View> {
+        devices_selector := DevicesSelector {}
+        selected_devices_view := View {
             visible: false
             height: Fit
-            align: {x: 0.0, y: 0.5}
-            selected_devices = <Label> {
-                draw_text: {
-                    text_style: {font_size: 11}
+            align: Align { x: 0.0, y: 0.5 }
+            selected_devices := Label {
+                draw_text +: {
+                    text_style: { font_size: 11 }
                     color: #222
                 }
             }
         }
 
-        voice_selector_wrapper = <VoiceSelector> {}
-        selected_voice_view = <View> {
+        voice_selector_wrapper := VoiceSelector {}
+        selected_voice_view := View {
             visible: false
             height: Fit
-            align: {x: 0.0, y: 0.5}
-            selected_voice = <Label> {
-                draw_text: {
-                    text_style: {font_size: 11}
+            align: Align { x: 0.0, y: 0.5 }
+            selected_voice := Label {
+                draw_text +: {
+                    text_style: { font_size: 11 }
                     color: #222
                 }
             }
         }
 
-        <TranscriptionModelSelector> {}
+        TranscriptionModelSelector {}
 
-        toggle_interruptions = <Toggle> {
+        toggle_interruptions := Toggle {
             text: "Allow interruptions\n(requires headphones, no AEC yet)"
             width: Fit
             height: Fit
-            draw_text: {
-                fn get_color(self) -> vec4 {
-                    return #222;
+            draw_text +: {
+                get_color: fn() -> vec4 {
+                    return #222
                 }
-                text_style: {font_size: 10}
+                text_style: { font_size: 10 }
             }
 
-            label_walk: {
-                margin: {left: 50}
+            label_walk: Walk {
+                margin: Inset { left: 50 }
             }
-            draw_bg: {
+            draw_bg +: {
                 size: 25.
             }
 
-            padding: {left: 5, right: 5, top: 5, bottom: 5}
+            padding: Inset {
+                left: 5, right: 5, top: 5, bottom: 5
+            }
         }
 
-        status_label = <Label> {
+        status_label := Label {
             text: "Ready to start"
             width: Fill
-            draw_text: {
+            draw_text +: {
                 color: #222
                 wrap: Word
-                text_style: {font_size: 11}
+                text_style: { font_size: 11 }
             }
         }
 
-        request_permission_button = <RoundedShadowView> {
+        request_permission_button := RoundedShadowView {
             visible: false
-            cursor: Hand
-            margin: {left: 10, right: 10, bottom: 0, top: 10}
-            width: Fill, height: Fit
-            align: {x: 0.5, y: 0.5}
-            padding: {left: 20, right: 20, bottom: 10, top: 10}
-            draw_bg: {
-                color: #f9f9f9
-                border_radius: 4.5,
-                uniform shadow_color: #0002
-                shadow_radius: 8.0,
-                shadow_offset: vec2(0.0,-1.5)
+            cursor: MouseCursor.Hand
+            margin: Inset {
+                left: 10, right: 10, bottom: 0, top: 10
             }
-            <Label> {
+            width: Fill, height: Fit
+            align: Align { x: 0.5, y: 0.5 }
+            padding: Inset {
+                left: 20, right: 20, bottom: 10, top: 10
+            }
+            draw_bg +: {
+                color: #xf9f9f9
+                border_radius: 4.5,
+                shadow_color: uniform(#0002)
+                shadow_radius: 8.0,
+                shadow_offset: vec2(0.0 -1.5)
+            }
+            Label {
                 text: "Request microphone permission"
-                draw_text: {
-                    text_style: {font_size: 11}
+                draw_text +: {
+                    text_style: { font_size: 11 }
                     color: #000
                 }
             }
         }
 
-        tool_permission_line = <ToolRequestLine> {
+        tool_permission_line := ToolRequestLine {
             visible: false
-            margin: {left: 10, right: 10, top: 10}
+            margin: Inset { left: 10, right: 10, top: 10 }
         }
 
-        start_stop_button = <RoundedShadowView> {
-            cursor: Hand
-            margin: {left: 10, right: 10, bottom: 0, top: 10}
-            width: Fill, height: Fit
-            align: {x: 0.5, y: 0.5}
-            padding: {left: 20, right: 20, bottom: 10, top: 10}
-            draw_bg: {
-                color: #f9f9f9
-                border_radius: 4.5,
-                uniform shadow_color: #0002
-                shadow_radius: 8.0,
-                shadow_offset: vec2(0.0,-1.5)
+        start_stop_button := RoundedShadowView {
+            cursor: MouseCursor.Hand
+            margin: Inset {
+                left: 10, right: 10, bottom: 0, top: 10
             }
-            stop_start_label = <Label> {
+            width: Fill, height: Fit
+            align: Align { x: 0.5, y: 0.5 }
+            padding: Inset {
+                left: 20, right: 20, bottom: 10, top: 10
+            }
+            draw_bg +: {
+                color: #xf9f9f9
+                border_radius: 4.5,
+                shadow_color: uniform(#0002)
+                shadow_radius: 8.0,
+                shadow_offset: vec2(0.0 -1.5)
+            }
+            stop_start_label := Label {
                 text: "Start"
-                draw_text: {
-                    text_style: {font_size: 11}
+                draw_text +: {
+                    text_style: { font_size: 11 }
                     color: #000
                 }
             }
         }
     }
 
-    pub Realtime = {{Realtime}} <RoundedView> {
+    mod.widgets.Realtime = #(Realtime::register_widget(vm))
+        RoundedView {
         show_bg: true
-        draw_bg: {
-            color: #f9f9f9
+        draw_bg +: {
+            color: #xf9f9f9
             border_radius: 10.0
         }
         flow: Down
         spacing: 20
         width: Fill, height: Fit
-        align: {x: 0.5, y: 0.0}
+        align: Align { x: 0.5, y: 0.0 }
         padding: 10
 
-        header = <View> {
+        header := View {
             height: Fit
             flow: Overlay
 
-            align: {x: 1.0, y: 0.5}
-            close_button = <IconButton> {
-                text: "" // fa-xmark
+            align: Align { x: 1.0, y: 0.5 }
+            close_button := IconButton {
+                text: "\u{f00d}"
             }
         }
 
-        <AIAnimation> {}
-        <Controls> {}
+        AIAnimation {}
+        Controls {}
     }
 
-    pub RealtimeContent = <RoundedView> {
-        align: {x: 0.5, y: 0.5}
+    mod.widgets.RealtimeContent = RoundedView {
+        align: Align { x: 0.5, y: 0.5 }
 
-        <AdaptiveView> {
+        AdaptiveView {
             Desktop = {
                 width: 450, height: Fit
-                align: {x: 0.5, y: 0.5}
+                align: Align { x: 0.5, y: 0.5 }
 
-                <CachedWidget> {
-                    realtime = <Realtime>{}
+                CachedWidget {
+                    realtime := Realtime {}
                 }
             }
 
             Mobile = {
                 width: Fill, height: Fill
-                align: {x: 0.5, y: 0.5}
+                align: Align { x: 0.5, y: 0.5 }
 
-                <CachedWidget> {
-                    realtime = <Realtime>{}
+                CachedWidget {
+                    realtime := Realtime {}
                 }
             }
         }
     }
 }
 
-#[derive(Clone, Debug, DefaultNone)]
+#[derive(Clone, Debug, Default)]
 pub enum RealtimeModalAction {
+    #[default]
     None,
     DismissModal,
 }
@@ -520,7 +533,7 @@ enum MicPermissionStatus {
     Denied,
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct Realtime {
     #[deref]
     view: View,

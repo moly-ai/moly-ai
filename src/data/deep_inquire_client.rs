@@ -1,6 +1,6 @@
 use async_stream::stream;
 use makepad_widgets::*;
-use makepad_widgets::{Cx, LiveNew, WidgetRef};
+use makepad_widgets::{Cx, WidgetRef};
 use moly_kit::aitk::utils::sse::parse_sse;
 use moly_kit::prelude::*;
 use reqwest::header::{HeaderMap, HeaderName};
@@ -99,7 +99,7 @@ pub struct Stage {
     pub stage_type: StageType,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Default, Live, LiveHook, LiveRead)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Default, Script, ScriptHook)]
 pub enum StageType {
     #[default]
     Thinking,

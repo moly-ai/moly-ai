@@ -5,12 +5,10 @@ use std::{
 
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    Meta = {{Meta}} { width: 0, height: 0 }
+    mod.widgets.Meta = #(Meta::register_widget(vm)) ViewBase { width: 0, height: 0 }
 }
 
 /// A non visual widget that can store any value.
@@ -18,7 +16,7 @@ live_design! {
 /// Useful paired with `PortalList` or `List` to link data to dynamic widgets.
 /// Safer than manually keeping a mapping between data and widgets since the data will be
 /// destroyed automatically if this widget is destroyed. No risk of forgetting a call to `clear`.
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct Meta {
     #[walk]
     walk: Walk,

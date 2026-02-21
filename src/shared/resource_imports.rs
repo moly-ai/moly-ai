@@ -1,6 +1,6 @@
 use makepad_widgets::*;
 
-live_design! {
-    pub ICON_CLOSE = dep("crate://self/resources/icons/close.svg")
-    pub ICON_COPY = dep("crate://self/resources/icons/copy.svg")
+script_mod! {
+    mod.widgets.ICON_CLOSE = crate_resource("self://resources/icons/close.svg")
+    mod.widgets.ICON_COPY = crate_resource("self://resources/icons/copy.svg")
 }

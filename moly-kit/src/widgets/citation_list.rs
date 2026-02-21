@@ -2,31 +2,31 @@ use makepad_widgets::*;
 
 use super::citation::CitationWidgetRefExt;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::widgets::citation::*;
-
-    pub CitationList = {{CitationList}} {
-        width: Fill,
-        height: Fit,
-        list = <PortalList> {
-            flow: Right,
-            width: Fill,
+    mod.widgets.CitationList = #(CitationList::register_widget(vm)) View {
+        width: Fill
+        height: Fit
+        list := PortalList {
+            flow: Right
+            width: Fill
             // Fit doesn't work here.
-            height: 50,
-            Citation = <Citation> {
+            height: 50
+            Citation := Citation {
                 // spacing on parent doesn't work
-                margin: {right: 8},
+                margin: Inset { right: 8 }
             }
         }
     }
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct CitationList {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     deref: View,
 
@@ -59,7 +59,7 @@ impl CitationList {
                 continue;
             }
 
-            let item = list.item(cx, index, live_id!(Citation));
+            let item = list.item(cx, index, id!(Citation));
             item.as_citation()
                 .borrow_mut()
                 .unwrap()

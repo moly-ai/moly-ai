@@ -1,145 +1,174 @@
 use crate::aitk::protocol::*;
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::shaders::*;
-    use link::moly_kit_theme::*;
-    use crate::widgets::message_markdown::MessageMarkdown;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    ICON_COLLAPSE = dep("crate://self/resources/icons/collapse.svg")
-    ANIMATION_SPEED = 0.66
-    BALL_MAX_SIZE = 20.0
-    BALL_MIN_SIZE = 10.0
-    BALL_SPACING = 0.0
+    ANIMATION_SPEED: 0.66
+    BALL_MAX_SIZE: 20.0
+    BALL_MIN_SIZE: 10.0
+    BALL_SPACING: 0.0
 
-    LoadingBall = <CircleView> {
-        width: (BALL_MAX_SIZE)
-        height: (BALL_MAX_SIZE)
+    let LoadingBall = CircleView {
+        width: BALL_MAX_SIZE
+        height: BALL_MAX_SIZE
         margin: 0.0
         padding: 0.0
-        draw_bg: {
+        draw_bg +: {
             border_radius: (BALL_MAX_SIZE / 2.0)
         }
     }
 
-    PulsingBalls = <View> {
+    let PulsingBalls = View {
         width: Fit
         height: Fit
-        align: {x: 0.0, y: 0.5}
-        spacing: (BALL_SPACING)
+        align: Align { x: 0.0, y: 0.5 }
+        spacing: BALL_SPACING
         flow: Right
         padding: 0
         margin: 0
 
-        ball1 = <LoadingBall> {
+        ball1 := LoadingBall {
             margin: 0.0
             padding: 0.0
-            draw_bg: {
-                color: #E55E50
+            draw_bg +: {
+                color: #xE55E50
             }
         }
 
-        ball2 = <LoadingBall> {
+        ball2 := LoadingBall {
             margin: 0.0
             padding: 0.0
-            draw_bg: {
-                color: #4D9CC0
+            draw_bg +: {
+                color: #x4D9CC0
             }
         }
     }
 
-    Collapse = <RoundedView> {
+    let Collapse = RoundedView {
         width: Fill, height: Fit
-        padding: {top: 8, right: 12, bottom: 8, left: 12},
+        padding: Inset { top: 8, right: 12, bottom: 8, left: 12 }
         margin: 2
-        cursor: Hand
+        cursor: MouseCursor.Hand
         flow: Right
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0, y: 0.5 }
 
-        draw_bg: {
+        draw_bg +: {
             border_radius: 2.5
-            color: #f7f7f7
+            color: #xf7f7f7
         }
 
-        thinking_title = <Label> {
+        thinking_title := Label {
             text: "Thinking..."
-            draw_text: {
-                text_style: <THEME_FONT_ITALIC> {
+            draw_text +: {
+                text_style: theme.font_italic {
                     font_size: 10.5
                 }
                 color: #000
             }
         }
 
-        <View> { width: Fill, height: Fill }
-        balls = <PulsingBalls> {}
+        View { width: Fill, height: Fill }
+        balls := PulsingBalls {}
     }
 
-    Content = <RoundedView> {
-        width: Fill,
-        height: Fit,
+    let Content = RoundedView {
+        width: Fill
+        height: Fit
 
-        flow: Right,
-        spacing: 12,
-        height: 0,
-        padding: {left: 20, right: 8, top: 10, bottom: 15},
+        flow: Right
+        spacing: 12
+        height: 0
+        padding: Inset { left: 20, right: 8, top: 10, bottom: 15 }
 
-        thinking_text = <MessageMarkdown> {
-            width: Fill, height: Fit,
+        thinking_text := MessageMarkdown {
+            width: Fill, height: Fit
             font_size: 10.5
         }
     }
 
-    pub MessageThinkingBlock = {{MessageThinkingBlock}} {
-        width: Fill,
-        height: Fit,
-        flow: Down,
-        show_bg: true,
-        padding: {top: 5, bottom: 5, left: 5, right: 5}
+    mod.widgets.MessageThinkingBlock =
+        #(MessageThinkingBlock::register_widget(vm)) View {
+        width: Fill
+        height: Fit
+        flow: Down
+        show_bg: true
+        padding: Inset { top: 5, bottom: 5, left: 5, right: 5 }
 
-        inner = <RoundedShadowView> {
-            width: 200, height: Fit,
+        inner := RoundedShadowView {
+            width: 200, height: Fit
             flow: Down
             padding: 0
-            draw_bg: {
-                color: #f7f7f7,
-                border_radius: 4.5,
-                uniform shadow_color: #0001
-                shadow_radius: 9.0,
-                shadow_offset: vec2(0.0,-1.0)
+            draw_bg +: {
+                color: #xf7f7f7
+                border_radius: 4.5
+                shadow_color: uniform(#0001)
+                shadow_radius: 9.0
+                shadow_offset: vec2(0.0 -1.0)
             }
-            collapse = <Collapse> {}
-            content = <Content> {}
+            collapse := Collapse {}
+            content := Content {}
         }
 
-        animator: {
-            ball1 = {
-                default: start,
-                start = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {inner = { collapse = { balls = { ball1 = { width: (BALL_MIN_SIZE), height: (BALL_MIN_SIZE), draw_bg: {border_radius: (BALL_MIN_SIZE / 2.0)} }}}}}
+        animator: Animator {
+            ball1: {
+                default: @start
+                start: AnimatorState {
+                    redraw: true
+                    from: { all: Forward { duration: ANIMATION_SPEED } }
+                    apply: {
+                        inner +: { collapse +: { balls +: { ball1 +: {
+                            width: BALL_MIN_SIZE
+                            height: BALL_MIN_SIZE
+                            draw_bg +: {
+                                border_radius: (BALL_MIN_SIZE / 2.0)
+                            }
+                        } } } }
+                    }
                 }
-                run = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {inner = { collapse = { balls = { ball1 = { width: (BALL_MAX_SIZE), height: (BALL_MAX_SIZE), draw_bg: {border_radius: (BALL_MAX_SIZE / 2.0)} }}}}}
+                run: AnimatorState {
+                    redraw: true
+                    from: { all: Forward { duration: ANIMATION_SPEED } }
+                    apply: {
+                        inner +: { collapse +: { balls +: { ball1 +: {
+                            width: BALL_MAX_SIZE
+                            height: BALL_MAX_SIZE
+                            draw_bg +: {
+                                border_radius: (BALL_MAX_SIZE / 2.0)
+                            }
+                        } } } }
+                    }
                 }
             }
 
-            ball2 = {
-                default: start,
-                start = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {inner = { collapse = { balls = { ball2 = { width: (BALL_MIN_SIZE), height: (BALL_MIN_SIZE), draw_bg: {border_radius: (BALL_MIN_SIZE / 2.0)} }}}}}
+            ball2: {
+                default: @start
+                start: AnimatorState {
+                    redraw: true
+                    from: { all: Forward { duration: ANIMATION_SPEED } }
+                    apply: {
+                        inner +: { collapse +: { balls +: { ball2 +: {
+                            width: BALL_MIN_SIZE
+                            height: BALL_MIN_SIZE
+                            draw_bg +: {
+                                border_radius: (BALL_MIN_SIZE / 2.0)
+                            }
+                        } } } }
+                    }
                 }
-                run = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {inner = { collapse = { balls = { ball2 = { width: (BALL_MAX_SIZE), height: (BALL_MAX_SIZE), draw_bg: {border_radius: (BALL_MAX_SIZE / 2.0)} }}}}}
+                run: AnimatorState {
+                    redraw: true
+                    from: { all: Forward { duration: ANIMATION_SPEED } }
+                    apply: {
+                        inner +: { collapse +: { balls +: { ball2 +: {
+                            width: BALL_MAX_SIZE
+                            height: BALL_MAX_SIZE
+                            draw_bg +: {
+                                border_radius: (BALL_MAX_SIZE / 2.0)
+                            }
+                        } } } }
+                    }
                 }
             }
         }
@@ -148,12 +177,15 @@ live_design! {
 
 const ANIMATION_SPEED_RUST: f64 = 0.33;
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget, Animator)]
 pub struct MessageThinkingBlock {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     view: View,
 
-    #[animator]
+    #[apply_default]
     animator: Animator,
 
     #[rust]
@@ -205,7 +237,6 @@ impl WidgetMatchEvent for MessageThinkingBlock {
 
 impl MessageThinkingBlock {
     pub fn update_animation(&mut self, cx: &mut Cx) {
-        // Alternate between animating the first and second ball
         self.current_animated_ball = (self.current_animated_ball + 1) % 2;
 
         match self.current_animated_ball {
@@ -220,7 +251,6 @@ impl MessageThinkingBlock {
             _ => unreachable!(),
         }
 
-        // Schedule the next animation step
         self.timer = cx.start_timeout(ANIMATION_SPEED_RUST);
     }
 
@@ -266,53 +296,23 @@ impl MessageThinkingBlock {
         self.is_expanded = !self.is_expanded;
 
         if self.is_expanded {
-            // Expand the content to fit the text
-            self.view(ids!(content)).apply_over(
-                cx,
-                live! {
-                    height: Fit
-                },
-            );
-            // Expand the inner view to fit the content
-            self.view(ids!(inner)).apply_over(
-                cx,
-                live! {
-                    width: Fill
-                },
-            );
-            // Set a different color to the title background
-            self.view(ids!(collapse)).apply_over(
-                cx,
-                live! {
-                    draw_bg: {
-                        color: #f0f0f0
-                    }
-                },
-            );
+            let content = self.view(ids!(content));
+            script_apply_eval!(cx, content, { height: Fit });
+            let inner = self.view(ids!(inner));
+            script_apply_eval!(cx, inner, { width: Fill });
+            let collapse = self.view(ids!(collapse));
+            script_apply_eval!(cx, collapse, {
+                draw_bg +: { color: #xf0f0f0 }
+            });
         } else {
-            // Collapse the content
-            self.view(ids!(content)).apply_over(
-                cx,
-                live! {
-                    height: 0.0
-                },
-            );
-            // Set the inner view width back to the default
-            self.view(ids!(inner)).apply_over(
-                cx,
-                live! {
-                    width: 200
-                },
-            );
-            // Set the title background color back to the default
-            self.view(ids!(collapse)).apply_over(
-                cx,
-                live! {
-                    draw_bg: {
-                        color: #f7f7f7
-                    }
-                },
-            );
+            let content = self.view(ids!(content));
+            script_apply_eval!(cx, content, { height: 0.0 });
+            let inner = self.view(ids!(inner));
+            script_apply_eval!(cx, inner, { width: 200 });
+            let collapse = self.view(ids!(collapse));
+            script_apply_eval!(cx, collapse, {
+                draw_bg +: { color: #xf7f7f7 }
+            });
             self.should_animate = false;
         }
         self.redraw(cx);
