@@ -36,6 +36,21 @@
 - [30. Cross-Module Sharing](#30-cross-module-sharing)
 - [31. Comma Removal](#31-comma-removal)
 - [32. Semicolon Removal](#32-semicolon-removal)
+- [33. DrawList2d / Overlay / Sweep Patterns](#33-drawlist2d--overlay--sweep-patterns)
+- [34. Widget Field Attributes (#find, #area, #wrap)](#34-widget-field-attributes-find-area-wrap)
+- [35. ComponentMap and Dynamic Widget Creation](#35-componentmap-and-dynamic-widget-creation)
+- [36. LivePtr Templates](#36-liveptr-templates)
+- [37. LiveDependency for Icon Loading](#37-livedependency-for-icon-loading)
+- [38. Theme Linking (cx.link)](#38-theme-linking-cxlink)
+- [39. Live/LiveRead Derives on Enums](#39-livelivread-derives-on-enums)
+- [40. Timer-Based Animations](#40-timer-based-animations)
+- [41. WidgetMatchEvent Trait](#41-widgetmatchevent-trait)
+- [42. Radio Button Sets (ids_array!)](#42-radio-button-sets-ids_array)
+- [43. UiRunner Async Bridge Pattern](#43-uirunner-async-bridge-pattern)
+- [44. app_runner().defer() Pattern](#44-app_runnerdefer-pattern)
+- [45. Scope::with_props vs Scope::with_data](#45-scopewith_props-vs-scopewith_data)
+- [46. Shader Enum Matching](#46-shader-enum-matching)
+- [47. Custom Vertex Shaders](#47-custom-vertex-shaders)
 - [Appendix A: Full Before/After Widget Example](#appendix-a-full-beforeafter-widget-example)
 - [Appendix B: Full Before/After App Example](#appendix-b-full-beforeafter-app-example)
 - [Appendix C: Moly-Specific Migration Checklist](#appendix-c-moly-specific-migration-checklist)
@@ -1313,6 +1328,653 @@ let sdf = Sdf2d.viewport(self.pos * self.rect_size)
 sdf.fill(self.color)
 return sdf.result
 ```
+
+---
+
+## 33. DrawList2d / Overlay / Sweep Patterns
+
+Used in Moly for custom modals (MolyModal), tooltips, and popup
+notifications that render above all other content.
+
+**Old (unchanged in Rust — only DSL changes):**
+```rust
+pub struct MolyModal {
+    #[deref] view: View,
+    #[find] content: View,
+    #[area] bg_view: View,
+    #[rust(DrawList2d::new(cx))] draw_list: DrawList2d,
+    #[walk] walk: Walk,
+    #[layout] layout: Layout,
+    #[live] draw_bg: DrawQuad,
+}
+
+// In draw_walk:
+self.draw_list.begin_overlay_reuse(cx);
+cx.begin_root_turtle_for_pass(self.layout);
+self.draw_bg.begin(cx, self.walk, self.layout);
+self.content.draw_all(cx, scope);
+self.draw_bg.end(cx);
+cx.end_pass_sized_turtle();
+self.draw_list.end(cx);
+
+// In handle_event (sweep_lock/unlock):
+cx.sweep_unlock(self.draw_bg.area());
+self.content.handle_event(cx, event, scope);
+cx.sweep_lock(self.draw_bg.area());
+```
+
+**New (Rust side):**
+```rust
+pub struct MolyModal {
+    #[deref] view: View,
+    #[find] content: View,
+    #[area] bg_view: View,
+    #[rust(DrawList2d::new(cx))] draw_list: DrawList2d,
+    #[walk] walk: Walk,
+    #[layout] layout: Layout,
+    #[live] draw_bg: DrawQuad,
+}
+```
+
+The Rust draw/event code is largely unchanged. The DSL changes are:
+- `draw_bg: {...}` → `draw_bg +: {...}`
+- Remove commas, semicolons
+- Widget type wrappers: `Inset{...}`, `Walk{...}`
+
+**Key attributes to preserve:**
+- `#[find]` — finds a named child widget recursively
+- `#[area]` — exposes the area for hit testing
+- `#[rust(DrawList2d::new(cx))]` — initializes with cx at creation
+
+---
+
+## 34. Widget Field Attributes (#find, #area, #wrap)
+
+These attributes are used in Moly and need preservation during
+migration. They are NOT changing between old and new systems.
+
+| Attribute | Used In | Purpose |
+|---|---|---|
+| `#[find]` | MolyModal | Recursively finds named child |
+| `#[area]` | MolyModal | Exposes area for hit testing |
+| `#[wrap]` | Slot, MolyCodeView | Wraps inner WidgetRef/widget |
+| `#[walk]` | MolyModal, ModelSelectorList | Manual walk control |
+| `#[layout]` | MolyModal, ModelSelectorList | Manual layout control |
+| `#[redraw]` | ModelSelectorList | Auto-redraw area tracking |
+
+**`#[wrap]` vs `#[deref]`:**
+
+`#[deref]` delegates Widget trait to inner widget. `#[wrap]` is
+different — it wraps a raw WidgetRef that can be replaced:
+
+```rust
+// Old (unchanged):
+#[derive(Live, Widget)]
+pub struct Slot {
+    #[wrap] #[live] wrap: WidgetRef,
+    #[rust] default: WidgetRef,
+}
+
+// New:
+#[derive(Script, Widget)]
+pub struct Slot {
+    #[wrap] #[live] wrap: WidgetRef,
+    #[rust] default: WidgetRef,
+}
+```
+
+---
+
+## 35. ComponentMap and Dynamic Widget Creation
+
+Used in Moly for dynamically creating widget collections from
+templates (e.g., `model_files_list.rs`, `model_files_tags.rs`,
+`model_selector_list.rs`).
+
+**Old:**
+```rust
+#[derive(Live, LiveHook)]
+pub struct ModelFilesList {
+    #[deref] view: View,
+    #[live] item_template: Option<LivePtr>,
+    #[rust] items: ComponentMap<LiveId, WidgetRef>,
+}
+
+// Creating from template:
+let widget = self.items.get_or_insert(
+    cx, item_id, |cx| WidgetRef::new_from_ptr(cx, self.item_template)
+);
+```
+
+**New:**
+```rust
+#[derive(Script, ScriptHook)]
+pub struct ModelFilesList {
+    #[deref] view: View,
+    #[live] item_template: Option<LivePtr>,
+    #[rust] items: ComponentMap<LiveId, WidgetRef>,
+}
+
+// Same Rust code — ComponentMap API unchanged
+let widget = self.items.get_or_insert(
+    cx, item_id, |cx| WidgetRef::new_from_ptr(cx, self.item_template)
+);
+```
+
+DSL change in template definition:
+
+**Old:**
+```rust
+live_design! {
+    ModelFilesList = {{ModelFilesList}} {
+        item_template: <View> { ... }
+    }
+}
+```
+
+**New:**
+```rust
+script_mod! {
+    mod.widgets.ModelFilesList = set_type_default() do
+      mod.widgets.ModelFilesListBase{
+        item_template: View{ ... }
+    }
+}
+```
+
+Note: `LivePtr` and `ComponentMap` types remain unchanged in Rust.
+Only the DSL syntax for specifying templates changes.
+
+---
+
+## 36. LivePtr Templates
+
+`LivePtr` and `Option<LivePtr>` are used for template references
+configurable from DSL. They stay the same in Rust code.
+
+**Old:**
+```rust
+#[derive(Live, LiveHook, Widget)]
+pub struct ModelSelectorList {
+    #[live] item_template: Option<LivePtr>,
+    #[live] section_label_template: Option<LivePtr>,
+}
+```
+
+**New:**
+```rust
+#[derive(Script, ScriptHook, Widget)]
+pub struct ModelSelectorList {
+    #[live] item_template: Option<LivePtr>,
+    #[live] section_label_template: Option<LivePtr>,
+}
+```
+
+DSL:
+
+**Old:**
+```rust
+live_design! {
+    ModelSelectorList = {{ModelSelectorList}} {
+        item_template: <ModelSelectorItem> {}
+        section_label_template: <Label> { ... }
+    }
+}
+```
+
+**New:**
+```
+mod.widgets.ModelSelectorList = set_type_default() do
+  mod.widgets.ModelSelectorListBase{
+    item_template: ModelSelectorItem{}
+    section_label_template: Label{ ... }
+}
+```
+
+---
+
+## 37. LiveDependency for Icon Loading
+
+Used in Moly's `providers.rs` to store icon paths that can be
+loaded dynamically from the Live system.
+
+**Old:**
+```rust
+pub struct Providers {
+    #[live] provider_icons: Vec<LiveDependency>,
+}
+
+// Loading:
+image.load_image_dep_by_path(cx, icon.as_str());
+```
+
+**New:**
+```rust
+pub struct Providers {
+    #[live] provider_icons: Vec<LiveDependency>,
+}
+// Loading: same API
+```
+
+DSL:
+
+**Old:**
+```rust
+live_design! {
+    Providers = {{Providers}} {
+        provider_icons: [
+            dep("crate://self/resources/icons/openai.png")
+            dep("crate://self/resources/icons/gemini.png")
+        ]
+    }
+}
+```
+
+**New:**
+```
+Providers = ... {
+    provider_icons: [
+        crate_resource("self://resources/icons/openai.png")
+        crate_resource("self://resources/icons/gemini.png")
+    ]
+}
+```
+
+---
+
+## 38. Theme Linking (cx.link)
+
+MolyKit uses `cx.link()` to alias its theme:
+
+**Old:**
+```rust
+pub fn live_design(cx: &mut Cx) {
+    theme_moly_kit_light::live_design(cx);
+    cx.link(
+        live_id!(moly_kit_theme),
+        live_id!(theme_moly_kit_light)
+    );
+    // register other widgets...
+}
+```
+
+**New:**
+```rust
+pub fn script_mod(vm: &mut ScriptVm) {
+    theme_moly_kit_light::script_mod(vm);
+    // Theme linking in Splash is done differently:
+    // The theme module registers into mod.theme namespace
+    // and consumers use `use mod.moly_kit_theme.*`
+    // Exact API TBD — check new Makepad theme examples
+}
+```
+
+Note: The `cx.link()` mechanism may change in the new system. The
+Splash system uses `mod` namespaces for theme distribution. Check
+the new Makepad theme examples for the exact pattern.
+
+---
+
+## 39. Live/LiveRead Derives on Enums
+
+Moly uses `Live` + `LiveHook` + `LiveRead` on data enums:
+
+**Old:**
+```rust
+#[derive(Live, LiveHook, LiveRead, PartialEq, Clone)]
+pub enum ProviderType {
+    #[pick] OpenAi,
+    MolyServer,
+    OpenClaw,
+}
+
+#[derive(Live, LiveHook, LiveRead)]
+pub enum StageType {
+    #[pick] Planning,
+    #[default] Research,
+    Synthesis,
+}
+```
+
+**New:**
+```rust
+#[derive(Script, ScriptHook, PartialEq, Clone)]
+pub enum ProviderType {
+    #[pick] OpenAi,
+    MolyServer,
+    OpenClaw,
+}
+
+#[derive(Script, ScriptHook)]
+pub enum StageType {
+    #[pick] Planning,
+    #[default] Research,
+    Synthesis,
+}
+```
+
+- `LiveRead` is removed
+- `#[pick]` (marks default for DSL) remains unchanged
+- `#[default]` on non-default variants stays
+
+---
+
+## 40. Timer-Based Animations
+
+Used in SearchBar (debounce), SearchLoading (looping animation),
+MessageLoading, MessageThinkingBlock.
+
+**Old (Rust, unchanged):**
+```rust
+// Start timer
+self.search_timer = cx.start_timeout(self.search_debounce_time);
+
+// Check timer in handle_event
+if self.search_timer.is_event(event) {
+    // timer fired
+}
+
+// Stop timer
+cx.stop_timer(self.search_timer);
+```
+
+**New (Rust):** Timer API is unchanged. No migration needed.
+
+**DSL change for timer-configurable values:**
+
+**Old:**
+```rust
+SearchBar = {{SearchBar}} {
+    search_debounce_time: 0.3
+}
+```
+
+**New:**
+```
+SearchBar = ... {
+    search_debounce_time: 0.3
+}
+```
+
+The `#[live(0.3)] search_debounce_time: f64` field and timer API
+remain the same.
+
+---
+
+## 41. WidgetMatchEvent Trait
+
+Common pattern in Moly for splitting event handling. Used by most
+widgets that need to respond to child widget actions.
+
+**Old (unchanged):**
+```rust
+impl Widget for MyWidget {
+    fn handle_event(
+        &mut self, cx: &mut Cx, event: &Event, scope: &mut Scope
+    ) {
+        self.view.handle_event(cx, event, scope);
+        self.widget_match_event(cx, event, scope);
+    }
+}
+
+impl WidgetMatchEvent for MyWidget {
+    fn handle_actions(
+        &mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope
+    ) {
+        // Handle child widget actions here
+    }
+}
+```
+
+**New:** This trait/pattern is unchanged in the new system. No
+migration needed for the Rust code.
+
+---
+
+## 42. Radio Button Sets (ids_array!)
+
+Used in Moly for tab-like navigation (sidebar menu, settings tabs):
+
+**Old (Rust, unchanged):**
+```rust
+if let Some(item) = self.radio_button_set(
+    ids_array!(tab_chat, tab_discover, tab_my_models)
+).selected(cx, actions) {
+    match item {
+        ids!(tab_chat) => self.navigate_to(ChatScreen),
+        ids!(tab_discover) => self.navigate_to(DiscoverScreen),
+        _ => {}
+    }
+}
+```
+
+**New:** The Rust API is unchanged.
+
+**DSL change:**
+
+**Old:**
+```rust
+tab_chat = <SidebarMenuButton> {
+    text: "Chat"
+    draw_icon: { svg: dep("crate://self/resources/icons/chat.svg") }
+    radio_type: Tab
+}
+```
+
+**New:**
+```
+tab_chat := SidebarMenuButton{
+    text: "Chat"
+    draw_icon.svg: crate_resource("self://resources/icons/chat.svg")
+    radio_type: RadioType.Tab
+}
+```
+
+---
+
+## 43. UiRunner Async Bridge Pattern
+
+**Critical pattern** used extensively in MolyKit for async → UI
+communication. Replaces the need for `Cx::post_action` in widget
+code.
+
+**Old (unchanged in concept — same API):**
+```rust
+// In widget struct:
+// (no field needed — it's a method on WidgetRef)
+
+// In handle_event:
+self.ui_runner().handle(cx, event, scope, self);
+
+// In async code (e.g., plugin callback):
+let ui = chat.ui_runner();
+ui.defer_with_redraw(move |me, cx, scope| {
+    me.update_messages();
+});
+
+// Or without redraw:
+ui.defer(move |me, cx, scope| {
+    me.set_some_state(value);
+});
+```
+
+**New:** The UiRunner pattern is a MolyKit utility and not part of
+Makepad core. Its API will not change during the DSL migration. No
+migration needed for UiRunner-related Rust code.
+
+---
+
+## 44. app_runner().defer() Pattern
+
+Used in Moly's data layer to schedule deferred mutations on the App
+from async callbacks.
+
+**Old (unchanged):**
+```rust
+// In async code (downloads, search, bot fetching):
+app_runner().defer(|app, cx, _| {
+    let store = app.scope.data.get_mut::<Store>().unwrap();
+    store.update_downloads(new_data);
+});
+```
+
+**New:** This is application-level code, not DSL. No migration
+needed.
+
+---
+
+## 45. Scope::with_props vs Scope::with_data
+
+Moly uses both patterns for passing data to child widgets:
+
+**`Scope::with_data`** — shared mutable state (Store):
+```rust
+// Parent:
+self.view.draw_walk(cx, &mut Scope::with_data(&mut store), walk);
+
+// Child reads:
+let store = scope.data.get::<Store>().unwrap();
+```
+
+**`Scope::with_props`** — immutable props for specific children:
+```rust
+// Parent creates props:
+let props = DownloadedFilesRowProps {
+    file_name: "model.gguf".to_string(),
+    file_size: 4_000_000_000,
+};
+item.draw_all(cx, &mut Scope::with_props(&props));
+
+// Child reads:
+let props = scope.props.get::<DownloadedFilesRowProps>().unwrap();
+```
+
+**New:** Both patterns are Rust-side only and unchanged.
+
+---
+
+## 46. Shader Enum Matching
+
+Used in `widgets.rs` (MolyRadioButtonTab) and `desktop_buttons.rs`
+for branching on enum values inside shader code.
+
+**Old:**
+```rust
+draw_bg: {
+    instance button_type: 0.0
+
+    fn pixel(self) -> vec4 {
+        let sdf = Sdf2d::viewport(self.pos * self.rect_size);
+        match self.button_type {
+            1.0 => {
+                // minimize icon
+                sdf.hline(self.rect_size.y * 0.5, 0.5);
+            }
+            2.0 => {
+                // maximize icon
+                sdf.rect(4.0, 4.0, self.rect_size.x - 8.0,
+                  self.rect_size.y - 8.0);
+            }
+            _ => {}
+        }
+        sdf.stroke(#fff, 1.0);
+        return sdf.result;
+    }
+}
+```
+
+**New:**
+```
+draw_bg +: {
+    button_type: instance(0.0)
+
+    pixel: fn() {
+        let sdf = Sdf2d.viewport(self.pos * self.rect_size)
+        match self.button_type {
+            1.0 => {
+                sdf.hline(self.rect_size.y * 0.5, 0.5)
+            }
+            2.0 => {
+                sdf.rect(4.0 4.0 self.rect_size.x - 8.0
+                  self.rect_size.y - 8.0)
+            }
+            _ => {}
+        }
+        sdf.stroke(#fff 1.0)
+        return sdf.result
+    }
+}
+```
+
+Note: Shader `match` on float values works the same in Splash;
+just apply the standard syntax changes (no semicolons, `::` → `.`,
+function-wrapped instance/uniform).
+
+---
+
+## 47. Custom Vertex Shaders
+
+Used in Moly's `chat_view.rs` for `PromptInputWithShadow` and
+`SttInputWithShadow` with custom `varying` fields and
+`GaussShadow` calls.
+
+**Old:**
+```rust
+draw_bg: {
+    varying rect_size2: vec2
+    varying rect_pos2: vec2
+    varying sdf_rect_pos: vec2
+    varying sdf_rect_size: vec2
+
+    fn vertex(self) -> vec4 {
+        let dpi = self.dpi_factor;
+        let ceil_size = ceil(self.rect_size * dpi) / dpi;
+        let ceil_pos = ceil(self.rect_pos * dpi) / dpi;
+        self.rect_size2 = ceil_size;
+        self.rect_pos2 = ceil_pos;
+        // ... more setup
+        return self.clip_and_transform_vertex(
+            self.rect_pos, self.rect_size);
+    }
+
+    fn pixel(self) -> vec4 {
+        return GaussShadow::rounded_box_shadow(
+            /* params using varyings */);
+    }
+}
+```
+
+**New:**
+```
+draw_bg +: {
+    rect_size2: varying(vec2(0))
+    rect_pos2: varying(vec2(0))
+    sdf_rect_pos: varying(vec2(0))
+    sdf_rect_size: varying(vec2(0))
+
+    vertex: fn() {
+        let dpi = self.dpi_factor
+        let ceil_size = ceil(self.rect_size * dpi) / dpi
+        let ceil_pos = ceil(self.rect_pos * dpi) / dpi
+        self.rect_size2 = ceil_size
+        self.rect_pos2 = ceil_pos
+        // ... more setup
+        return self.clip_and_transform_vertex(
+            self.rect_pos self.rect_size)
+    }
+
+    pixel: fn() {
+        return GaussShadow.rounded_box_shadow(
+            /* params using varyings */)
+    }
+}
+```
+
+**Key changes:**
+- `varying name: type` → `name: varying(type(default))`
+- `fn vertex(self) -> vec4` → `vertex: fn()`
+- `GaussShadow::method()` → `GaussShadow.method()`
+- Remove semicolons, commas between function arguments
 
 ---
 

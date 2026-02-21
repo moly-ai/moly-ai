@@ -33,6 +33,14 @@
 - [Dropdown Selection](#dropdown-selection)
 - [Splitter Layout](#splitter-layout)
 - [Loading Spinner](#loading-spinner)
+- [DrawList2d Overlay (Modals/Popups/Tooltips)](#drawlist2d-overlay-modalspopupstooltips)
+- [UiRunner Async Bridge](#uirunner-async-bridge)
+- [ComponentMap Dynamic Widget Collection](#componentmap-dynamic-widget-collection)
+- [Slot Widget (Replaceable Content)](#slot-widget-replaceable-content)
+- [Timer-Driven Patterns](#timer-driven-patterns)
+- [AdaptiveView (Desktop vs Mobile)](#adaptiveview-desktop-vs-mobile)
+- [StackNavigation](#stacknavigation)
+- [Scope::with\_props](#scopewith_props)
 
 ---
 
@@ -1356,3 +1364,913 @@ Toggle from Rust:
 ```rust
 self.ui.loading_spinner(ids!(loading)).set_visible(cx, is_loading);
 ```
+
+---
+
+## DrawList2d Overlay (Modals/Popups/Tooltips)
+
+`DrawList2d` renders content in a separate draw pass that floats above
+the rest of the UI. Combined with `sweep_lock` / `sweep_unlock` it can
+capture all pointer events (modal behavior) or let them pass through
+(non-blocking popups).
+
+### Struct fields
+
+```rust
+#[derive(Script, ScriptHook, Widget)]
+pub struct MyOverlay {
+    #[deref] view: View,
+
+    // The overlay draw list — note #[rust(...)] initializer
+    #[redraw]
+    #[rust(DrawList2d::new(cx))]
+    draw_list: DrawList2d,
+
+    #[live] draw_bg: DrawQuad,
+    #[layout] layout: Layout,
+    #[walk] walk: Walk,
+
+    #[rust] opened: bool,
+}
+```
+
+### DSL
+
+```
+mod.widgets.MyOverlay = set_type_default() do mod.widgets.MyOverlayBase{
+    width: Fill height: Fill
+    flow: Overlay
+    align: Center
+
+    // Transparent full-screen background
+    draw_bg +: {
+        pixel: fn() { return vec4(0. 0. 0. 0.0) }
+    }
+
+    // Semi-transparent scrim behind content (only for modals)
+    bg_view := View{
+        width: Fill height: Fill
+        show_bg: true
+        draw_bg.color: #0000_00B3   // black 70% opacity
+    }
+
+    content := View{
+        flow: Overlay width: Fit height: Fit
+        // Actual modal/popup content goes here
+    }
+}
+```
+
+### draw_walk — overlay rendering
+
+```rust
+fn draw_walk(
+    &mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk,
+) -> DrawStep {
+    // 1. Begin overlay pass — content draws ABOVE everything
+    self.draw_list.begin_overlay_reuse(cx);
+
+    // 2. Full-screen turtle for positioning
+    cx.begin_root_turtle_for_pass(self.layout);
+    self.draw_bg.begin(cx, self.walk, self.layout);
+
+    if self.opened {
+        // Draw scrim + content
+        let _ = self.bg_view.draw_walk(
+            cx, scope, walk.with_abs_pos(DVec2 { x: 0., y: 0. }),
+        );
+        self.content.draw_all(cx, scope);
+    }
+
+    self.draw_bg.end(cx);
+    cx.end_pass_sized_turtle();
+
+    // 3. Close overlay pass
+    self.draw_list.end(cx);
+
+    DrawStep::done()
+}
+```
+
+### handle_event — sweep lock for modal behavior
+
+```rust
+fn handle_event(
+    &mut self, cx: &mut Cx, event: &Event, scope: &mut Scope,
+) {
+    if !self.opened { return; }
+
+    // Temporarily unlock so children can receive events
+    cx.sweep_unlock(self.draw_bg.area());
+    self.content.handle_event(cx, event, scope);
+    cx.sweep_lock(self.draw_bg.area());
+
+    // Dismiss on click outside content
+    let content_rect = self.content.area().rect(cx);
+    if let Hit::FingerUp(fe) = event.hits_with_sweep_area(
+        cx, self.draw_bg.area(), self.draw_bg.area(),
+    ) {
+        if !content_rect.contains(fe.abs) {
+            self.close(cx);
+            cx.widget_action(
+                self.widget_uid(), &scope.path,
+                MyOverlayAction::Dismissed,
+            );
+        }
+    }
+}
+```
+
+### open / close — manage sweep lock
+
+```rust
+impl MyOverlay {
+    pub fn open(&mut self, cx: &mut Cx) {
+        self.opened = true;
+        self.draw_bg.redraw(cx);
+        cx.sweep_lock(self.draw_bg.area()); // capture all events
+    }
+    pub fn close(&mut self, cx: &mut Cx) {
+        self.opened = false;
+        self.draw_bg.redraw(cx);
+        cx.sweep_unlock(self.draw_bg.area()); // release events
+    }
+}
+```
+
+### Non-blocking variant (popup/tooltip)
+
+For overlays that should NOT capture all events, skip `sweep_lock`
+and use `begin_turtle` instead of `begin_root_turtle_for_pass`:
+
+```rust
+fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk)
+    -> DrawStep
+{
+    self.draw_list.begin_overlay_reuse(cx);
+    cx.begin_turtle(walk, self.layout);      // sized to content
+    self.draw_bg.begin(cx, self.walk, self.layout);
+
+    if self.opened {
+        self.content.draw_all(cx, scope);
+    }
+
+    self.draw_bg.end(cx);
+    cx.end_pass_sized_turtle();
+    self.draw_list.end(cx);
+    DrawStep::done()
+}
+```
+
+### LiveHook — redraw on apply
+
+```rust
+impl LiveHook for MyOverlay {
+    fn after_apply(
+        &mut self, cx: &mut Cx, _apply: &mut Apply,
+        _index: usize, _nodes: &[LiveNode],
+    ) {
+        self.draw_list.redraw(cx);
+    }
+}
+```
+
+**Key points:**
+- `begin_overlay_reuse(cx)` … `end(cx)` bracket the overlay pass
+- `sweep_lock` / `sweep_unlock` control whether the overlay captures
+  all pointer events (modal) or lets them pass through (popup)
+- `begin_root_turtle_for_pass` for full-screen positioning,
+  `begin_turtle` for content-sized positioning
+- `#[rust(DrawList2d::new(cx))]` initializes the draw list
+
+---
+
+## UiRunner Async Bridge
+
+`UiRunner<W>` lets async tasks schedule work back on the UI thread.
+This is critical for patterns where background work (HTTP, streaming,
+file I/O) must update widget state.
+
+### Core concept
+
+`UiRunner` is obtained from a widget via `self.ui_runner()`. It can be
+sent to an async task. The task calls `defer` / `defer_with_redraw` to
+schedule a closure that runs on the main thread with `&mut Widget` +
+`&mut Cx` access.
+
+### Basic usage — defer with redraw
+
+```rust
+// Inside a widget's handle_event:
+let runner = self.ui_runner();
+spawn(async move {
+    let result = fetch_data().await;
+    runner.defer_with_redraw(move |widget, cx, _scope| {
+        widget.data = result;
+        // Widget is auto-redrawn after this closure
+    });
+});
+```
+
+### Awaitable defer — get a value back from the UI thread
+
+```rust
+use moly_kit::utils::makepad::ui_runner::DeferWithRedrawAsync;
+
+let runner = self.ui_runner();
+spawn(async move {
+    // This awaits until the UI thread runs the closure
+    let current_text: Option<String> =
+        runner.defer_with_redraw_async(|widget, _cx, _scope| {
+            widget.input_text.clone()
+        }).await;
+
+    if let Some(text) = current_text {
+        let result = process(text).await;
+        runner.defer_with_redraw(move |widget, cx, _scope| {
+            widget.result = result;
+        });
+    }
+});
+```
+
+### Simple redraw trigger
+
+```rust
+use moly_kit::utils::makepad::ui_runner::DeferRedraw;
+
+let runner = self.ui_runner();
+spawn(async move {
+    // After some work completes, just trigger a redraw
+    runner.defer_redraw();
+});
+```
+
+### handle + event forwarding
+
+For widgets that use `UiRunner` internally, call `handle` in
+`handle_event` to process deferred closures:
+
+```rust
+fn handle_event(
+    &mut self, cx: &mut Cx, event: &Event, scope: &mut Scope,
+) {
+    self.ui_runner().handle(cx, event, scope, self);
+    self.view.handle_event(cx, event, scope);
+}
+```
+
+### Extension traits
+
+MolyKit provides these extension traits on `UiRunner<W>`:
+
+| Trait | Method | Description |
+|-------|--------|-------------|
+| `DeferRedraw<W>` | `.defer_redraw()` | Fire-and-forget redraw |
+| `DeferAsync<T>` | `.defer_async(closure).await` | Awaitable, no redraw |
+| `DeferWithRedrawAsync<W>` | `.defer_with_redraw_async(closure).await` | Awaitable + redraw |
+
+**Key points:**
+- `UiRunner` is `Send + Sync` — safe to move into async tasks
+- `defer_with_redraw` auto-triggers `redraw(cx)` after the closure
+- Uses `futures::channel::oneshot` for the async variants (no Tokio
+  dependency, works on WASM)
+
+---
+
+## ComponentMap Dynamic Widget Collection
+
+`ComponentMap<LiveId, WidgetRef>` manages a dynamic collection of
+widgets created from a template. Use this when the number of child
+widgets is data-driven and not known at DSL time.
+
+### Struct fields
+
+```rust
+#[derive(Script, ScriptHook, Widget)]
+pub struct TagList {
+    #[deref] view: View,
+    #[walk] walk: Walk,
+    #[area] area: Area,
+    #[layout] layout: Layout,
+
+    /// Template pointer (set in DSL via LivePtr reference)
+    #[live] template: Option<LivePtr>,
+
+    /// Dynamic widget collection
+    #[rust] items: ComponentMap<LiveId, WidgetRef>,
+}
+```
+
+### DSL — template reference
+
+```
+mod.widgets.TagList = set_type_default() do mod.widgets.TagListBase{
+    width: Fill height: Fit
+    flow: Right spacing: 6
+    // Reference a template defined elsewhere
+    template: TagItem
+}
+
+// Template definition
+mod.widgets.TagItem = RoundedView{
+    width: Fit height: Fit
+    padding: Inset{top: 4 bottom: 4 left: 8 right: 8}
+    show_bg: true
+    draw_bg.color: #333
+    draw_bg.border_radius: 4.0
+    label := Label{draw_text.color: #aaa draw_text.text_style.font_size: 11}
+}
+```
+
+### Pattern A: get_or_insert (lazy creation)
+
+Best for draw-time creation where items persist across frames:
+
+```rust
+fn draw_walk(
+    &mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk,
+) -> DrawStep {
+    cx.begin_turtle(walk, self.layout);
+
+    for (i, data) in self.data_items.iter().enumerate() {
+        let item_id = LiveId(i as u64).into();
+        let widget = self.items.get_or_insert(cx, item_id, |cx| {
+            WidgetRef::new_from_ptr(cx, self.template)
+        });
+        widget.label(ids!(label)).set_text(cx, &data.name);
+        widget.draw_all(cx, &mut Scope::empty());
+    }
+
+    cx.end_turtle_with_area(&mut self.area);
+    DrawStep::done()
+}
+```
+
+### Pattern B: clear + insert (full rebuild)
+
+Best when the item list changes wholesale:
+
+```rust
+pub fn set_tags(&mut self, cx: &mut Cx, tags: &[String]) {
+    self.items.clear();
+    for (i, tag) in tags.iter().enumerate() {
+        let item_id = LiveId(i as u64).into();
+        let widget = WidgetRef::new_from_ptr(cx, self.template);
+        widget.label(ids!(label)).set_text(cx, tag);
+        self.items.insert(item_id, widget);
+    }
+}
+```
+
+### Event forwarding
+
+Forward events to all items in the map:
+
+```rust
+fn handle_event(
+    &mut self, cx: &mut Cx, event: &Event, scope: &mut Scope,
+) {
+    for (_id, item) in self.items.iter_mut() {
+        item.handle_event(cx, event, scope);
+    }
+}
+```
+
+### WidgetNode impl (required for manual Widget implementations)
+
+```rust
+impl WidgetNode for TagList {
+    fn area(&self) -> Area { self.area }
+    fn walk(&mut self, _cx: &mut Cx) -> Walk { self.walk }
+    fn redraw(&mut self, cx: &mut Cx) { self.area.redraw(cx) }
+
+    fn find_widgets(
+        &self, path: &[LiveId], cached: WidgetCache, results: &mut WidgetSet,
+    ) {
+        for item in self.items.values() {
+            item.find_widgets(path, cached, results);
+        }
+    }
+
+    fn uid_to_widget(&self, uid: WidgetUid) -> WidgetRef {
+        self.items.values()
+            .map(|item| item.uid_to_widget(uid))
+            .find(|x| !x.is_empty())
+            .unwrap_or(WidgetRef::empty())
+    }
+}
+```
+
+**Key points:**
+- `Option<LivePtr>` holds a reference to the DSL template
+- `WidgetRef::new_from_ptr(cx, self.template)` instantiates a widget
+  from the template
+- `get_or_insert` is idempotent — only creates on first access
+- Always forward events to `items.iter_mut()` in `handle_event`
+
+---
+
+## Slot Widget (Replaceable Content)
+
+`Slot` is a wrapper widget whose content can be swapped at runtime.
+It holds a `default` widget (from DSL) and a `wrap` widget (active
+content). Call `replace()` to swap in new content, `restore()` to
+revert to the default.
+
+### DSL
+
+```
+my_slot := Slot{
+    // Default content (shown until replaced)
+    default := View{
+        Label{text: "Default content"}
+    }
+}
+```
+
+### Struct — uses `#[wrap]` not `#[deref]`
+
+```rust
+#[derive(Script, ScriptHook, Widget)]
+pub struct Slot {
+    /// Active content — delegates draw/event
+    #[wrap] wrap: WidgetRef,
+
+    /// DSL-defined default (can be restored)
+    #[live] default: WidgetRef,
+}
+```
+
+### LiveHook — clone default on creation
+
+```rust
+impl LiveHook for Slot {
+    fn after_new_from_doc(&mut self, _cx: &mut Cx) {
+        self.wrap = self.default.clone();
+    }
+}
+```
+
+### API
+
+```rust
+impl Slot {
+    /// Replace active content with a different widget
+    pub fn replace(&mut self, widget: WidgetRef) {
+        self.wrap = widget;
+    }
+    /// Revert to the DSL-defined default
+    pub fn restore(&mut self) {
+        self.wrap = self.default.clone();
+    }
+    /// Get a reference to the active widget
+    pub fn current(&self) -> WidgetRef { self.wrap.clone() }
+    /// Get a reference to the default widget
+    pub fn default(&self) -> WidgetRef { self.default.clone() }
+}
+```
+
+### Usage from parent
+
+```rust
+// Replace slot content with a custom widget
+let custom = WidgetRef::new_from_ptr(cx, some_template);
+self.ui.slot(ids!(my_slot)).replace(custom);
+
+// Restore to default
+self.ui.slot(ids!(my_slot)).restore();
+```
+
+**Key points:**
+- `#[wrap]` differs from `#[deref]` — it wraps a `WidgetRef` that can
+  be entirely swapped rather than just inheriting from a base type
+- The `default` field preserves the original DSL content for restoration
+- This pattern is used in MolyKit for customizable content areas (e.g.,
+  swapping message renderers, custom input widgets)
+
+---
+
+## Timer-Driven Patterns
+
+Makepad uses `Timer` for delayed and periodic operations. There are
+three main patterns: debounce, repeating animation, and intervals.
+
+### Pattern A: Debounced timer (search input)
+
+Cancel and restart a timer on each keystroke; only fire after the user
+stops typing:
+
+```rust
+#[derive(Script, ScriptHook, Widget)]
+pub struct SearchBar {
+    #[deref] view: View,
+    #[rust] search_timer: Timer,
+    #[live(0.3)] search_debounce_time: f64,
+}
+
+impl Widget for SearchBar {
+    fn handle_event(
+        &mut self, cx: &mut Cx, event: &Event, scope: &mut Scope,
+    ) {
+        self.view.handle_event(cx, event, scope);
+
+        // Timer fired — execute the search
+        if self.search_timer.is_event(event).is_some() {
+            self.search_timer = Timer::default(); // clear
+            let query = self.text_input(ids!(input)).text();
+            if query.len() > 2 {
+                cx.action(SearchAction::Execute(query.to_string()));
+            }
+        }
+    }
+}
+
+impl WidgetMatchEvent for SearchBar {
+    fn handle_actions(
+        &mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope,
+    ) {
+        let input = self.text_input(ids!(input));
+        if input.changed(actions).is_some() {
+            // Cancel any pending timer, restart
+            cx.stop_timer(self.search_timer);
+            self.search_timer =
+                cx.start_timeout(self.search_debounce_time);
+        }
+    }
+}
+```
+
+### Pattern B: Repeating animation (self-rescheduling)
+
+A timer that fires, updates animation state, then reschedules itself:
+
+```rust
+#[derive(Script, ScriptHook, Widget, Animator)]
+pub struct LoadingDots {
+    #[deref] view: View,
+    #[apply_default] animator: Animator,
+    #[rust] timer: Timer,
+    #[rust] current_dot: usize,
+}
+
+impl Widget for LoadingDots {
+    fn handle_event(
+        &mut self, cx: &mut Cx, event: &Event, scope: &mut Scope,
+    ) {
+        // Check if our timer fired
+        if self.timer.is_event(event).is_some() {
+            self.advance_animation(cx);
+        }
+        if self.animator_handle_event(cx, event).must_redraw() {
+            self.redraw(cx);
+        }
+        self.view.handle_event(cx, event, scope);
+    }
+}
+
+impl LoadingDots {
+    fn advance_animation(&mut self, cx: &mut Cx) {
+        self.current_dot = (self.current_dot + 1) % 3;
+        // Play animator states based on current_dot...
+        self.timer = cx.start_timeout(0.33); // reschedule
+    }
+
+    pub fn start(&mut self, cx: &mut Cx) {
+        if self.timer.is_empty() {
+            self.timer = cx.start_timeout(0.2);
+        }
+    }
+
+    pub fn stop(&mut self, cx: &mut Cx) {
+        cx.stop_timer(self.timer);
+        self.timer = Timer::default();
+    }
+}
+```
+
+### Pattern C: Interval timer (periodic polling / streaming)
+
+For regular-interval work like audio streaming or progress polling:
+
+```rust
+// Start an interval (fires repeatedly)
+let timer = cx.start_interval(0.020); // every 20ms
+self.audio_timer = Some(timer);
+
+// In handle_event:
+if let Some(timer) = &self.audio_timer {
+    if timer.is_event(event).is_some() {
+        self.process_audio_chunk(cx);
+    }
+}
+
+// Stop:
+if let Some(timer) = &self.audio_timer {
+    cx.stop_timer(*timer);
+    self.audio_timer = None;
+}
+```
+
+**Key API:**
+| Method | Behavior |
+|--------|----------|
+| `cx.start_timeout(secs)` | Fire once after `secs` seconds |
+| `cx.start_interval(secs)` | Fire repeatedly every `secs` seconds |
+| `cx.stop_timer(timer)` | Cancel a pending timer |
+| `timer.is_event(event)` | Returns `Some(...)` if this timer fired |
+| `timer.is_empty()` | True if timer is unset / default |
+
+---
+
+## AdaptiveView (Desktop vs Mobile)
+
+`AdaptiveView` switches between layout variants based on screen size
+or a custom selector function. It holds named templates (e.g.,
+`Desktop`, `Mobile`) and instantiates only the active one.
+
+### DSL
+
+```
+adaptive := AdaptiveView{
+    width: Fill height: Fill
+
+    Desktop := View{
+        flow: Right
+        sidebar := View{width: 280 height: Fill}
+        main := View{width: Fill height: Fill}
+    }
+
+    Mobile := View{
+        flow: Down
+        main := View{width: Fill height: Fill}
+        // No sidebar on mobile
+    }
+}
+```
+
+### Default behavior
+
+By default, `AdaptiveView` checks `cx.display_context.is_desktop()`:
+- Desktop → activates the `Desktop` template
+- Mobile → activates the `Mobile` template
+
+The selector re-evaluates whenever the parent size changes.
+
+### Custom variant selector
+
+Override the default selector from Rust:
+
+```rust
+let mut adaptive = self.ui.adaptive_view(ids!(adaptive));
+if let Some(mut inner) = adaptive.borrow_mut() {
+    inner.set_variant_selector(|cx, parent_size| {
+        if parent_size.x > 800.0 {
+            live_id!(Desktop)
+        } else if parent_size.x > 500.0 {
+            live_id!(Tablet)
+        } else {
+            live_id!(Mobile)
+        }
+    });
+}
+```
+
+### With three or more variants
+
+```
+adaptive := AdaptiveView{
+    Desktop := View{/* wide layout */}
+    Tablet := View{/* medium layout */}
+    Mobile := View{/* narrow layout */}
+}
+```
+
+### Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `retain_unused_variants` | bool | false | Keep inactive variant widgets alive (preserves state) |
+
+**Key points:**
+- Only the active variant is drawn and receives events
+- Template names are `LiveId`s — use `live_id!(Desktop)` in Rust
+- Variant switches automatically on parent size change
+- `retain_unused_variants: true` prevents losing widget state on switch
+
+---
+
+## StackNavigation
+
+`StackNavigation` provides a navigation stack with animated push/pop
+transitions, similar to iOS UINavigationController. It manages a root
+view and a stack of overlay views that slide in from the right.
+
+### DSL
+
+```
+nav := StackNavigation{
+    width: Fill height: Fill
+
+    // Always-visible root
+    root_view := View{
+        width: Fill height: Fill
+        // Main list / home screen
+    }
+
+    // Named views that can be pushed onto the stack
+    detail_view := StackNavigationView{
+        header +: {
+            content +: {
+                title_label := Label{text: "Detail"}
+            }
+        }
+        body +: {
+            // Detail screen content
+            Label{text: "Detail content here"}
+        }
+    }
+
+    settings_view := StackNavigationView{
+        header +: {
+            content +: {
+                title_label := Label{text: "Settings"}
+            }
+        }
+        body +: {
+            // Settings content
+        }
+    }
+}
+```
+
+### Push / Pop from Rust
+
+```rust
+// Push a view onto the stack (animates in from right)
+self.ui.stack_navigation(ids!(nav)).push(cx, ids!(detail_view));
+
+// Pop the top view (animates out to right)
+self.ui.stack_navigation(ids!(nav)).pop(cx);
+
+// Pop all the way back to root
+self.ui.stack_navigation(ids!(nav)).pop_to_root(cx);
+
+// Check navigation state
+let depth = self.ui.stack_navigation(ids!(nav)).depth();
+let can_pop = self.ui.stack_navigation(ids!(nav)).can_pop();
+```
+
+### StackNavigationView properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `offset` | f64 | 4000.0 | Horizontal offset (animated) |
+| `full_screen` | bool | true | Fill entire screen |
+
+### Built-in animation
+
+`StackNavigationView` has a built-in `slide` animator with `show` and
+`hide` states using `ExpDecay` easing. The `offset` property is animated
+from 4000 (off-screen right) to 0 (visible).
+
+### Handling back navigation
+
+```rust
+fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions) {
+    // The built-in back button dispatches StackNavigationAction::Pop
+    for action in actions {
+        if let StackNavigationAction::Pop =
+            action.as_widget_action().cast()
+        {
+            self.ui.stack_navigation(ids!(nav)).pop(cx);
+        }
+    }
+}
+```
+
+### Actions
+
+```rust
+#[derive(Clone, Default, Debug)]
+pub enum StackNavigationAction {
+    #[default] None,
+    Push(LiveId),
+    Pop,
+    PopToRoot,
+}
+
+#[derive(Clone, Default, Debug)]
+pub enum StackNavigationTransitionAction {
+    #[default] None,
+    ShowBegin,
+    ShowDone,
+    HideBegin,
+    HideEnd(WidgetUid),
+}
+```
+
+**Key points:**
+- `root_view` is always visible when the stack is empty
+- Views slide in with an `ExpDecay` animation (~0.5s)
+- The built-in `StackViewHeader` includes a back button
+- Use `body +:` and `header +:` to merge into the default layout
+- Works well with `AdaptiveView` — use `StackNavigation` on mobile,
+  `Splitter` on desktop
+
+---
+
+## Scope::with_props
+
+`Scope::with_props` passes typed, read-only data from a parent widget
+to its children during drawing. Children access the data via
+`scope.props.get::<T>()`. This is lighter than `Scope::with_data`
+(which allows mutation) and is ideal for passing item-level data in
+list rendering.
+
+### Defining props
+
+```rust
+pub struct FileRowProps {
+    pub filename: String,
+    pub size_bytes: u64,
+    pub is_downloaded: bool,
+}
+```
+
+### Passing props (parent draw_walk)
+
+```rust
+fn draw_walk(
+    &mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk,
+) -> DrawStep {
+    while let Some(item) = self.view.draw_walk(cx, scope, walk).step() {
+        if let Some(mut list) = item.as_portal_list().borrow_mut() {
+            list.set_item_range(cx, 0, self.files.len());
+
+            while let Some(item_id) = list.next_visible_item(cx) {
+                let data = &self.files[item_id];
+                let widget = list.item(cx, item_id, id!(FileRow));
+
+                // Pass data as props
+                let props = FileRowProps {
+                    filename: data.name.clone(),
+                    size_bytes: data.size,
+                    is_downloaded: data.downloaded,
+                };
+                let mut scope = Scope::with_props(&props);
+                widget.draw_all(cx, &mut scope);
+            }
+        }
+    }
+    DrawStep::done()
+}
+```
+
+### Reading props (child widget)
+
+```rust
+impl Widget for FileRow {
+    fn draw_walk(
+        &mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk,
+    ) -> DrawStep {
+        if let Some(props) = scope.props.get::<FileRowProps>() {
+            self.label(ids!(filename))
+                .set_text(cx, &props.filename);
+            self.label(ids!(size))
+                .set_text(cx, &format_bytes(props.size_bytes));
+            self.view(ids!(download_icon))
+                .set_visible(cx, props.is_downloaded);
+        }
+        self.view.draw_walk(cx, scope, walk)
+    }
+}
+```
+
+### with_props vs with_data
+
+| Method | Access | Mutability | Use case |
+|--------|--------|------------|----------|
+| `Scope::with_props(&T)` | `scope.props.get::<T>()` | Read-only | Item data in lists |
+| `Scope::with_data(&mut T)` | `scope.data.get_mut::<T>()` | Mutable | Shared app state (Store) |
+
+### Combining props and data
+
+```rust
+// Parent passes both global data AND item props
+let store = scope.data.get_mut::<Store>().unwrap();
+let file_data = store.files[item_id].clone();
+
+let props = FileRowProps { /* ... */ };
+let mut child_scope = Scope::with_props(&props);
+// Re-attach the store data
+child_scope.data.set(store);
+widget.draw_all(cx, &mut child_scope);
+```
+
+**Key points:**
+- Props are passed by reference (`&T`) — no ownership transfer
+- The child receives a `Scope` with the props available via `.get::<T>()`
+- `with_props` is the idiomatic way to pass per-item data in
+  `PortalList` / `ComponentMap` rendering loops
+- Use `with_data` for app-level mutable state (like `Store`)
