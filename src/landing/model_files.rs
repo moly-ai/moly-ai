@@ -3,168 +3,161 @@ use makepad_widgets::*;
 
 use super::model_files_list::ModelFilesListWidgetExt;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::MolyRadioButtonTab;
+    let ICON_ADD = crate_resource("self://resources/icons/add.svg")
+    let ICON_REMOVE = crate_resource("self://resources/icons/remove.svg")
 
-    use crate::landing::model_files_item::ModelFilesRow;
-    use crate::landing::model_files_list::ModelFilesList;
-
-    ICON_ADD = dep("crate://self/resources/icons/add.svg")
-    ICON_REMOVE = dep("crate://self/resources/icons/remove.svg")
-
-    ActionToggleButton = <MolyRadioButtonTab> {
-        width: Fit,
-        height: 40,
-        padding: { left: 20, top: 10, bottom: 10, right: 20 },
+    let ActionToggleButton = MolyRadioButtonTab {
+        width: Fit
+        height: 40
+        padding: Inset {left: 20 top: 10 bottom: 10 right: 20}
         label_walk: { margin: 0 }
         draw_text: {
-            text_style: <BOLD_FONT>{font_size: 9},
-            color_active: #475467;
-            color: #475467;
-            color_hover: #173437;
+            text_style: theme.font_bold {font_size: 9}
+            color_active: #475467
+            color: #475467
+            color_hover: #173437
         }
         draw_bg: {
-            color: #D0D5DD,
-            color_active: #fff,
-            color_hover: #D0D5DD,
-            border_color_1: #D0D5DD,
-            border_size: 1.0,
+            color: #D0D5DD
+            color_active: #fff
+            color_hover: #D0D5DD
+            border_color_1: #D0D5DD
+            border_size: 1.0
             border_radius: 7.0
         }
     }
 
-    ModelFilesActions = <View> {
-        width: Fill,
-        height: Fit,
+    let ModelFilesActions = View {
+        width: Fill
+        height: Fit
 
-        align: {y: 0.5},
-        spacing: 10,
+        align: Align {y: 0.5}
+        spacing: 10
 
-        margin: { bottom: 12 },
+        margin: Inset {bottom: 12}
 
-        <Label> {
+        Label {
             draw_text: {
-                text_style: <BOLD_FONT>{font_size: 9},
+                text_style: theme.font_bold {font_size: 9}
                 color: #667085
             }
             text: "SHOW"
         }
 
-        tab_buttons = <RoundedView> {
-            width: Fit,
-            height: Fit,
+        tab_buttons := RoundedView {
+            width: Fit
+            height: Fit
 
             draw_bg: {
                 color: #D0D5DD
                 border_radius: 7.0
             }
 
-            show_all_button =  <ActionToggleButton> {
-                animator: {selected = {default: on}}
+            show_all_button := ActionToggleButton {
+                animator: {selected: {default: @on}}
             }
-            only_recommended_button = <ActionToggleButton> {}
+            only_recommended_button := ActionToggleButton {}
         }
     }
 
-    ModelFilesHeader = <ModelFilesRow> {
-        show_bg: true,
+    let ModelFilesHeader = ModelFilesRow {
+        show_bg: true
         draw_bg: {
             color: #F2F4F7
-            border_radius: vec2(3.0, 0.5)
+            border_radius: vec2(3.0 0.5)
         }
 
-        cell1 = {
+        cell1: {
             height: 40
-            <Label> {
-                draw_text:{
-                    text_style: <BOLD_FONT>{font_size: 9},
+            Label {
+                draw_text: {
+                    text_style: theme.font_bold {font_size: 9}
                     color: #667085
                 }
                 text: "File name"
             }
         }
 
-        cell2 = {
+        cell2: {
             height: 40
-            <Label> {
-                draw_text:{
-                    text_style: <BOLD_FONT>{font_size: 9},
+            Label {
+                draw_text: {
+                    text_style: theme.font_bold {font_size: 9}
                     color: #667085
                 }
                 text: "Full Size"
             }
         }
 
-        cell3 = {
+        cell3: {
             height: 40
-            <Label> {
-                draw_text:{
-                    text_style: <BOLD_FONT>{font_size: 9},
+            Label {
+                draw_text: {
+                    text_style: theme.font_bold {font_size: 9}
                     color: #667085
                 }
                 text: "Quantization"
             }
         }
-        cell4 = {
+        cell4: {
             height: 40
         }
     }
 
-    FooterLink = <View> {
-        cursor: Hand,
-        align: {x: 0.0, y: 0.5},
-        spacing: 10,
-        icon = <Icon> {
+    let FooterLink = View {
+        cursor: MouseCursor.Hand
+        align: Align {x: 0.0 y: 0.5}
+        spacing: 10
+        icon := Icon {
             draw_icon: {
-                svg_file: (ICON_ADD),
-                fn get_color(self) -> vec4 {
-                    return #667085;
+                svg_file: (ICON_ADD)
+                get_color: fn() -> vec4 {
+                    return #667085
                 }
             }
-            icon_walk: {width: 14, height: 14}
+            icon_walk: {width: 14 height: 14}
         }
-        link = <Label> {
-            width: Fit,
+        link := Label {
+            width: Fit
             draw_text: {
-                text_style: <BOLD_FONT>{font_size: 9},
-                color: #667085,
+                text_style: theme.font_bold {font_size: 9}
+                color: #667085
             }
         }
     }
 
-    pub ModelFiles = {{ModelFiles}}<RoundedView> {
-        width: Fill,
-        height: Fit,
-        flow: Down,
+    mod.widgets.ModelFiles = #(ModelFiles::register_widget(vm)) RoundedView {
+        width: Fill
+        height: Fit
+        flow: Down
 
-        model_files_actions = <ModelFilesActions> {}
-        <ModelFilesHeader> {}
-        <ModelFilesList> { show_featured: true}
-        remaining_files_wrapper = <View> {
-            width: Fill,
-            height: Fit,
-            remaining_files = <ModelFilesList> { show_featured: false}
+        model_files_actions := ModelFilesActions {}
+        ModelFilesHeader {}
+        ModelFilesList { show_featured: true }
+        remaining_files_wrapper := View {
+            width: Fill
+            height: Fit
+            remaining_files := ModelFilesList { show_featured: false }
         }
 
-        show_all_animation_progress: 0.0,
+        show_all_animation_progress: 0.0
         animator: {
             show_all = {
-                default: hide,
-                show = {
-                    redraw: true,
+                default: @hide
+                show: AnimatorState {
+                    redraw: true
                     from: {all: Forward {duration: 0.3}}
-                    ease: ExpDecay {d1: 0.80, d2: 0.97}
+                    ease: ExpDecay {d1: 0.80 d2: 0.97}
                     apply: {show_all_animation_progress: 1.0}
                 }
-                hide = {
-                    redraw: true,
+                hide: AnimatorState {
+                    redraw: true
                     from: {all: Forward {duration: 0.3}}
-                    ease: ExpDecay {d1: 0.80, d2: 0.97}
+                    ease: ExpDecay {d1: 0.80 d2: 0.97}
                     apply: {show_all_animation_progress: 0.0}
                 }
             }
@@ -172,7 +165,7 @@ live_design! {
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Animator, Script, ScriptHook, Widget)]
 pub struct ModelFiles {
     #[deref]
     view: View,
@@ -180,7 +173,7 @@ pub struct ModelFiles {
     #[live]
     show_all_animation_progress: f64,
 
-    #[animator]
+    #[apply_default]
     animator: Animator,
 
     #[rust]
@@ -195,8 +188,8 @@ impl Widget for ModelFiles {
         if self.animator_handle_event(cx, event).must_redraw() {
             if let Some(total_height) = self.actual_height {
                 let height = self.show_all_animation_progress * total_height;
-                self.view(ids!(remaining_files_wrapper))
-                    .apply_over(cx, live! {height: (height)});
+                let wrapper = self.view(ids!(remaining_files_wrapper));
+                script_apply_eval!(cx, wrapper, {height: #(height)});
                 self.redraw(cx);
             }
         }
@@ -263,8 +256,8 @@ impl WidgetMatchEvent for ModelFiles {
 
 impl ModelFiles {
     fn expand_without_animation(&mut self, cx: &mut Cx) {
-        self.view(ids!(remaining_files_wrapper))
-            .apply_over(cx, live! {height: Fit});
+        let wrapper = self.view(ids!(remaining_files_wrapper));
+        script_apply_eval!(cx, wrapper, {height: Fit});
         self.show_all_animation_progress = 0.0;
         self.redraw(cx);
     }

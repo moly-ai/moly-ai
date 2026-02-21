@@ -432,11 +432,11 @@ fn default_client() -> reqwest::Client {
 }
 
 pub struct DeepInquireCustomContent {
-    template: LivePtr,
+    template: ScriptObjectRef,
 }
 
 impl DeepInquireCustomContent {
-    pub fn new(template: LivePtr) -> Self {
+    pub fn new(template: ScriptObjectRef) -> Self {
         Self { template }
     }
 }
@@ -459,7 +459,7 @@ impl CustomContent for DeepInquireCustomContent {
         let widget = if previous_widget.as_deep_inquire_content().borrow().is_some() {
             previous_widget
         } else {
-            WidgetRef::new_from_ptr(cx, Some(self.template))
+            WidgetRef::new_from_script_object(cx, self.template)
         };
 
         widget

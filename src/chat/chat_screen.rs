@@ -15,60 +15,53 @@ use crate::settings::providers::ConnectionSettingsAction;
 use crate::shared::actions::ChatAction;
 use crate::shared::bot_context::BotContext;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::chat::chat_history_panel::ChatHistoryPanel;
-    use crate::chat::chat_screen_mobile::ChatScreenMobile;
-    use crate::chat::chats_deck::ChatsDeck;
-
-    pub ChatScreen = {{ChatScreen}} {
-        width: Fill, height: Fill
+    mod.widgets.ChatScreen = #(ChatScreen::register_widget(vm)) {
+        width: Fill height: Fill
         spacing: 10
 
-        adaptive_view = <AdaptiveView> {
+        adaptive_view := AdaptiveView {
             Mobile = {
-                <ChatScreenMobile> {}
+                ChatScreenMobile {}
             }
 
             Desktop = {
-                <View> {
-                    width: Fit, height: Fill
-                    chat_history_panel = <ChatHistoryPanel> {}
+                View {
+                    width: Fit height: Fill
+                    chat_history_panel := ChatHistoryPanel {}
                 }
 
-                <CachedWidget> {
-                    chats_deck = <ChatsDeck> {}
+                CachedWidget {
+                    chats_deck := ChatsDeck {}
                 }
             }
         }
 
-        // TODO: Add chat params back in, only when the model is a local model (MolyServer)
-        // currenlty MolyKit does not support chat params
-        //
-        // <View> {
-        //     width: Fit,
-        //     height: Fill,
-        //
-        //     chat_params = <ChatParams> {}
-        // }
+        // TODO: Add chat params back in, only when the model is a
+        // local model (MolyServer). Currently MolyKit does not
+        // support chat params.
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, Widget)]
 pub struct ChatScreen {
     #[deref]
     view: View,
 
-    #[rust(true)]
+    #[rust]
     first_render: bool,
 
     #[rust]
     creating_bot_context: bool,
+}
+
+impl ScriptHook for ChatScreen {
+    fn on_after_new(&mut self, _vm: &mut ScriptVm) {
+        self.first_render = true;
+    }
 }
 
 impl Widget for ChatScreen {
@@ -115,7 +108,7 @@ impl WidgetMatchEvent for ChatScreen {
 
             if let ConnectionSettingsAction::ProviderSelected(provider_id) = action.cast() {
                 self.stack_navigation(ids!(navigation))
-                    .push(cx, live_id!(provider_navigation_view));
+                    .push(cx, id!(provider_navigation_view));
 
                 let provider = scope
                     .data

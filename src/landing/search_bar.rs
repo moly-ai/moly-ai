@@ -3,132 +3,127 @@ use crate::data::store::StoreAction;
 use crate::landing::sorting::SortingWidgetExt;
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::landing::sorting::Sorting;
+    let ICON_SEARCH = crate_resource("self://resources/icons/search.svg")
+    let ICON_CLOSE = crate_resource("self://resources/icons/close.svg")
 
-    ICON_SEARCH = dep("crate://self/resources/icons/search.svg")
-    ICON_CLOSE = dep("crate://self/resources/icons/close.svg")
+    mod.widgets.SearchBar = #(SearchBar::register_widget(vm)) ViewBase {
+        width: Fill
+        height: 200
 
-    pub SearchBar = {{SearchBar}} {
-        width: Fill,
-        height: 200,
+        flow: Down
+        spacing: 30
+        align: Align {x: 0.5 y: 0.5}
 
-        flow: Down,
-        spacing: 30,
-        align: {x: 0.5, y: 0.5},
-
-        show_bg: true,
+        show_bg: true
 
         draw_bg: {
-            color: (MAIN_BG_COLOR_DARK),
-            instance color2: #a6bec6,
-            fn get_color(self) -> vec4 {
-                let coef = self.rect_size.y / self.rect_size.x;
+            color: (MAIN_BG_COLOR_DARK)
+            color2: instance(#xa6bec6)
+            get_color: fn() -> vec4 {
+                let coef = self.rect_size.y / self.rect_size.x
 
-                let distance_vec = self.pos - vec2(0.8, 1.1);
-                let norm_distance = length(vec2(distance_vec.x, distance_vec.y * coef) * 2.2);
+                let distance_vec = self.pos - vec2(0.8 1.1)
+                let norm_distance = length(vec2(distance_vec.x distance_vec.y * coef) * 2.2)
 
-                if pow(norm_distance, 1.4) > 1.0 {
-                    return self.color;
+                if pow(norm_distance 1.4) > 1.0 {
+                    return self.color
                 } else {
-                    return mix(self.color2, self.color, pow(norm_distance, 1.4));
+                    return mix(self.color2 self.color pow(norm_distance 1.4))
                 }
             }
 
-            fn pixel(self) -> vec4 {
-                return Pal::premul(self.get_color());
+            pixel: fn() -> vec4 {
+                return Pal.premul(self.get_color())
             }
         }
 
-        title = <View> {
-            width: Fit,
-            height: Fit,
-            <Label> {
-                draw_text:{
-                    text_style: <REGULAR_FONT>{font_size: 13},
+        title := View {
+            width: Fit
+            height: Fit
+            Label {
+                draw_text: {
+                    text_style: theme.font_regular {font_size: 13}
                     color: #000
                 }
                 text: "Discover, download, and run local LLMs"
             }
         }
 
-        input_container = <RoundedShadowView> {
-            width: 800,
-            height: Fit,
+        input_container := RoundedShadowView {
+            width: 800
+            height: Fit
 
-            show_bg: true,
+            show_bg: true
             draw_bg: {
-                color: (MAIN_BG_COLOR),
-                border_radius: 8.5,
-                uniform shadow_color: #0001
-                shadow_radius: 8.0,
-                shadow_offset: vec2(0.0,-2.0)
+                color: (MAIN_BG_COLOR)
+                border_radius: 8.5
+                shadow_color: uniform(#x0001)
+                shadow_radius: 8.0
+                shadow_offset: vec2(0.0 -2.0)
             }
 
-            padding: {top: 3, bottom: 3, left: 20, right: 20}
-            margin: {left: 30, right: 30}
+            padding: Inset {top: 3 bottom: 3 left: 20 right: 20}
+            margin: Inset {left: 30 right: 30}
 
-            spacing: 4,
-            align: {x: 0.0, y: 0.5},
+            spacing: 4
+            align: Align {x: 0.0 y: 0.5}
 
-            <Icon> {
+            Icon {
                 draw_icon: {
-                    svg_file: (ICON_SEARCH),
-                    fn get_color(self) -> vec4 {
-                        return #666;
+                    svg_file: (ICON_SEARCH)
+                    get_color: fn() -> vec4 {
+                        return #666
                     }
                 }
-                icon_walk: {width: 17, height: 17}
+                icon_walk: {width: 17 height: 17}
             }
 
-            input = <MolyTextInput> {
-                width: Fill,
-                height: Fit,
-                empty_text: "Search Model by Keyword",
+            input := MolyTextInput {
+                width: Fill
+                height: Fit
+                empty_text: "Search Model by Keyword"
                 draw_bg: {
-                    color: (MAIN_BG_COLOR),
+                    color: (MAIN_BG_COLOR)
                 }
             }
 
-            clear_text_button = <MolyButton> {
-                visible: false,
+            clear_text_button := MolyButton {
+                visible: false
                 draw_icon: {
-                    svg_file: (ICON_CLOSE),
-                    fn get_color(self) -> vec4 {
-                        return #8;
+                    svg_file: (ICON_CLOSE)
+                    get_color: fn() -> vec4 {
+                        return #8
                     }
                 }
-                icon_walk: {width: 10, height: 10}
+                icon_walk: {width: 10 height: 10}
             }
         }
 
-        search_sorting = <View> {
-            visible: false,
-            width: 300,
-            height: Fit,
-            margin: {left: 30, right: 30},
-            <Sorting> {}
+        search_sorting := View {
+            visible: false
+            width: 300
+            height: Fit
+            margin: Inset {left: 30 right: 30}
+            Sorting {}
         }
 
         animator: {
             search_bar = {
-                default: expanded,
-                collapsed = {
-                    redraw: true,
+                default: @expanded
+                collapsed: AnimatorState {
+                    redraw: true
                     from: {all: Forward {duration: 0.3}}
-                    ease: ExpDecay {d1: 0.80, d2: 0.97}
+                    ease: ExpDecay {d1: 0.80 d2: 0.97}
                     apply: { height: 100 }
                 }
-                expanded = {
-                    redraw: true,
+                expanded: AnimatorState {
+                    redraw: true
                     from: {all: Forward {duration: 0.3}}
-                    ease: ExpDecay {d1: 0.80, d2: 0.97}
+                    ease: ExpDecay {d1: 0.80 d2: 0.97}
                     apply: { height: 200 }
                 }
             }
@@ -136,12 +131,12 @@ live_design! {
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Animator, Script, ScriptHook, Widget)]
 pub struct SearchBar {
     #[deref]
     view: View,
 
-    #[animator]
+    #[apply_default]
     animator: Animator,
 
     #[rust]
@@ -221,18 +216,15 @@ impl SearchBarRef {
         }
         inner.collapsed = true;
 
-        inner.apply_over(
-            cx,
-            live! {
-                flow: Right,
-                title = { visible: false }
-                align: {x: 0.0, y: 0.5},
-                padding: {left: 20},
-                spacing: 80,
-                input_container = { width: Fill }
-                search_sorting = { visible: true }
-            },
-        );
+        script_apply_eval!(cx, inner, {
+            flow: Right
+            title: { visible: false }
+            align: Align {x: 0.0 y: 0.5}
+            padding: Inset {left: 20}
+            spacing: 80
+            input_container: { width: Fill }
+            search_sorting: { visible: true }
+        });
 
         inner
             .sorting(ids!(search_sorting))
@@ -249,18 +241,15 @@ impl SearchBarRef {
         }
         inner.collapsed = false;
 
-        inner.apply_over(
-            cx,
-            live! {
-                flow: Down,
-                title = { visible: true }
-                align: {x: 0.5, y: 0.5},
-                padding: {left: 0},
-                spacing: 50,
-                input_container = { width: 800 }
-                search_sorting = { visible: false }
-            },
-        );
+        script_apply_eval!(cx, inner, {
+            flow: Down
+            title: { visible: true }
+            align: Align {x: 0.5 y: 0.5}
+            padding: Inset {left: 0}
+            spacing: 50
+            input_container: { width: 800 }
+            search_sorting: { visible: false }
+        });
 
         inner.animator_play(cx, ids!(search_bar.expanded));
     }

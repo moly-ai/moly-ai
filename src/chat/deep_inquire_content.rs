@@ -3,38 +3,32 @@ use crate::data::deep_inquire_client::{Data, StageType};
 use makepad_widgets::*;
 use moly_kit::prelude::*;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::shaders::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use moly_kit::widgets::message_markdown::*;
-
-    use crate::shared::styles::*;
-    use crate::chat::deep_inquire_stages::*;
-
-    pub DeepInquireContent = {{DeepInquireContent}} {
-        flow: Down, spacing: 10
-        height: Fit,
-        <Label> {
+    mod.widgets.DeepInquireContent = #(DeepInquireContent::register_widget(vm)) {
+        flow: Down spacing: 10
+        height: Fit
+        Label {
             text: "Steps"
-            draw_text: {
-                color: #x0,
-                text_style: <THEME_FONT_BOLD>{font_size: 12},
+            draw_text +: {
+                color: #x0
+                text_style: theme.font_bold {font_size: 12}
             }
         }
 
-        stages = <Stages> {}
+        stages := Stages {}
 
-        completed_block = <View> {
-            width: Fill, height: Fit,
-            padding: {right: 18, top: 18, bottom: 14},
-            completed_markdown = <MessageMarkdown> {}
+        completed_block := View {
+            width: Fill height: Fit
+            padding: Inset {right: 18 top: 18 bottom: 14}
+            completed_markdown := MessageMarkdown {}
         }
     }
 }
 
-#[derive(Widget, Live, LiveHook)]
+#[derive(Widget, Script, ScriptHook)]
 pub struct DeepInquireContent {
     #[deref]
     view: View,
@@ -70,7 +64,6 @@ impl DeepInquireContent {
             .iter()
             .find(|stage| stage.stage_type == StageType::Completion);
         if let Some(stage) = completion_stage {
-            // Iterate over the text of all substages and present them as one
             let final_text = stage
                 .substages
                 .iter()

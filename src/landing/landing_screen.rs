@@ -4,56 +4,50 @@ use crate::landing::model_list::ModelListAction;
 use crate::landing::search_bar::SearchBarWidgetExt;
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::landing::search_bar::SearchBar;
-    use crate::landing::model_list::ModelList;
-    use crate::landing::downloads::Downloads;
+    mod.widgets.LandingScreen = #(LandingScreen::register_widget(vm)) ViewBase {
+        width: Fill
+        height: Fill
+        flow: Down
 
-    pub LandingScreen = {{LandingScreen}} {
-        width: Fill,
-        height: Fill,
-        flow: Down,
+        search_bar := SearchBar {}
 
-        search_bar = <SearchBar> {}
+        models := View {
+            width: Fill
+            height: Fill
+            flow: Down
+            spacing: 30
+            padding: Inset {left: 30 right: 30}
 
-        models = <View> {
-            width: Fill,
-            height: Fill,
-            flow: Down,
-            spacing: 30,
-            padding: {left: 30, right: 30}
+            heading_with_filters := View {
+                width: Fit
+                height: 50
+                padding: Inset {top: 30}
 
-            heading_with_filters = <View> {
-                width: Fit,
-                height: 50,
-                padding: {top: 30},
+                align: Align {x: 0.5 y: 0.5}
 
-                align: {x: 0.5, y: 0.5},
-
-                results = <Label> {
-                    draw_text:{
-                        text_style: <BOLD_FONT>{font_size: 16},
+                results := Label {
+                    draw_text: {
+                        text_style: theme.font_bold {font_size: 16}
                         color: #000
                     }
                     text: "12 Results"
                 }
-                keyword = <Label> {
-                    draw_text:{
-                        text_style: <REGULAR_FONT>{font_size: 16},
+                keyword := Label {
+                    draw_text: {
+                        text_style: theme.font_regular {font_size: 16}
                         color: #000
                     }
                     text: " for \"Open Hermes\""
                 }
             }
 
-            <ModelList> {}
+            ModelList {}
         }
-        downloads = <Downloads> {}
+        downloads := Downloads {}
     }
 }
 
@@ -66,7 +60,7 @@ pub enum SearchBarState {
     CollapsedWithFilters,
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct LandingScreen {
     #[deref]
     view: View,

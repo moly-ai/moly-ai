@@ -16,170 +16,98 @@ use crate::shared::utils::version::{Pull, Version};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::chat::chat_panel::ChatPanel;
-    use crate::chat::chat_history::ChatHistory;
-    use crate::chat::chat_params::ChatParams;
-    use crate::chat::deep_inquire_content::DeepInquireContent;
-    use moly_kit::widgets::chat::Chat;
-    use moly_kit::widgets::prompt_input::PromptInput;
-    use moly_kit::widgets::stt_input::SttInput;
+    let RoundedShadowShader = {
+        color: #fefefe
+        border_radius: uniform(7.0)
+        border_size: uniform(0.0)
+        border_color: uniform(#0000)
+        shadow_color: uniform(#0001)
+        shadow_radius: uniform(9.0)
+        shadow_offset: uniform(vec2(0.0 -2.5))
 
-    PromptInputWithShadow = <PromptInput> {
-        padding: {left: 15, right: 15, top: 8, bottom: 8}
-        persistent = {
-            // Shader to make the original RoundedView into a RoundedShadowView
-            // (can't simply override the type of `persistent` because that removes the original children)
-            clip_x:false, clip_y:false,
+        rect_size2: varying(vec2(0))
+        rect_size3: varying(vec2(0))
+        rect_pos2: varying(vec2(0))
+        rect_shift: varying(vec2(0))
+        sdf_rect_pos: varying(vec2(0))
+        sdf_rect_size: varying(vec2(0))
 
-            show_bg: true,
-            draw_bg: {
-                color: #fefefe
-                uniform border_radius: 7.0
-                uniform border_size: 0.0
-                uniform border_color: #0000
-                uniform shadow_color: #0001
-                uniform shadow_radius: 9.0,
-                uniform shadow_offset: vec2(0.0,-2.5)
+        get_color: fn() -> vec4 {
+            return self.color
+        }
 
-                varying rect_size2: vec2,
-                varying rect_size3: vec2,
-                varying rect_pos2: vec2,
-                varying rect_shift: vec2,
-                varying sdf_rect_pos: vec2,
-                varying sdf_rect_size: vec2,
+        vertex: fn() {
+            let min_offset = min(self.shadow_offset vec2(0))
+            self.rect_size2 = self.rect_size + 2.0*vec2(self.shadow_radius)
+            self.rect_size3 = self.rect_size2 + abs(self.shadow_offset)
+            self.rect_pos2 = self.rect_pos - vec2(self.shadow_radius) + min_offset
+            self.sdf_rect_size = self.rect_size2 - vec2(self.shadow_radius * 2.0 + self.border_size * 2.0)
+            self.sdf_rect_pos = -min_offset + vec2(self.border_size + self.shadow_radius)
+            self.rect_shift = -min_offset
 
-                fn get_color(self) -> vec4 {
-                    return self.color
-                }
+            return self.clip_and_transform_vertex(self.rect_pos2 self.rect_size3)
+        }
 
-                fn vertex(self) -> vec4 {
-                    let min_offset = min(self.shadow_offset,vec2(0));
-                    self.rect_size2 = self.rect_size + 2.0*vec2(self.shadow_radius);
-                    self.rect_size3 = self.rect_size2 + abs(self.shadow_offset);
-                    self.rect_pos2 = self.rect_pos - vec2(self.shadow_radius) + min_offset;
-                    self.sdf_rect_size = self.rect_size2 - vec2(self.shadow_radius * 2.0 + self.border_size * 2.0)
-                    self.sdf_rect_pos = -min_offset + vec2(self.border_size + self.shadow_radius);
-                    self.rect_shift = -min_offset;
+        get_border_color: fn() -> vec4 {
+            return self.border_color
+        }
 
-                    return self.clip_and_transform_vertex(self.rect_pos2, self.rect_size3)
-                }
-
-                fn get_border_color(self) -> vec4 {
-                    return self.border_color
-                }
-
-                fn pixel(self) -> vec4 {
-
-                    let sdf = Sdf2d::viewport(self.pos * self.rect_size3)
-                    sdf.box(
-                        self.sdf_rect_pos.x,
-                        self.sdf_rect_pos.y,
-                        self.sdf_rect_size.x,
-                        self.sdf_rect_size.y,
-                        max(1.0, self.border_radius)
-                    )
-                    if sdf.shape > -1.0{
-                        let m = self.shadow_radius;
-                        let o = self.shadow_offset + self.rect_shift;
-                        let v = GaussShadow::rounded_box_shadow(vec2(m) + o, self.rect_size2+o, self.pos * (self.rect_size3+vec2(m)), self.shadow_radius*0.5, self.border_radius*2.0);
-                        sdf.clear(self.shadow_color*v)
-                    }
-
-                    sdf.fill_keep(self.get_color())
-                    if self.border_size > 0.0 {
-                        sdf.stroke(self.get_border_color(), self.border_size)
-                    }
-                    return sdf.result
-                }
+        pixel: fn() {
+            let sdf = Sdf2d.viewport(self.pos * self.rect_size3)
+            sdf.box(
+                self.sdf_rect_pos.x
+                self.sdf_rect_pos.y
+                self.sdf_rect_size.x
+                self.sdf_rect_size.y
+                max(1.0 self.border_radius)
+            )
+            if sdf.shape > -1.0 {
+                let m = self.shadow_radius
+                let o = self.shadow_offset + self.rect_shift
+                let v = GaussShadow.rounded_box_shadow(vec2(m) + o self.rect_size2+o self.pos * (self.rect_size3+vec2(m)) self.shadow_radius*0.5 self.border_radius*2.0)
+                sdf.clear(self.shadow_color*v)
             }
+
+            sdf.fill_keep(self.get_color())
+            if self.border_size > 0.0 {
+                sdf.stroke(self.get_border_color() self.border_size)
+            }
+            return sdf.result
         }
     }
 
-    SttInputWithShadow = <SttInput> {
-        margin: {left: 15, right: 15, top: 8, bottom: 8}
-        visible: false,
-        clip_x: false, clip_y: false
+    let PromptInputWithShadow = PromptInput {
+        padding: Inset {left: 15 right: 15 top: 8 bottom: 8}
+        persistent +: {
+            clip_x: false clip_y: false
+            show_bg: true
+            draw_bg +: RoundedShadowShader {}
+        }
+    }
+
+    let SttInputWithShadow = SttInput {
+        margin: Inset {left: 15 right: 15 top: 8 bottom: 8}
+        visible: false
+        clip_x: false clip_y: false
         show_bg: true
-
-        draw_bg: {
-            color: #fefefe
-            uniform border_radius: 7.0
-            uniform border_size: 0.0
-            uniform border_color: #0000
-            uniform shadow_color: #0001
-            uniform shadow_radius: 9.0,
-            uniform shadow_offset: vec2(0.0,-2.5)
-
-            varying rect_size2: vec2,
-            varying rect_size3: vec2,
-            varying rect_pos2: vec2,
-            varying rect_shift: vec2,
-            varying sdf_rect_pos: vec2,
-            varying sdf_rect_size: vec2,
-
-            fn get_color(self) -> vec4 {
-                return self.color
-            }
-
-            fn vertex(self) -> vec4 {
-                let min_offset = min(self.shadow_offset,vec2(0));
-                self.rect_size2 = self.rect_size + 2.0*vec2(self.shadow_radius);
-                self.rect_size3 = self.rect_size2 + abs(self.shadow_offset);
-                self.rect_pos2 = self.rect_pos - vec2(self.shadow_radius) + min_offset;
-                self.sdf_rect_size = self.rect_size2 - vec2(self.shadow_radius * 2.0 + self.border_size * 2.0)
-                self.sdf_rect_pos = -min_offset + vec2(self.border_size + self.shadow_radius);
-                self.rect_shift = -min_offset;
-
-                return self.clip_and_transform_vertex(self.rect_pos2, self.rect_size3)
-            }
-
-            fn get_border_color(self) -> vec4 {
-                return self.border_color
-            }
-
-            fn pixel(self) -> vec4 {
-
-                let sdf = Sdf2d::viewport(self.pos * self.rect_size3)
-                sdf.box(
-                    self.sdf_rect_pos.x,
-                    self.sdf_rect_pos.y,
-                    self.sdf_rect_size.x,
-                    self.sdf_rect_size.y,
-                    max(1.0, self.border_radius)
-                )
-                if sdf.shape > -1.0{
-                    let m = self.shadow_radius;
-                    let o = self.shadow_offset + self.rect_shift;
-                    let v = GaussShadow::rounded_box_shadow(vec2(m) + o, self.rect_size2+o, self.pos * (self.rect_size3+vec2(m)), self.shadow_radius*0.5, self.border_radius*2.0);
-                    sdf.clear(self.shadow_color*v)
-                }
-
-                sdf.fill_keep(self.get_color())
-                if self.border_size > 0.0 {
-                    sdf.stroke(self.get_border_color(), self.border_size)
-                }
-                return sdf.result
-            }
-        }
+        draw_bg +: RoundedShadowShader {}
     }
 
-    pub ChatView = {{ChatView}} {
-        width: Fill, height: Fill
+    mod.widgets.ChatView = #(ChatView::register_widget(vm)) {
+        width: Fill height: Fill
         flow: Down
         spacing: 0
 
-        deep_inquire_content: <DeepInquireContent> {}
+        deep_inquire_content := DeepInquireContent {}
 
-        chat = <Chat> {
-            messages = { padding: {left: 10, right: 10} }
-            prompt = <PromptInputWithShadow> {}
-            stt_input = <SttInputWithShadow> {}
+        chat := Chat {
+            messages +: { padding: Inset {left: 10 right: 10} }
+            prompt := PromptInputWithShadow {}
+            stt_input := SttInputWithShadow {}
         }
     }
 }
@@ -188,13 +116,13 @@ live_design! {
 /// adding a model selector.
 ///
 /// This allows ChatScreen to use multiple concurrent chats.
-#[derive(Live, Widget)]
+#[derive(Script, Widget)]
 pub struct ChatView {
     #[deref]
     view: View,
 
     #[live]
-    deep_inquire_content: LivePtr,
+    deep_inquire_content: Option<ScriptObjectRef>,
 
     #[rust]
     chat_id: ChatId,
@@ -205,11 +133,11 @@ pub struct ChatView {
     #[rust]
     focused: bool,
 
-    // `chat_deck.rs` uses `WidgetRef::new_from_ptr` where `after_new_from_doc` is
-    // not yet called and then tries to work with data from the widget, so ensuring
+    // `chat_deck.rs` uses `WidgetRef::new_from_script_object` where `on_after_new`
+    // is not yet called and then tries to work with data from the widget, so ensuring
     // a controller is ready is necessary.
     // Do not expose this mutably unless you handle plugin unlinking on controller swap.
-    // The plugin is still constructed in `after_new_from_doc`.
+    // The plugin is still constructed in `on_after_new`.
     #[rust(ChatController::new_arc())]
     chat_controller: Arc<Mutex<ChatController>>,
 
@@ -232,11 +160,33 @@ pub struct ChatView {
     stt_config: Option<Version>,
 }
 
-impl LiveHook for ChatView {
-    fn after_new_from_doc(&mut self, cx: &mut Cx) {
-        self.messages(ids!(chat.messages))
-            .write()
-            .register_custom_content(DeepInquireCustomContent::new(self.deep_inquire_content));
+impl ScriptHook for ChatView {
+    fn on_after_apply(
+        &mut self,
+        vm: &mut ScriptVm,
+        _apply: &Apply,
+        _scope: &mut Scope,
+        value: ScriptValue,
+    ) {
+        if let Some(obj) = value.as_object() {
+            vm.vec_with(obj, |_vm, vec| {
+                for kv in vec {
+                    if let Some(id) = kv.key.as_id() {
+                        if id == id!(deep_inquire_content) {
+                            self.deep_inquire_content = Some(kv.value);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    fn on_after_new(&mut self, vm: &mut ScriptVm) {
+        if let Some(template) = self.deep_inquire_content {
+            self.messages(ids!(chat.messages))
+                .write()
+                .register_custom_content(DeepInquireCustomContent::new(template));
+        }
         self.prompt_input(ids!(chat.prompt)).write().disable();
         let plugin_id = self
             .chat_controller
@@ -247,9 +197,11 @@ impl LiveHook for ChatView {
 
         self.chat_controller.lock().unwrap().set_basic_spawner();
 
-        self.chat(ids!(chat))
-            .write()
-            .set_chat_controller(cx, Some(self.chat_controller.clone()));
+        vm.with_cx_mut(|cx| {
+            self.chat(ids!(chat))
+                .write()
+                .set_chat_controller(cx, Some(self.chat_controller.clone()));
+        });
     }
 }
 
@@ -292,33 +244,25 @@ impl Widget for ChatView {
         }
 
         // On mobile, only set padding on top of the prompt
-        // TODO: do this with AdaptiveView instead of apply_over
+        // TODO: do this with AdaptiveView instead of script_apply_eval
         if !cx.display_context.is_desktop() && cx.display_context.is_screen_size_known() {
-            self.prompt_input(ids!(chat.prompt)).apply_over(
-                cx,
-                live! {
-                    padding: {bottom: 50, left: 20, right: 20}
-                },
-            );
-            self.stt_input(ids!(chat.stt_input)).apply_over(
-                cx,
-                live! {
-                    margin: {bottom: 50, left: 20, right: 20}
-                },
-            );
+            let prompt = self.prompt_input(ids!(chat.prompt));
+            script_apply_eval!(cx, prompt, {
+                padding: Inset {bottom: 50 left: 20 right: 20}
+            });
+            let stt = self.stt_input(ids!(chat.stt_input));
+            script_apply_eval!(cx, stt, {
+                margin: Inset {bottom: 50 left: 20 right: 20}
+            });
         } else {
-            self.prompt_input(ids!(chat.prompt)).apply_over(
-                cx,
-                live! {
-                    padding: {left: 10, right: 10, top: 8, bottom: 8}
-                },
-            );
-            self.stt_input(ids!(chat.stt_input)).apply_over(
-                cx,
-                live! {
-                    margin: {left: 10, right: 10, top: 8, bottom: 8}
-                },
-            );
+            let prompt = self.prompt_input(ids!(chat.prompt));
+            script_apply_eval!(cx, prompt, {
+                padding: Inset {left: 10 right: 10 top: 8 bottom: 8}
+            });
+            let stt = self.stt_input(ids!(chat.stt_input));
+            script_apply_eval!(cx, stt, {
+                margin: Inset {left: 10 right: 10 top: 8 bottom: 8}
+            });
         }
 
         self.view.draw_walk(cx, scope, walk)

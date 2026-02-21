@@ -1,41 +1,38 @@
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-
-    ModelFilesListLabel = <RoundedView> {
-        width: Fit,
-        height: Fit,
-        padding: {top: 6, bottom: 6, left: 10, right: 10}
+    let ModelFilesListLabel = RoundedView {
+        width: Fit
+        height: Fit
+        padding: Inset {top: 6 bottom: 6 left: 10 right: 10}
 
         draw_bg: {
-            instance border_radius: 2.0,
-            color: #E6F1EC,
+            border_radius: instance(2.0)
+            color: #E6F1EC
         }
 
-        label = <Label> {
-            draw_text:{
-                text_style: <REGULAR_FONT>{font_size: 9},
+        label := Label {
+            draw_text: {
+                text_style: theme.font_regular {font_size: 9}
                 color: #1C1917
             }
         }
     }
 
-    pub ModelFilesTags = {{ModelFilesTags}} {
-        width: Fit,
-        height: Fit,
-        flow: Right,
-        spacing: 5,
+    mod.widgets.ModelFilesTags = #(ModelFilesTags::register_widget(vm)) {
+        width: Fit
+        height: Fit
+        flow: Right
+        spacing: 5
 
-        template: <ModelFilesListLabel> {}
+        template: ModelFilesListLabel {}
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct ModelFilesTags {
     #[redraw]
     #[rust]
@@ -48,7 +45,7 @@ pub struct ModelFilesTags {
     layout: Layout,
 
     #[live]
-    template: Option<LivePtr>,
+    template: Option<ScriptObjectRef>,
 
     #[rust]
     items: ComponentMap<LiveId, WidgetRef>,
@@ -80,7 +77,7 @@ impl ModelFilesTagsRef {
         for (i, tag) in tags.iter().enumerate() {
             let item_id = LiveId(i as u64).into();
             let item_widget = WidgetRef::new_from_ptr(cx, tags_widget.template);
-            item_widget.apply_over(cx, live! {label = { text: (tag) }});
+            script_apply_eval!(cx, item_widget, { label: { text: #(tag) } });
             tags_widget.items.insert(item_id, item_widget);
         }
     }

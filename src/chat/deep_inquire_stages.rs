@@ -5,287 +5,275 @@ use makepad_widgets::*;
 use crate::data::deep_inquire_client::{Stage, StageType, SubStage};
 use moly_kit::prelude::*;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::shaders::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
+    // A workaround for RoundedShadowView having border_size defined as
+    // a uniform, which breaks whenever updated through script_apply_eval.
+    // This custom version uses instance fields instead.
+    let CustomRoundedShadowView = ViewBase {
+        clip_x: false
+        clip_y: false
 
-    use makepad_code_editor::code_view::CodeView;
-
-    use moly_kit::widgets::citation_list::*;
-    use moly_kit::widgets::message_markdown::*;
-
-    // A workaround for RoundedShadowView having the border_size defined as a uniform,
-    // which breaks whenever updated through apply_over. This custom version replaces the properties with `instance` fields instead.
-    // This will be fixed in Makepad.
-    CustomRoundedShadowView = <View>{
-        clip_x:false,
-        clip_y:false,
-
-        show_bg: true,
-        draw_bg: {
+        show_bg: true
+        draw_bg +: {
             color: #8
-            instance border_radius: 2.5
-            instance border_size: 0.0
-            instance border_color: #0000
-            instance shadow_color: #0007
-            instance shadow_radius: 20.0,
-            instance shadow_offset: vec2(0.0,0.0)
+            border_radius: instance(2.5)
+            border_size: instance(0.0)
+            border_color: instance(#0000)
+            shadow_color: instance(#0007)
+            shadow_radius: instance(20.0)
+            shadow_offset: instance(vec2(0 0))
 
-            varying rect_size2: vec2,
-            varying rect_size3: vec2,
-            varying rect_pos2: vec2,
-            varying rect_shift: vec2,
-            varying sdf_rect_pos: vec2,
-            varying sdf_rect_size: vec2,
+            rect_size2: varying(vec2(0))
+            rect_size3: varying(vec2(0))
+            rect_pos2: varying(vec2(0))
+            rect_shift: varying(vec2(0))
+            sdf_rect_pos: varying(vec2(0))
+            sdf_rect_size: varying(vec2(0))
 
-            fn get_color(self) -> vec4 {
+            get_color: fn() -> vec4 {
                 return self.color
             }
 
-            fn vertex(self) -> vec4 {
-                let min_offset = min(self.shadow_offset,vec2(0));
-                self.rect_size2 = self.rect_size + 2.0*vec2(self.shadow_radius);
-                self.rect_size3 = self.rect_size2 + abs(self.shadow_offset);
-                self.rect_pos2 = self.rect_pos - vec2(self.shadow_radius) + min_offset;
+            vertex: fn() {
+                let min_offset = min(self.shadow_offset vec2(0))
+                self.rect_size2 = self.rect_size + 2.0*vec2(self.shadow_radius)
+                self.rect_size3 = self.rect_size2 + abs(self.shadow_offset)
+                self.rect_pos2 = self.rect_pos - vec2(self.shadow_radius) + min_offset
                 self.sdf_rect_size = self.rect_size2 - vec2(self.shadow_radius * 2.0 + self.border_size * 2.0)
-                self.sdf_rect_pos = -min_offset + vec2(self.border_size + self.shadow_radius);
-                self.rect_shift = -min_offset;
+                self.sdf_rect_pos = -min_offset + vec2(self.border_size + self.shadow_radius)
+                self.rect_shift = -min_offset
 
-                return self.clip_and_transform_vertex(self.rect_pos2, self.rect_size3)
+                return self.clip_and_transform_vertex(self.rect_pos2 self.rect_size3)
             }
 
-            fn get_border_color(self) -> vec4 {
+            get_border_color: fn() -> vec4 {
                 return self.border_color
             }
 
-            fn pixel(self) -> vec4 {
-
-                let sdf = Sdf2d::viewport(self.pos * self.rect_size3)
+            pixel: fn() {
+                let sdf = Sdf2d.viewport(self.pos * self.rect_size3)
                 sdf.box(
-                    self.sdf_rect_pos.x,
-                    self.sdf_rect_pos.y,
-                    self.sdf_rect_size.x,
-                    self.sdf_rect_size.y,
-                    // max(1.0, self.border_radius)
+                    self.sdf_rect_pos.x
+                    self.sdf_rect_pos.y
+                    self.sdf_rect_size.x
+                    self.sdf_rect_size.y
                     self.border_radius
                 )
-                if sdf.shape > -1.0{ // try to skip the expensive gauss shadow
-                    let m = self.shadow_radius;
-                    let o = self.shadow_offset + self.rect_shift;
-                    let v = GaussShadow::rounded_box_shadow(vec2(m) + o, self.rect_size2+o, self.pos * (self.rect_size3+vec2(m)), self.shadow_radius*0.5, self.border_radius*2.0);
+                if sdf.shape > -1.0 {
+                    let m = self.shadow_radius
+                    let o = self.shadow_offset + self.rect_shift
+                    let v = GaussShadow.rounded_box_shadow(vec2(m) + o self.rect_size2+o self.pos * (self.rect_size3+vec2(m)) self.shadow_radius*0.5 self.border_radius*2.0)
                     sdf.clear(self.shadow_color*v)
                 }
 
                 sdf.fill_keep(self.get_color())
                 if self.border_size > 0.0 {
-                    sdf.stroke(self.get_border_color(), self.border_size)
+                    sdf.stroke(self.get_border_color() self.border_size)
                 }
                 return sdf.result
             }
         }
     }
 
-    StageBlockBase = <View> {
-        padding: {left: 30}
-        margin: {left: 30}
-        width: Fill, height: 20
+    let StageBlockBase = View {
+        padding: Inset {left: 30}
+        margin: Inset {left: 30}
+        width: Fill height: 20
         show_bg: true
-        draw_bg: {
-            color: #f9f9f9
-            instance left_border_color: #eaeaea
-            instance left_border_width: 3.0
+        draw_bg +: {
+            color: #xf9f9f9
+            left_border_color: instance(#xeaeaea)
+            left_border_width: instance(3.0)
 
-            fn pixel(self) -> vec4 {
-                let sdf = Sdf2d::viewport(self.pos * self.rect_size);
+            pixel: fn() {
+                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
 
-                // draw bg
-                sdf.rect(0., 0., self.rect_size.x, self.rect_size.y);
-                sdf.fill(self.color);
+                sdf.rect(0. 0. self.rect_size.x self.rect_size.y)
+                sdf.fill(self.color)
 
-                // draw the left vertical line
-                sdf.rect(0., 0., self.left_border_width, self.rect_size.y);
-                sdf.fill(self.left_border_color);
+                sdf.rect(0. 0. self.left_border_width self.rect_size.y)
+                sdf.fill(self.left_border_color)
 
-                return sdf.result;
+                return sdf.result
             }
         }
     }
 
-    SubStage = <StageBlockBase> {
-        width: Fill, height: Fit
-        padding: {left: 30}
-        margin: {left: 30}
+    let SubStage = StageBlockBase {
+        width: Fill height: Fit
+        padding: Inset {left: 30}
+        margin: Inset {left: 30}
 
         flow: Down
         spacing: 10
-        content_heading_label = <Label> {
+        content_heading_label := Label {
             width: Fill
-            draw_text: {
+            draw_text +: {
                 wrap: Word
-                text_style: <THEME_FONT_BOLD>{font_size: 11},
-                color: #003E62
+                text_style: theme.font_bold {font_size: 11}
+                color: #x003E62
             }
         }
-        content_block_markdown = <MessageMarkdown> {}
+        content_block_markdown := MessageMarkdown {}
     }
 
-    SubStages = {{SubStages}} {
+    mod.widgets.SubStages = #(SubStages::register_widget(vm)) {
         flow: Down
-        width: Fill, height: Fit,
+        width: Fill height: Fit
         spacing: 20
 
-        substage_template: <SubStage> {}
+        substage_template := SubStage {}
     }
 
-    StageView = {{StageView}}<View> {
+    mod.widgets.StageView = #(StageView::register_widget(vm)) {
         visible: false
-        width: Fill, height: Fit,
-        wrapper = <View> {
-            width: Fill, height: Fit,
-            cursor: Hand
+        width: Fill height: Fit
+        wrapper := View {
+            width: Fill height: Fit
+            cursor: MouseCursor.Hand
             flow: Down
-            align: {x: 0, y: 0.5}
-            header = <View> {
-                width: Fill, height: Fit,
+            align: Align {x: 0 y: 0.5}
+            header := View {
+                width: Fill height: Fit
                 spacing: 10
-                align: {x: 0, y: 0.5}
+                align: Align {x: 0 y: 0.5}
                 padding: 10
 
-                stage_toggle = <CustomRoundedShadowView> {
-                    width: 45, height: 45
+                stage_toggle := CustomRoundedShadowView {
+                    width: 45 height: 45
                     padding: 4
-                    draw_bg: {
-                        color: #f9f9f9,
-                        border_radius: 11.0,
-                        uniform shadow_color: #0001
-                        shadow_radius: 8.0,
-                        shadow_offset: vec2(0.0,-2.0)
-                        border_size: 0.0,
-                        border_color: #1A2533
+                    draw_bg +: {
+                        color: #xf9f9f9
+                        border_radius: instance(11.0)
+                        shadow_color: uniform(#x0001)
+                        shadow_radius: instance(8.0)
+                        shadow_offset: instance(vec2(0.0 f32(-2.0)))
+                        border_size: instance(0.0)
+                        border_color: instance(#x1A2533)
                     }
-                    align: {x: 0.5, y: 0.5}
+                    align: Align {x: 0.5 y: 0.5}
 
-                    stage_bubble_text = <Label> {
+                    stage_bubble_text := Label {
                         text: "1"
-                        draw_text: {
-                            text_style: <THEME_FONT_BOLD>{font_size: 14},
+                        draw_text +: {
+                            text_style: theme.font_bold {font_size: 14}
                             color: #000
                         }
                     }
                 }
-                stage_title = <Label> {
-                    draw_text: {
-                        text_style: <THEME_FONT_BOLD>{font_size: 11},
+                stage_title := Label {
+                    draw_text +: {
+                        text_style: theme.font_bold {font_size: 11}
                         color: #000
                     }
                 }
             }
-            stage_content_preview = <StageBlockBase> {
-                padding: {left: 30}
-                margin: {left: 30}
-                width: Fill, height: 20
+            stage_content_preview := StageBlockBase {
+                padding: Inset {left: 30}
+                margin: Inset {left: 30}
+                width: Fill height: 20
 
-                stage_preview_label = <Label> {
+                stage_preview_label := Label {
                     width: Fill
-                    draw_text: {
+                    draw_text +: {
                         wrap: Word
-                        text_style: {font_size: 11},
+                        text_style: {font_size: 11}
                         color: #x0
                     }
                 }
             }
 
-            expanded_stage_content = <View> {
+            expanded_stage_content := View {
                 visible: false
-                flow: Down,
+                flow: Down
                 spacing: 25
                 height: Fit
-                citations_view = <StageBlockBase> {
+                citations_view := StageBlockBase {
                     visible: false
                     height: Fit
-                    flow: Down, spacing: 10
-                    <Label> {
-                        draw_text: {
-                            color: #003E62
-                            text_style: <THEME_FONT_BOLD> {font_size: 11},
+                    flow: Down spacing: 10
+                    Label {
+                        draw_text +: {
+                            color: #x003E62
+                            text_style: theme.font_bold {font_size: 11}
                         }
                         text: "Sources"
                     }
-                    citations_list = <CitationList> {}
+                    citations_list := CitationList {}
                 }
-                substages = <SubStages> {}
+                substages := SubStages {}
             }
         }
 
-        animator: {
-            streaming = {
-                default: off,
-                off = {
+        animator: Animator {
+            streaming: {
+                default: @off
+                off: AnimatorState {
                     from: {all: Snap}
                     apply: {
-                        wrapper = {
-                            header = {
-                                stage_toggle = { draw_bg: {
-                                    shadow_offset: vec2(0.0, -2.0),
+                        wrapper: {
+                            header: {
+                                stage_toggle: { draw_bg: {
+                                    shadow_offset: vec2(0.0 f32(-2.0))
                                     shadow_color: #x0001
                                 } }
                             }
                         }
                     }
                 }
-                move_up = {
-                    redraw: true,
-                    from: {all: Forward { duration: 0.4 }}
+                move_up: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.4}}
                     apply: {
-                        wrapper = {
-                            header = {
-                                stage_toggle = { draw_bg: {
-                                    shadow_offset: vec2(0.0, -4.0),
+                        wrapper: {
+                            header: {
+                                stage_toggle: { draw_bg: {
+                                    shadow_offset: vec2(0.0 f32(-4.0))
                                     shadow_color: #x0002
                                 } }
                             }
                         }
                     }
                 }
-                move_right = {
-                    redraw: true,
-                    from: {all: Forward { duration: 0.4 }}
+                move_right: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.4}}
                     apply: {
-                        wrapper = {
-                            header = {
-                                stage_toggle = { draw_bg: {
-                                    shadow_offset: vec2(3.0, -2.0),
+                        wrapper: {
+                            header: {
+                                stage_toggle: { draw_bg: {
+                                    shadow_offset: vec2(3.0 f32(-2.0))
                                     shadow_color: #x0002
                                 } }
                             }
                         }
                     }
                 }
-                move_down = {
-                    redraw: true,
-                    from: {all: Forward { duration: 0.4 }}
+                move_down: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.4}}
                     apply: {
-                        wrapper = {
-                            header = {
-                                stage_toggle = { draw_bg: {
-                                    shadow_offset: vec2(0.0, 1.0),
+                        wrapper: {
+                            header: {
+                                stage_toggle: { draw_bg: {
+                                    shadow_offset: vec2(0.0 1.0)
                                     shadow_color: #x0002
                                 } }
                             }
                         }
                     }
                 }
-                move_left = {
-                    redraw: true,
-                    from: {all: Forward { duration: 0.4 }}
+                move_left: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.4}}
                     apply: {
-                        wrapper = {
-                            header = {
-                                stage_toggle = { draw_bg: {
-                                    shadow_offset: vec2(-3.0, -2.0),
+                        wrapper: {
+                            header: {
+                                stage_toggle: { draw_bg: {
+                                    shadow_offset: vec2(f32(-3.0) f32(-2.0))
                                     shadow_color: #x0002
                                 } }
                             }
@@ -296,30 +284,30 @@ live_design! {
         }
     }
 
-    pub Stages = {{Stages}} {
+    mod.widgets.Stages = #(Stages::register_widget(vm)) {
         flow: Down
-        visible: false,
-        width: Fill, height: Fit,
+        visible: false
+        width: Fill height: Fit
 
-        thinking_stage = <StageView> {
+        thinking_stage := StageView {
             stage_type: Thinking
-            wrapper = {
-                header = {
-                    stage_title = { text: "Thinking" }
-                    stage_toggle = {
-                        stage_bubble_text = { text: "🧠" }
+            wrapper: {
+                header: {
+                    stage_title: { text: "Thinking" }
+                    stage_toggle: {
+                        stage_bubble_text: { text: "🧠" }
                     }
                 }
             }
         }
 
-        content_stage = <StageView> {
+        content_stage := StageView {
             stage_type: Content
-            wrapper = {
-                header = {
-                    stage_title = { text: "Detailed Anaylsis" }
-                    stage_toggle = {
-                        stage_bubble_text = { text: "🔬" }
+            wrapper: {
+                header: {
+                    stage_title: { text: "Detailed Anaylsis" }
+                    stage_toggle: {
+                        stage_bubble_text: { text: "🔬" }
                     }
                 }
             }
@@ -327,7 +315,7 @@ live_design! {
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct Stages {
     #[deref]
     view: View,
@@ -339,7 +327,6 @@ pub struct Stages {
 impl Widget for Stages {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.view.handle_event(cx, event, scope);
-
         self.widget_match_event(cx, event, scope);
     }
 
@@ -351,20 +338,17 @@ impl Widget for Stages {
 impl WidgetMatchEvent for Stages {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
         for action in actions {
-            match action.cast() {
-                StageViewAction::StageViewClicked(clicked_stage) => {
-                    match clicked_stage {
-                        StageType::Thinking => {
-                            self.stage_view(ids!(content_stage)).set_active(cx, false);
-                        }
-                        StageType::Content => {
-                            self.stage_view(ids!(thinking_stage)).set_active(cx, false);
-                        }
-                        _ => {}
+            if let StageViewAction::StageViewClicked(clicked_stage) = action.cast() {
+                match clicked_stage {
+                    StageType::Thinking => {
+                        self.stage_view(ids!(content_stage)).set_active(cx, false);
                     }
-                    self.redraw(cx);
+                    StageType::Content => {
+                        self.stage_view(ids!(thinking_stage)).set_active(cx, false);
+                    }
+                    _ => {}
                 }
-                _ => {}
+                self.redraw(cx);
             }
         }
     }
@@ -382,14 +366,12 @@ impl Stages {
             match stage.stage_type {
                 StageType::Thinking => {
                     let mut thinking_stage = self.stage_view(ids!(thinking_stage));
-                    thinking_stage.set_stage(cx, &stage);
-                    // Thinking streams if content stage doesn't exist yet
+                    thinking_stage.set_stage(cx, stage);
                     thinking_stage.set_streaming_state(cx, !has_content_stage);
                 }
                 StageType::Content => {
                     let mut content_stage = self.stage_view(ids!(content_stage));
-                    content_stage.set_stage(cx, &stage);
-                    // Content streams if completion stage doesn't exist yet
+                    content_stage.set_stage(cx, stage);
                     content_stage.set_streaming_state(cx, !has_completion_stage);
                 }
                 _ => {}
@@ -408,12 +390,12 @@ impl StagesRef {
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, Widget, Animator)]
 pub struct StageView {
     #[deref]
     view: View,
 
-    #[animator]
+    #[apply_default]
     animator: Animator,
 
     #[rust]
@@ -432,12 +414,12 @@ pub struct StageView {
     is_streaming: bool,
 }
 
+impl ScriptHook for StageView {}
+
 impl Widget for StageView {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
-        // Handle timer events for looping animation
         if self.timer.is_event(event).is_some() {
             if self.is_streaming {
-                // Cycle through animation states
                 if self.animator_in_state(cx, ids!(streaming.move_up)) {
                     self.animator_play(cx, ids!(streaming.move_right));
                 } else if self.animator_in_state(cx, ids!(streaming.move_right)) {
@@ -445,17 +427,14 @@ impl Widget for StageView {
                 } else if self.animator_in_state(cx, ids!(streaming.move_down)) {
                     self.animator_play(cx, ids!(streaming.move_left));
                 } else {
-                    // Assumes it's in move_left or just started
                     self.animator_play(cx, ids!(streaming.move_up));
                 }
-                // Restart the timer for the next step
-                self.timer = cx.start_timeout(0.4); // Match state duration
+                self.timer = cx.start_timeout(0.4);
             } else {
-                // If streaming stopped while timer was pending, ensure animation is off
                 self.animator_cut(cx, ids!(streaming.off));
                 if !self.timer.is_empty() {
                     cx.stop_timer(self.timer);
-                    self.timer = Timer::empty(); // Clear timer
+                    self.timer = Timer::empty();
                 }
             }
         }
@@ -470,19 +449,15 @@ impl Widget for StageView {
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         if self.is_active {
-            self.view(ids!(stage_toggle)).apply_over(
-                cx,
-                live! {
-                    draw_bg: { border_size: 1 }
-                },
-            );
+            let toggle = self.view(ids!(stage_toggle));
+            script_apply_eval!(cx, toggle, {
+                draw_bg: { border_size: 1 }
+            });
         } else {
-            self.view(ids!(stage_toggle)).apply_over(
-                cx,
-                live! {
-                    draw_bg: { border_size: 0 }
-                },
-            );
+            let toggle = self.view(ids!(stage_toggle));
+            script_apply_eval!(cx, toggle, {
+                draw_bg: { border_size: 0 }
+            });
         }
 
         self.view(ids!(expanded_stage_content))
@@ -496,9 +471,8 @@ impl Widget for StageView {
 
 impl WidgetMatchEvent for StageView {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if let Some(_fe) = self.view(ids!(wrapper)).finger_down(actions) {
+        if self.view(ids!(wrapper)).finger_down(actions).is_some() {
             self.is_active = !self.is_active;
-
             cx.action(StageViewAction::StageViewClicked(self.stage_type.clone()));
             self.redraw(cx);
         }
@@ -523,21 +497,18 @@ impl StageView {
             self.view(ids!(citations_view)).set_visible(cx, false);
         }
 
-        // TODO: this should be replaced in the future by an AI-provided summary
-        // Roughly grab the first 10 words of the first substage text to display as a preview
-        let stage_preview_text: Option<String> = stage.substages.get(0).and_then(|substage| {
-            // Since we're using plain text for summary, remove common markdown characters
+        let stage_preview_text: Option<String> = stage.substages.first().and_then(|substage| {
             let cleaned_text = substage
                 .text
-                .replace("*", "")
-                .replace("_", "")
-                .replace("#", "")
-                .replace("`", "")
-                .replace("[", "")
-                .replace("]", "")
-                .replace("(", "")
-                .replace(")", "")
-                .replace(">", "");
+                .replace('*', "")
+                .replace('_', "")
+                .replace('#', "")
+                .replace('`', "")
+                .replace('[', "")
+                .replace(']', "")
+                .replace('(', "")
+                .replace(')', "")
+                .replace('>', "");
 
             let words: Vec<&str> = cleaned_text.split_whitespace().collect();
             if words.len() > 10 {
@@ -565,15 +536,12 @@ impl StageView {
         self.is_streaming = is_streaming;
 
         if self.is_streaming {
-            // Start animation only if timer isn't already running
             if self.timer.is_empty() {
-                // Start the animation cycle
                 self.animator_play(cx, ids!(streaming.move_up));
-                self.timer = cx.start_timeout(0.01); // Start timer almost immediately
+                self.timer = cx.start_timeout(0.01);
             }
         } else {
-            // Stop animation and reset state
-            self.animator_cut(cx, ids!(streaming.off)); // Go directly to off state
+            self.animator_cut(cx, ids!(streaming.off));
             if !self.timer.is_empty() {
                 cx.stop_timer(self.timer);
                 self.timer = Timer::empty();
@@ -604,25 +572,48 @@ impl StageViewRef {
     }
 }
 
-#[derive(Clone, Debug, DefaultNone)]
+#[derive(Clone, Debug, Default)]
 pub enum StageViewAction {
+    #[default]
     None,
     StageViewClicked(StageType),
 }
 
-#[derive(Widget, Live, LiveHook)]
+#[derive(Widget, Script)]
 pub struct SubStages {
     #[deref]
     view: View,
 
     #[live]
-    substage_template: Option<LivePtr>,
+    substage_template: Option<ScriptObjectRef>,
 
     #[rust]
     substage_ids: Vec<String>,
 
     #[rust]
     substage_views: HashMap<String, View>,
+}
+
+impl ScriptHook for SubStages {
+    fn on_after_apply(
+        &mut self,
+        vm: &mut ScriptVm,
+        _apply: &Apply,
+        _scope: &mut Scope,
+        value: ScriptValue,
+    ) {
+        if let Some(obj) = value.as_object() {
+            vm.vec_with(obj, |_vm, vec| {
+                for kv in vec {
+                    if let Some(id) = kv.key.as_id() {
+                        if id == id!(substage_template) {
+                            self.substage_template = Some(kv.value);
+                        }
+                    }
+                }
+            });
+        }
+    }
 }
 
 impl Widget for SubStages {
@@ -655,14 +646,11 @@ impl SubStages {
             .collect();
         self.visible = true;
         for substage in substages.iter() {
-            // If the substage widget exists, update it
             let substage_view =
                 if let Some(substage_view) = self.substage_views.get_mut(&substage.id) {
                     substage_view
                 } else {
-                    // Otherwise, create a new substage widget
-                    let substage_view = View::new_from_ptr(cx, self.substage_template);
-                    // substage_view.set_stage(cx, &substage);
+                    let substage_view = View::new_from_script_object(cx, self.substage_template);
                     self.substage_views
                         .insert(substage.id.clone(), substage_view);
                     self.substage_views.get_mut(&substage.id).unwrap()
@@ -689,7 +677,8 @@ impl SubStagesRef {
     }
 }
 
-// Replaces underscores with spaces, and capitalizes the first letter of each word
+/// Replaces underscores with spaces and capitalizes the first letter
+/// of each word.
 pub fn get_human_readable_stage_name(name: &str) -> String {
     name.split('_')
         .map(|word| {

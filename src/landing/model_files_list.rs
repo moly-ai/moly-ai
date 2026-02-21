@@ -3,22 +3,21 @@ use makepad_widgets::*;
 
 use super::model_files_item::ModelFilesItemWidgetRefExt;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    use crate::landing::model_files_item::ModelFilesItem;
+    use mod.widgets.*
 
-    pub ModelFilesList = {{ModelFilesList}} {
-        width: Fill,
-        height: Fit,
-        flow: Down,
+    mod.widgets.ModelFilesList = #(ModelFilesList::register_widget(vm)) {
+        width: Fill
+        height: Fit
+        flow: Down
 
-        template: <ModelFilesItem> {}
+        template: ModelFilesItem {}
     }
 }
 
-#[derive(Live, LiveHook, LiveRegisterWidget, WidgetRef)]
+#[derive(Script, ScriptHook, WidgetRegister, WidgetRef)]
 pub struct ModelFilesList {
     #[rust]
     area: Area,
@@ -30,7 +29,7 @@ pub struct ModelFilesList {
     layout: Layout,
 
     #[live]
-    template: Option<LivePtr>,
+    template: Option<ScriptObjectRef>,
 
     #[live(false)]
     show_featured: bool,

@@ -2,65 +2,72 @@ use makepad_widgets::*;
 
 use crate::shared::actions::ChatAction;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::chat::chat_history::ChatHistory;
+    let ICON_NEW_CHAT = crate_resource("self://resources/icons/new_chat.svg")
 
-    ICON_NEW_CHAT = dep("crate://self/resources/icons/new_chat.svg")
-
-    HeadingLabel = <Label> {
-        margin: {left: 4, bottom: 4},
-        draw_text:{
-            text_style: <BOLD_FONT>{font_size: 10.5},
+    let HeadingLabel = Label {
+        margin: Inset {left: 4 bottom: 4}
+        draw_text +: {
+            text_style: theme.font_bold {font_size: 10.5}
             color: #3
         }
     }
 
-    NoAgentsWarning = <Label> {
-        margin: {left: 4, bottom: 4},
+    let NoAgentsWarning = Label {
+        margin: Inset {left: 4 bottom: 4}
         width: Fill
-        draw_text:{
-            text_style: {font_size: 8.5},
+        draw_text +: {
+            text_style: theme.font_regular {font_size: 8.5}
             color: #3
         }
     }
 
-    pub ChatHistoryPanel = {{ChatHistoryPanel}} <MolyTogglePanel> {
-        // Workaround: Instantiate a view replacing the whole `open_content` content,
-        // because `CachedView` is currently rendering up-side-down on web.
-        open_content = <View> {
-            <ChatHistory> {
-                margin: {top: 80}
+    // TODO: TogglePanel was removed from new Makepad. This is a simplified
+    // replacement that just shows the chat history directly in a View.
+    mod.widgets.ChatHistoryPanel = #(ChatHistoryPanel::register_widget(vm)) {
+        width: Fill height: Fill
+        flow: Overlay
+
+        View {
+            width: Fill height: Fill
+            flow: Right
+
+            View {
+                width: Fill height: Fill
+                ChatHistory {
+                    margin: Inset {top: 80}
+                }
             }
-            right_border = <View> {
-                width: 1.6, height: Fill
-                margin: {top: 15, bottom: 15}
-                show_bg: true,
-                draw_bg: {
-                    color: #eaeaea
+
+            right_border := View {
+                width: 1.6 height: Fill
+                margin: Inset {top: 15 bottom: 15}
+                show_bg: true
+                draw_bg +: {
+                    color: #xeaeaea
                 }
             }
         }
 
-        persistent_content = {
-            margin: { left: -10 },
-            default = {
-                after = {
-                    new_chat_button = <MolyButton> {
-                        width: Fit,
-                        height: Fit,
-                        icon_walk: {margin: { top: -1 }, width: 21, height: 21},
-                        draw_icon: {
-                            svg_file: (ICON_NEW_CHAT),
-                            fn get_color(self) -> vec4 {
-                                return #475467;
-                            }
-                        }
+        View {
+            width: Fill height: Fit
+            align: Align {x: 1.0 y: 0.0}
+            padding: Inset {top: 10 right: 10}
+
+            new_chat_button := MolyButton {
+                width: Fit
+                height: Fit
+                icon_walk: Walk {
+                    margin: Inset {top: -1}
+                    width: 21 height: 21
+                }
+                draw_icon +: {
+                    svg: ICON_NEW_CHAT
+                    get_color: fn() -> vec4 {
+                        return #x475467
                     }
                 }
             }
@@ -68,15 +75,16 @@ live_design! {
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct ChatHistoryPanel {
     #[deref]
-    deref: TogglePanel,
+    deref: View,
 }
 
 impl Widget for ChatHistoryPanel {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.deref.handle_event(cx, event, scope);
+        self.widget_match_event(cx, event, scope);
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {

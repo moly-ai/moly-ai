@@ -15,22 +15,22 @@ pub mod model_info;
 pub mod moly_bot_filter;
 pub mod shared;
 
-use makepad_widgets::Cx;
+use makepad_widgets::ScriptVm;
 
-pub fn live_design(cx: &mut Cx) {
-    deep_inquire_stages::live_design(cx);
-    deep_inquire_content::live_design(cx);
-    entity_button::live_design(cx);
-    chat_history_card::live_design(cx);
-    chat_history::live_design(cx);
-    chat_history_panel::live_design(cx);
-    chat_params::live_design(cx);
-    chat_view::live_design(cx);
-    chats_deck::live_design(cx);
-    chat_screen::live_design(cx);
-    chat_screen_mobile::live_design(cx);
-    model_info::live_design(cx);
-    shared::live_design(cx);
-    delete_chat_modal::live_design(cx);
-    chat_history_card_options::live_design(cx);
+pub fn script_mod(vm: &mut ScriptVm) {
+    deep_inquire_stages::script_mod(vm);
+    deep_inquire_content::script_mod(vm);
+    entity_button::script_mod(vm);
+    chat_history_card::script_mod(vm);
+    chat_history::script_mod(vm);
+    chat_history_panel::script_mod(vm);
+    chat_params::script_mod(vm);
+    chat_view::script_mod(vm);
+    chats_deck::script_mod(vm);
+    chat_screen::script_mod(vm);
+    chat_screen_mobile::script_mod(vm);
+    model_info::script_mod(vm);
+    shared::script_mod(vm);
+    delete_chat_modal::script_mod(vm);
+    chat_history_card_options::script_mod(vm);
 }

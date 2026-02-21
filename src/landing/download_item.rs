@@ -8,206 +8,202 @@ use crate::{
 use makepad_widgets::*;
 use moly_protocol::data::{FileId, PendingDownload, PendingDownloadsStatus};
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::MolyButton;
+    let ICON_PAUSE = crate_resource("self://resources/icons/pause_download.svg")
+    let ICON_CANCEL = crate_resource("self://resources/icons/cancel_download.svg")
+    let ICON_PLAY = crate_resource("self://resources/icons/play_download.svg")
+    let ICON_RETRY = crate_resource("self://resources/icons/retry.svg")
 
-    ICON_PAUSE = dep("crate://self/resources/icons/pause_download.svg")
-    ICON_CANCEL = dep("crate://self/resources/icons/cancel_download.svg")
-    ICON_PLAY = dep("crate://self/resources/icons/play_download.svg")
-    ICON_RETRY = dep("crate://self/resources/icons/retry.svg")
+    let ModelAttributeTag = RoundedView {
+        width: Fit
+        height: Fit
+        padding: Inset {top: 6 bottom: 6 left: 10 right: 10}
 
-    ModelAttributeTag = <RoundedView> {
-        width: Fit,
-        height: Fit,
-        padding: {top: 6, bottom: 6, left: 10, right: 10}
-
-        spacing: 5,
+        spacing: 5
         draw_bg: {
-            border_radius: 2.0,
+            border_radius: 2.0
         }
 
-        caption = <Label> {
+        caption := Label {
             draw_text: {
-                text_style: <REGULAR_FONT>{font_size: 9},
+                text_style: theme.font_regular {font_size: 9}
                 color: #fff
             }
         }
     }
 
-    Information = <View> {
-        width: Fill,
-        height: Fit,
-        flow: Right,
-        spacing: 12,
-        margin: {right: 60}
+    let Information = View {
+        width: Fill
+        height: Fit
+        flow: Right
+        spacing: 12
+        margin: Inset {right: 60}
 
-        align: {x: 0.0, y: 0.5},
+        align: Align {x: 0.0 y: 0.5}
 
-        architecture_tag = <ModelAttributeTag> {
-            caption = {
+        architecture_tag := ModelAttributeTag {
+            caption := {
                 text: "StableLM"
             }
             draw_bg: {
-                color: #A44EBB,
+                color: #A44EBB
             }
         }
 
-        params_size_tag = <ModelAttributeTag> {
-            caption = {
+        params_size_tag := ModelAttributeTag {
+            caption := {
                 text: "3B"
             }
             draw_bg: {
-                color: #44899A,
+                color: #44899A
             }
         }
 
-        filename = <Label> {
+        filename := Label {
             draw_text: {
-                text_style: <REGULAR_FONT>{font_size: 10},
+                text_style: theme.font_regular {font_size: 10}
                 color: #000
             }
             text: "Stable-code-instruct-3b-Q8_0.gguf"
         }
     }
 
-    Progress = <View> {
-        width: Fill,
-        height: Fit,
-        spacing: 8,
+    let Progress = View {
+        width: Fill
+        height: Fit
+        spacing: 8
 
-        flow: Down,
+        flow: Down
 
-        <View> {
-            width: Fill,
-            height: Fit,
+        View {
+            width: Fill
+            height: Fit
 
-            flow: Right,
+            flow: Right
 
-            progress = <Label> {
+            progress := Label {
                 draw_text: {
-                    text_style: <BOLD_FONT>{font_size: 9},
+                    text_style: theme.font_bold {font_size: 9}
                     color: #099250
                 }
                 text: "Downloading 9.7%"
             }
-            <View> { width: Fill, height: 1 }
-            downloaded_size = <Label> {
+            View { width: Fill height: 1 }
+            downloaded_size := Label {
                 draw_text: {
-                    text_style: <REGULAR_FONT>{font_size: 9},
+                    text_style: theme.font_regular {font_size: 9}
                     color: #667085
                 }
                 text: "288.55 MB / 2.97 GB | 10.59 MB/s "
             }
         }
 
-        <View> {
-            width: Fill,
-            height: 12,
+        View {
+            width: Fill
+            height: 12
 
-            flow: Overlay,
+            flow: Overlay
 
-            <RoundedView> {
-                width: 600,
-                height: Fill,
+            RoundedView {
+                width: 600
+                height: Fill
                 draw_bg: {
-                    color: #D9D9D9,
-                    border_radius: 2.0,
+                    color: #D9D9D9
+                    border_radius: 2.0
                 }
             }
 
-            progress_bar = <RoundedView> {
-                width: 0,
-                height: Fill,
+            progress_bar := RoundedView {
+                width: 0
+                height: Fill
                 draw_bg: {
-                    color: #099250,
-                    border_radius: 2.0,
+                    color: #099250
+                    border_radius: 2.0
                 }
             }
         }
     }
 
-    ActionButton = <MolyButton> {
-        width: 40,
-        height: 40,
+    let ActionButton = MolyButton {
+        width: 40
+        height: 40
 
         draw_bg: {
-            border_color_1: #EAECF0,
-            border_size: 1.0,
-            color: #fff,
-            color_hover: #E2F1F1,
-            border_radius: 2.0,
+            border_color_1: #EAECF0
+            border_size: 1.0
+            color: #fff
+            color_hover: #E2F1F1
+            border_radius: 2.0
         }
 
         draw_icon: {
-            color: #667085;
+            color: #667085
         }
     }
 
-    Actions = <View> {
-        width: Fill,
-        height: Fit,
-        flow: Right,
-        spacing: 12,
+    let Actions = View {
+        width: Fill
+        height: Fit
+        flow: Right
+        spacing: 12
 
-        align: {x: 0.5, y: 0.5},
+        align: Align {x: 0.5 y: 0.5}
 
-        pause_button = <ActionButton> {
+        pause_button := ActionButton {
             draw_icon: {
-                svg_file: (ICON_PAUSE),
+                svg_file: (ICON_PAUSE)
             }
-            icon_walk: { margin: { left: 6 } }
+            icon_walk: { margin: Inset { left: 6 } }
         }
 
-        play_button = <ActionButton> {
+        play_button := ActionButton {
             draw_icon: {
-                svg_file: (ICON_PLAY),
+                svg_file: (ICON_PLAY)
             }
-            icon_walk: { margin: { left: 6 } }
+            icon_walk: { margin: Inset { left: 6 } }
         }
 
-        retry_button = <ActionButton> {
+        retry_button := ActionButton {
             draw_icon: {
-                svg_file: (ICON_RETRY),
+                svg_file: (ICON_RETRY)
             }
         }
 
-        cancel_button = <ActionButton> {
+        cancel_button := ActionButton {
             draw_icon: {
-                svg_file: (ICON_CANCEL),
+                svg_file: (ICON_CANCEL)
             }
             icon_walk: { margin: 0 }
         }
     }
 
-    pub DownloadItem = {{DownloadItem}}<RoundedView> {
-        width: Fill,
-        height: Fit,
+    mod.widgets.DownloadItem = #(DownloadItem::register_widget(vm)) RoundedView {
+        width: Fill
+        height: Fit
 
-        padding: 20,
-        margin: {bottom: 16},
-        spacing: 30,
-        align: {x: 0.0, y: 0.5},
+        padding: 20
+        margin: Inset {bottom: 16}
+        spacing: 30
+        align: Align {x: 0.0 y: 0.5}
 
-        cursor: Default,
+        cursor: MouseCursor.Default
 
         draw_bg: {
-            border_color: #EAECF0,
-            border_size: 1.0,
-            color: #fff,
+            border_color: #EAECF0
+            border_size: 1.0
+            color: #fff
         }
 
-        <Information> {}
-        <Progress> {}
-        <Actions> {}
+        Information {}
+        Progress {}
+        Actions {}
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct DownloadItem {
     #[deref]
     view: View,
@@ -242,19 +238,15 @@ impl Widget for DownloadItem {
                 let downloading_color = vec3(0.035, 0.572, 0.314); //#099250
 
                 label.set_text(cx, &format!("Downloading {:.1}%", download.progress));
-                label.apply_over(
-                    cx,
-                    live! { draw_text: { color: (downloading_color) }
-                    },
-                );
+                script_apply_eval!(cx, label, {
+                    draw_text: { color: #(downloading_color) }
+                });
 
-                self.view(ids!(progress_bar)).apply_over(
-                    cx,
-                    live! {
-                        width: (progress_bar_width)
-                        draw_bg: { color: (downloading_color) }
-                    },
-                );
+                let progress_bar = self.view(ids!(progress_bar));
+                script_apply_eval!(cx, progress_bar, {
+                    width: #(progress_bar_width)
+                    draw_bg: { color: #(downloading_color) }
+                });
 
                 self.button(ids!(pause_button)).set_visible(cx, false);
                 self.button(ids!(play_button)).set_visible(cx, false);
@@ -265,19 +257,15 @@ impl Widget for DownloadItem {
                 let downloading_color = vec3(0.035, 0.572, 0.314); //#099250
 
                 label.set_text(cx, &format!("Downloading {:.1}%", download.progress));
-                label.apply_over(
-                    cx,
-                    live! { draw_text: { color: (downloading_color) }
-                    },
-                );
+                script_apply_eval!(cx, label, {
+                    draw_text: { color: #(downloading_color) }
+                });
 
-                self.view(ids!(progress_bar)).apply_over(
-                    cx,
-                    live! {
-                        width: (progress_bar_width)
-                        draw_bg: { color: (downloading_color) }
-                    },
-                );
+                let progress_bar = self.view(ids!(progress_bar));
+                script_apply_eval!(cx, progress_bar, {
+                    width: #(progress_bar_width)
+                    draw_bg: { color: #(downloading_color) }
+                });
 
                 self.button(ids!(pause_button)).set_visible(cx, true);
                 self.button(ids!(play_button)).set_visible(cx, false);
@@ -288,19 +276,15 @@ impl Widget for DownloadItem {
                 let paused_color = vec3(0.4, 0.44, 0.52); //#667085
 
                 label.set_text(cx, &format!("Paused {:.1}%", download.progress));
-                label.apply_over(
-                    cx,
-                    live! { draw_text: { color: (paused_color) }
-                    },
-                );
+                script_apply_eval!(cx, label, {
+                    draw_text: { color: #(paused_color) }
+                });
 
-                self.view(ids!(progress_bar)).apply_over(
-                    cx,
-                    live! {
-                        width: (progress_bar_width)
-                        draw_bg: { color: (paused_color) }
-                    },
-                );
+                let progress_bar = self.view(ids!(progress_bar));
+                script_apply_eval!(cx, progress_bar, {
+                    width: #(progress_bar_width)
+                    draw_bg: { color: #(paused_color) }
+                });
 
                 self.button(ids!(pause_button)).set_visible(cx, false);
                 self.button(ids!(play_button)).set_visible(cx, true);
@@ -311,19 +295,15 @@ impl Widget for DownloadItem {
                 let failed_color = vec3(0.7, 0.11, 0.09); // #B42318
 
                 label.set_text(cx, &format!("Error {:.1}%", download.progress));
-                label.apply_over(
-                    cx,
-                    live! { draw_text: { color: (failed_color) }
-                    },
-                );
+                script_apply_eval!(cx, label, {
+                    draw_text: { color: #(failed_color) }
+                });
 
-                self.view(ids!(progress_bar)).apply_over(
-                    cx,
-                    live! {
-                        width: (progress_bar_width)
-                        draw_bg: { color: (failed_color) }
-                    },
-                );
+                let progress_bar = self.view(ids!(progress_bar));
+                script_apply_eval!(cx, progress_bar, {
+                    width: #(progress_bar_width)
+                    draw_bg: { color: #(failed_color) }
+                });
 
                 self.button(ids!(pause_button)).set_visible(cx, false);
                 self.button(ids!(play_button)).set_visible(cx, false);

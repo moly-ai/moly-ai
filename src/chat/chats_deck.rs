@@ -11,24 +11,19 @@ use crate::data::chats::chat::ChatId;
 use crate::data::store::Store;
 use crate::shared::actions::ChatAction;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::chat::chat_view::ChatView;
+    mod.widgets.ChatsDeck = #(ChatsDeck::register_widget(vm)) {
+        width: Fill height: Fill
+        padding: Inset {top: 18 bottom: 0 right: 28 left: 28}
 
-    pub ChatsDeck = {{ChatsDeck}} {
-        width: Fill, height: Fill
-        padding: {top: 18, bottom: 0, right: 28, left: 28},
-
-        chat_view_template: <ChatView> {}
+        chat_view_template := ChatView {}
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, Widget)]
 pub struct ChatsDeck {
     #[deref]
     view: View,
@@ -49,7 +44,29 @@ pub struct ChatsDeck {
 
     /// The template for creating new chat views.
     #[live]
-    chat_view_template: Option<LivePtr>,
+    chat_view_template: Option<ScriptObjectRef>,
+}
+
+impl ScriptHook for ChatsDeck {
+    fn on_after_apply(
+        &mut self,
+        vm: &mut ScriptVm,
+        _apply: &Apply,
+        _scope: &mut Scope,
+        value: ScriptValue,
+    ) {
+        if let Some(obj) = value.as_object() {
+            vm.vec_with(obj, |_vm, vec| {
+                for kv in vec {
+                    if let Some(id) = kv.key.as_id() {
+                        if id == id!(chat_view_template) {
+                            self.chat_view_template = Some(kv.value);
+                        }
+                    }
+                }
+            });
+        }
+    }
 }
 
 /// The maximum number of chat views that can be kept alive at once.
@@ -68,19 +85,18 @@ impl Widget for ChatsDeck {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        // Because chats_deck is being cached, overriding its properties in the DSL does not take effect.
-        // For now we'll override them through apply_over.
-        // TODO: Do not use CachedWidget, create a shared structure of chat instances that is shared across layouts.
+        // Because chats_deck is being cached, overriding its properties in the DSL
+        // does not take effect. For now we'll override them through script_apply_eval.
+        // TODO: Do not use CachedWidget, create a shared structure of chat instances
+        // that is shared across layouts.
         if cx.display_context.is_desktop() {
-            self.view.apply_over(
-                cx,
-                live! {padding: {top: 18, bottom: 0, right: 28, left: 28} },
-            );
+            script_apply_eval!(cx, self.view, {
+                padding: Inset {top: 18 bottom: 0 right: 28 left: 28}
+            });
         } else {
-            self.view.apply_over(
-                cx,
-                live! { padding: {top: 55, left: 0, right: 0, bottom: 0} },
-            );
+            script_apply_eval!(cx, self.view, {
+                padding: Inset {top: 55 left: 0 right: 0 bottom: 0}
+            });
         }
 
         cx.begin_turtle(walk, self.layout);
@@ -176,7 +192,10 @@ impl ChatsDeck {
         }
 
         // No existing instance, create a new one
-        let chat_view = WidgetRef::new_from_ptr(cx, self.chat_view_template);
+        let chat_view = WidgetRef::new_from_script_object(
+            cx,
+            self.chat_view_template.expect("chat_view_template not set"),
+        );
         let mut chat_view = chat_view.as_chat_view();
 
         // Initialize new instance
