@@ -2,64 +2,64 @@ use crate::data::store::Store;
 use crate::shared::utils::version::{Pull, Version};
 use makepad_widgets::*;
 
-#[derive(Clone, DefaultNone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub enum UtilitiesModalAction {
     ModalDismissed,
+    #[default]
     None,
 }
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::widgets::*;
-    use crate::shared::styles::*;
-
-    ICON_CLOSE = dep("crate://self/resources/icons/close.svg")
-
-    IconButton = <Button> {
-        width: Fit, height: Fit
-        draw_text: {
-            text_style: <THEME_FONT_ICONS> {
+    let IconButton = Button {
+        width: Fit
+        height: Fit
+        draw_text +: {
+            text_style: theme.THEME_FONT_ICONS {
                 font_size: 14.
             }
-            color: #5,
-            color_hover: #2,
+            color: #5
+            color_hover: #2
             color_focus: #2
             color_down: #5
         }
-        draw_bg: {
+        draw_bg +: {
             color_down: #0000
             border_radius: 7.
             border_size: 0.
         }
     }
 
-    FormGroup = <View> {
-        width: Fill, height: Fit
+    let FormGroup = View {
+        width: Fill
+        height: Fit
         flow: Down
         spacing: 5
 
-        label = <Label> {
-            width: Fill, height: Fit
-            draw_text: {
+        label := Label {
+            width: Fill
+            height: Fit
+            draw_text +: {
                 wrap: Word
-                text_style: <REGULAR_FONT>{font_size: 9},
+                text_style: REGULAR_FONT { font_size: 9 }
                 color: #999
             }
         }
-        input = <View> {
-            width: Fill, height: Fit
+        input := View {
+            width: Fill
+            height: Fit
         }
     }
 
-    pub UtilitiesModal = {{UtilitiesModal}} <RoundedView> {
+    mod.widgets.UtilitiesModal =
+        #(UtilitiesModal::register_widget(vm)) RoundedView {
         flow: Down
         width: 500
         height: Fit
         show_bg: true
-        draw_bg: {
+        draw_bg +: {
             color: #fff
             border_radius: 3.0
         }
@@ -67,69 +67,77 @@ live_design! {
         padding: 25
         spacing: 10
 
-        header = <View> {
-            width: Fill, height: Fit
+        header := View {
+            width: Fill
+            height: Fit
             flow: Right
             spacing: 10
-            align: {x: 0.0, y: 0.5}
+            align: Align { x: 0.0 y: 0.5 }
 
-            title = <View> {
-                width: Fill, height: Fit
+            title := View {
+                width: Fill
+                height: Fit
 
-                title_label = <Label> {
-                    width: Fill, height: Fit
-                    draw_text: {
+                title_label := Label {
+                    width: Fill
+                    height: Fit
+                    draw_text +: {
                         wrap: Word
-                        text_style: <BOLD_FONT>{font_size: 13},
+                        text_style: BOLD_FONT { font_size: 13 }
                         color: #000
                     }
                     text: "Utilities"
                 }
             }
 
-            close_button = <MolyButton> {
-                width: Fit, height: Fit
-                icon_walk: {width: 14, height: Fit}
-                draw_icon: {
-                    svg_file: (ICON_CLOSE),
-                    fn get_color(self) -> vec4 {
-                        return #000;
+            close_button := MolyButton {
+                width: Fit
+                height: Fit
+                icon_walk: Walk { width: 14 height: Fit }
+                draw_icon +: {
+                    svg: ICON_CLOSE
+                    get_color: fn() -> vec4 {
+                        return #000
                     }
                 }
             }
         }
 
-        body = <View> {
-            width: Fill, height: Fit
+        body := View {
+            width: Fill
+            height: Fit
             flow: Down
             spacing: 10
 
-            <Label> {
-                width: Fill, height: Fit
-                draw_text: {
+            Label {
+                width: Fill
+                height: Fit
+                draw_text +: {
                     wrap: Word
-                    text_style: <BOLD_FONT>{font_size: 11},
+                    text_style: BOLD_FONT { font_size: 11 }
                     color: #666
                 }
                 text: "Speech to Text (STT)"
             }
 
-            <View> {
-                width: Fill, height: Fit
+            View {
+                width: Fill
+                height: Fit
                 flow: Right
-                align: {x: 0.0, y: 0.5}
+                align: Align { x: 0.0 y: 0.5 }
                 spacing: 10
 
-                <Label> {
-                    width: Fit, height: Fit
+                Label {
+                    width: Fit
+                    height: Fit
                     text: "Enable STT"
-                    draw_text: {
-                        text_style: <REGULAR_FONT>{font_size: 10},
+                    draw_text +: {
+                        text_style: REGULAR_FONT { font_size: 10 }
                         color: #000
                     }
                 }
 
-                enabled_toggle = <MolySwitch> {
+                enabled_toggle := MolySwitch {
                     animator: {
                         selected = {
                             default: off
@@ -138,78 +146,81 @@ live_design! {
                 }
             }
 
-            url_group = <FormGroup> {
-                label = {
+            url_group := FormGroup {
+                label := {
                     text: "API Host"
                 }
-                input = {
-                    url_input = <MolyTextInput> {
-                        width: Fill, height: Fit
+                input := {
+                    url_input := MolyTextInput {
+                        width: Fill
+                        height: Fit
                         empty_text: "https://api.openai.com/v1"
-                        padding: {top: 10, bottom: 10, left: 10, right: 10}
-                        draw_bg: {
+                        padding: Inset { top: 10 bottom: 10 left: 10 right: 10 }
+                        draw_bg +: {
                             color: #fff
                             border_size: 1.0
                             border_color_1: #D0D5DD
                             border_radius: 2.0
                         }
-                        draw_text: {
-                            text_style: <REGULAR_FONT>{font_size: 10},
+                        draw_text +: {
+                            text_style: REGULAR_FONT { font_size: 10 }
                             color: #000
                         }
                     }
                 }
             }
 
-            api_key_group = <FormGroup> {
-                label = {
+            api_key_group := FormGroup {
+                label := {
                     text: "API Key (optional)"
                 }
-                input = {
+                input := {
                     flow: Right
                     spacing: 5
-                    align: {x: 0.0, y: 0.5}
+                    align: Align { x: 0.0 y: 0.5 }
 
-                    api_key_input = <MolyTextInput> {
-                        width: Fill, height: 30
+                    api_key_input := MolyTextInput {
+                        width: Fill
+                        height: 30
                         is_password: true
                         empty_text: "sk-..."
-                        padding: {top: 6, bottom: 6, left: 10, right: 10}
-                        draw_bg: {
+                        padding: Inset { top: 6 bottom: 6 left: 10 right: 10 }
+                        draw_bg +: {
                             color: #fff
                             border_size: 1.0
                             border_color_1: #D0D5DD
                             border_radius: 2.0
                         }
-                        draw_text: {
-                            text_style: <REGULAR_FONT>{font_size: 10},
+                        draw_text +: {
+                            text_style: REGULAR_FONT { font_size: 10 }
                             color: #000
                         }
                     }
 
-                    toggle_key_visibility = <IconButton> {
-                        text: "" // fa-eye
+                    toggle_key_visibility := IconButton {
+                        text: "" // fa-eye
                     }
                 }
             }
 
-            model_group = <FormGroup> {
-                label = {
+            model_group := FormGroup {
+                label := {
                     text: "Model Name"
                 }
-                input = {
-                    model_input = <MolyTextInput> {
-                        width: Fill, height: Fit
+                input := {
+                    model_input := MolyTextInput {
+                        width: Fill
+                        height: Fit
                         empty_text: "whisper-1"
-                        padding: {top: 10, bottom: 10, left: 10, right: 10}
-                        draw_bg: {
+                        padding: Inset { top: 10 bottom: 10 left: 10 right: 10 }
+                        draw_bg +: {
                             color: #fff
                             border_size: 1.0
                             border_color_1: #D0D5DD
                             border_radius: 2.0
                         }
-                        draw_text: {
-                            text_style: <REGULAR_FONT>{font_size: 10},
+                        draw_text +: {
+                            text_style: REGULAR_FONT { font_size: 10 }
                             color: #000
                         }
                     }
@@ -217,10 +228,9 @@ live_design! {
             }
         }
     }
-
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct UtilitiesModal {
     #[deref]
     view: View,
@@ -272,9 +282,9 @@ impl WidgetMatchEvent for UtilitiesModal {
             let api_key_input = self.text_input(ids!(api_key_input));
             api_key_input.set_is_password(cx, !api_key_input.is_password());
             if api_key_input.is_password() {
-                self.button(ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye-slash
+                self.button(ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye-slash
             } else {
-                self.button(ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye
+                self.button(ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye
             }
             self.redraw(cx);
         }

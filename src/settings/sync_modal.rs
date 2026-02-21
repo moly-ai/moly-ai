@@ -10,77 +10,73 @@ use moly_sync::{ServerHandle, start_server};
 
 use crate::data::store::Store;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::shared::widgets::MolyButton;
-    use crate::shared::resource_imports::*;
-
-    ShadowButton = <RoundedShadowView> {
-        cursor: Hand
-        width: Fill, height: Fit
-        align: {x: 0.5, y: 0.5}
-        padding: {left: 10, right: 10, bottom: 8, top: 8}
-        draw_bg: {
+    let ShadowButton = RoundedShadowView {
+        cursor: MouseCursor.Hand
+        width: Fill
+        height: Fit
+        align: Align { x: 0.5 y: 0.5 }
+        padding: Inset { left: 10 right: 10 bottom: 8 top: 8 }
+        draw_bg +: {
             color: (MAIN_BG_COLOR)
-            border_radius: 4.5,
-            uniform shadow_color: #0002
-            shadow_radius: 8.0,
-            shadow_offset: vec2(0.0,-2.0)
+            border_radius: 4.5
+            shadow_color: uniform(#0002)
+            shadow_radius: 8.0
+            shadow_offset: vec2(0.0 -2.0)
         }
-        label = <Label> {
-            draw_text: {
-                text_style: <REGULAR_FONT>{font_size: 11}
+        label := Label {
+            draw_text +: {
+                text_style: REGULAR_FONT { font_size: 11 }
                 color: #000
             }
         }
     }
 
-    FormGroup = <View> {
+    let FormGroup = View {
         flow: Down
         height: Fit
         spacing: 10
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0 y: 0.5 }
     }
 
-    ModalTextInput = <MolyTextInput> {
+    let ModalTextInput = MolyTextInput {
         padding: 10
-        draw_bg: {
+        draw_bg +: {
             border_size: 1.0
             border_color: #ddd
         }
-        draw_text: {
-            text_style: <REGULAR_FONT>{font_size: 11},
+        draw_text +: {
+            text_style: REGULAR_FONT { font_size: 11 }
             color: #000
             color_hover: #000
             color_focus: #000
             color_empty: #98A2B3
             color_empty_focus: #98A2B3
         }
-        width: Fill, height: Fit
+        width: Fill
+        height: Fit
     }
 
-    ModalLabel = <Label> {
-        draw_text: {
-            text_style: <REGULAR_FONT>{font_size: 11},
+    let ModalLabel = Label {
+        draw_text +: {
+            text_style: REGULAR_FONT { font_size: 11 }
             color: #000
         }
     }
 
-    CustomProviderRadio = <RadioButton> {
-        draw_text: {
+    let CustomProviderRadio = RadioButton {
+        draw_text +: {
             color: #000
             color_hover: #000
             color_active: #000
             color_focus: #000
-            text_style: <REGULAR_FONT>{font_size: 11},
+            text_style: REGULAR_FONT { font_size: 11 }
         }
 
-        draw_bg: {
+        draw_bg +: {
             color: (TRANSPARENT)
             color_hover: (TRANSPARENT)
             color_down: (TRANSPARENT)
@@ -108,111 +104,119 @@ live_design! {
         }
     }
 
-    ImportView = <View> {
-        width: Fill, height: Fit
+    let ImportView = View {
+        width: Fill
+        height: Fit
         visible: false
         flow: Down
         spacing: 10
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0 y: 0.5 }
         padding: 10
 
-        <FormGroup> {
-            <ModalLabel> {
+        FormGroup {
+            ModalLabel {
                 text: "Serving sync address:"
             }
-            import_url = <ModalTextInput> {
+            import_url := ModalTextInput {
                 empty_text: "http://localhost:8080"
-                // text: "http://192.168.1.4:8080"
             }
         }
 
-        <FormGroup> {
-            <ModalLabel> {
+        FormGroup {
+            ModalLabel {
                 text: "Access PIN:"
             }
-            import_pin = <ModalTextInput> {
+            import_pin := ModalTextInput {
                 empty_text: "1234"
                 width: Fit
-                // text: "http://192.168.1.4:8080"
             }
         }
 
-        <FormGroup> {
-            <ModalLabel> {
+        FormGroup {
+            ModalLabel {
                 text: "How do you want to sync?"
             }
 
-            radios = <View> {
-                flow: Down, spacing: 10
-                width: Fill, height: Fit,
-                radio_merge = <CustomProviderRadio> { text: "Merge with existing providers" }
-                radio_replace = <CustomProviderRadio> { text: "Replace existing providers" }
+            radios := View {
+                flow: Down
+                spacing: 10
+                width: Fill
+                height: Fit
+                radio_merge := CustomProviderRadio {
+                    text: "Merge with existing providers"
+                }
+                radio_replace := CustomProviderRadio {
+                    text: "Replace existing providers"
+                }
             }
         }
 
-        <FormGroup> {
-            padding: {top: 8, bottom: 8}
-            include_mcp_servers = <Toggle> {
+        FormGroup {
+            padding: Inset { top: 8 bottom: 8 }
+            include_mcp_servers := Toggle {
                 text: "Import MCP servers (replaces existing ones)"
-                width: Fit, height: Fit
-                draw_text: {
-                    fn get_color(self) -> vec4 {
-                        return #222;
+                width: Fit
+                height: Fit
+                draw_text +: {
+                    get_color: fn() -> vec4 {
+                        return #222
                     }
-                    text_style: {font_size: 10}
+                    text_style: { font_size: 10 }
                 }
 
-                label_walk: {
-                    margin: {left: 50}
-                }
-                draw_bg: {
+                label_walk: Walk { margin: Inset { left: 50 } }
+                draw_bg +: {
                     size: 25.
                 }
 
-                padding: {left: 5, right: 5, top: 5, bottom: 5}
+                padding: Inset {
+                    left: 5 right: 5 top: 5 bottom: 5
+                }
             }
         }
 
-        import = <ShadowButton> {
-            label = { text: "Import" }
+        import := ShadowButton {
+            label := { text: "Import" }
             width: Fill
         }
     }
 
-    ExportView = <View> {
-        width: Fill, height: Fit
+    let ExportView = View {
+        width: Fill
+        height: Fit
         visible: false
         padding: 10
         flow: Down
         spacing: 10
 
-        <FormGroup> {
-            <ModalLabel> {
+        FormGroup {
+            ModalLabel {
                 text: "Serving sync address:"
             }
-            serving_url = <ModalLabel> {
+            serving_url := ModalLabel {
                 text: "http://localhost:8080"
             }
         }
-        <FormGroup> {
-            <ModalLabel> {
+        FormGroup {
+            ModalLabel {
                 text: "Access PIN:"
             }
-            sync_pin = <ModalLabel> {
+            sync_pin := ModalLabel {
                 text: "1234"
             }
         }
-        stop_server = <ShadowButton> {
-            label = { text: "Stop sharing" }
+        stop_server := ShadowButton {
+            label := { text: "Stop sharing" }
             width: Fill
         }
     }
 
-    pub SyncModal = {{SyncModal}} {
+    mod.widgets.SyncModal =
+        #(SyncModal::register_widget(vm)) ViewBase {
         width: Fit
         height: Fit
 
-        wrapper = <RoundedView> {
+        wrapper := RoundedView {
             flow: Down
             width: 400
             height: Fit
@@ -220,91 +224,102 @@ live_design! {
             spacing: 10
 
             show_bg: true
-            draw_bg: {
+            draw_bg +: {
                 color: #fff
                 border_radius: 3
             }
 
-            header = <View> {
-                width: Fill,
-                height: Fit,
+            header := View {
+                width: Fill
+                height: Fit
                 flow: Right
 
-                padding: {top: 8, bottom: 20}
+                padding: Inset { top: 8 bottom: 20 }
 
-                title = <View> {
-                    width: Fit,
-                    height: Fit,
+                title := View {
+                    width: Fit
+                    height: Fit
 
-                    model_name = <Label> {
-                        text: "Sync provider settings",
-                        draw_text: {
-                            text_style: <BOLD_FONT>{font_size: 13},
+                    model_name := Label {
+                        text: "Sync provider settings"
+                        draw_text +: {
+                            text_style: BOLD_FONT { font_size: 13 }
                             color: #000
                         }
                     }
                 }
 
-                filler_x = <View> {width: Fill, height: Fit}
+                filler_x := View { width: Fill height: Fit }
 
-                close_button = <MolyButton> {
-                    width: Fit,
-                    height: Fit,
+                close_button := MolyButton {
+                    width: Fit
+                    height: Fit
 
-                    margin: {top: -8}
+                    margin: Inset { top: -8 }
 
-                    draw_icon: {
-                        svg_file: (ICON_CLOSE),
-                        fn get_color(self) -> vec4 {
-                            return #000;
+                    draw_icon +: {
+                        svg: ICON_CLOSE
+                        get_color: fn() -> vec4 {
+                            return #000
                         }
                     }
-                    icon_walk: {width: 12, height: 12}
+                    icon_walk: Walk { width: 12 height: 12 }
                 }
             }
 
-            body = <View> {
+            body := View {
                 flow: Down
-                width: Fill, height: Fit
+                width: Fill
+                height: Fit
                 spacing: 20
-                align: {x: 0.0, y: 0.5}
+                align: Align { x: 0.0 y: 0.5 }
 
-                <View> {
-                    width: Fill, height: Fit
-                    spacing: 10, flow: Down
+                View {
+                    width: Fill
+                    height: Fit
+                    spacing: 10
+                    flow: Down
 
-                    hint = <ModalLabel> {
+                    hint := ModalLabel {
                         text: "Sync settings between devices"
-                        draw_text: {
-                            text_style: {font_size: 11},
+                        draw_text +: {
+                            text_style: { font_size: 11 }
                         }
                     }
 
-                    sync_buttons = <View> {
-                        width: Fill, height: Fit
+                    sync_buttons := View {
+                        width: Fill
+                        height: Fit
                         padding: 10
                         spacing: 10
-                        align: {x: 0.5, y: 0.5}
+                        align: Align { x: 0.5 y: 0.5 }
 
-                        serve = <ShadowButton> {
-                            label = { text: "Share from this device" }
+                        serve := ShadowButton {
+                            label := {
+                                text: "Share from this device"
+                            }
                         }
 
-                        show_import = <ShadowButton> {
-                            label = { text: "Import from another" }
+                        show_import := ShadowButton {
+                            label := {
+                                text: "Import from another"
+                            }
                         }
                     }
                 }
 
-                import_view = <ImportView> {}
-                export_view = <ExportView> {}
+                import_view := ImportView {}
+                export_view := ExportView {}
 
-                status_view = <View> {
+                status_view := View {
                     visible: false
-                    width: Fill, height: Fit
-                    status_message = <Label> {
-                        draw_text: {
-                            text_style: <REGULAR_FONT>{font_size: 11},
+                    width: Fill
+                    height: Fit
+                    status_message := Label {
+                        draw_text +: {
+                            text_style: REGULAR_FONT {
+                                font_size: 11
+                            }
                             color: #000
                         }
                     }
@@ -314,14 +329,15 @@ live_design! {
     }
 }
 
-#[derive(Clone, Debug, DefaultNone)]
+#[derive(Clone, Debug, Default)]
 pub enum SyncModalAction {
+    #[default]
     None,
     ModalDismissed,
     McpServersUpdated,
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct SyncModal {
     #[deref]
     view: View,
@@ -337,27 +353,40 @@ pub struct SyncModal {
     server_handle: Option<ServerHandle>,
 }
 
-#[derive(Clone, Debug, DefaultNone)]
+#[derive(Clone, Debug, Default)]
 pub enum SyncStatus {
+    #[default]
     None,
     Serving,
     Importing,
 }
 
 impl Widget for SyncModal {
-    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+    fn handle_event(
+        &mut self,
+        cx: &mut Cx,
+        event: &Event,
+        scope: &mut Scope,
+    ) {
         self.ui_runner().handle(cx, event, scope, self);
         self.view.handle_event(cx, event, scope);
         self.widget_match_event(cx, event, scope);
     }
 
-    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
+    fn draw_walk(
+        &mut self,
+        cx: &mut Cx2d,
+        scope: &mut Scope,
+        walk: Walk,
+    ) -> DrawStep {
         #[cfg(target_arch = "wasm32")]
         {
             self.view(ids!(sync_buttons)).set_visible(cx, false);
             self.view(ids!(import_view)).set_visible(cx, true);
-            self.label(ids!(hint))
-                .set_text(cx, "Import your settings from another Moly instance");
+            self.label(ids!(hint)).set_text(
+                cx,
+                "Import your settings from another Moly instance",
+            );
         }
 
         self.view
@@ -366,7 +395,12 @@ impl Widget for SyncModal {
 }
 
 impl WidgetMatchEvent for SyncModal {
-    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
+    fn handle_actions(
+        &mut self,
+        cx: &mut Cx,
+        actions: &Actions,
+        scope: &mut Scope,
+    ) {
         if self.button(ids!(close_button)).clicked(actions) {
             self.reset_state(cx);
             cx.action(SyncModalAction::ModalDismissed);
@@ -379,11 +413,19 @@ impl WidgetMatchEvent for SyncModal {
             }
         }
 
-        if self.view(ids!(stop_server)).finger_down(actions).is_some() {
+        if self
+            .view(ids!(stop_server))
+            .finger_down(actions)
+            .is_some()
+        {
             self.stop_server(cx);
         }
 
-        if self.view(ids!(show_import)).finger_down(actions).is_some() {
+        if self
+            .view(ids!(show_import))
+            .finger_down(actions)
+            .is_some()
+        {
             self.show_import(cx);
         }
 
@@ -394,7 +436,10 @@ impl WidgetMatchEvent for SyncModal {
         }
 
         if let Some(selected_sync_mode) = self
-            .radio_button_set(ids_array!(radios.radio_merge, radios.radio_replace))
+            .radio_button_set(ids_array!(
+                radios.radio_merge,
+                radios.radio_replace
+            ))
             .selected(cx, actions)
         {
             self.should_merge = match selected_sync_mode {
@@ -412,33 +457,55 @@ impl WidgetMatchEvent for SyncModal {
 impl SyncModal {
     #[cfg(not(target_arch = "wasm32"))]
     fn serve(&mut self, _cx: &mut Cx, scope: &mut Scope) {
-        let json_file = scope.data.get_mut::<Store>().unwrap().preferences.as_json();
+        let json_file = scope
+            .data
+            .get_mut::<Store>()
+            .unwrap()
+            .preferences
+            .as_json();
 
         let ui = self.ui_runner();
         spawn(async move {
-            // Start moly-sync server
-            let server_result = start_server(json_file, None).await;
+            let server_result =
+                start_server(json_file, None).await;
             match server_result {
                 Ok(server_handle) => {
                     let addr = server_handle.addr;
-                    ::log::info!("Sync server started at {:?}", addr);
+                    ::log::info!(
+                        "Sync server started at {:?}",
+                        addr
+                    );
                     ui.defer_with_redraw(move |me, cx, _| {
                         me.sync_status = SyncStatus::Serving;
-                        me.label(ids!(sync_pin)).set_text(cx, &server_handle.pin);
+                        me.label(ids!(sync_pin))
+                            .set_text(cx, &server_handle.pin);
                         me.server_handle = Some(server_handle);
 
-                        let full_server_url =
-                            format!("http://{}:{}", get_local_ip_address(), addr.port());
-                        me.label(ids!(serving_url)).set_text(cx, &full_server_url);
+                        let full_server_url = format!(
+                            "http://{}:{}",
+                            get_local_ip_address(),
+                            addr.port()
+                        );
+                        me.label(ids!(serving_url))
+                            .set_text(cx, &full_server_url);
                     });
                 }
                 Err(e) => {
-                    ::log::error!("Failed to start sync server: {}", e);
+                    ::log::error!(
+                        "Failed to start sync server: {}",
+                        e
+                    );
                     ui.defer_with_redraw(move |me, cx, _| {
                         me.sync_status = SyncStatus::None;
-                        me.label(ids!(status_message))
-                            .set_text(cx, &format!("Failed to start server: {}", e));
-                        me.view(ids!(status_view)).set_visible(cx, true);
+                        me.label(ids!(status_message)).set_text(
+                            cx,
+                            &format!(
+                                "Failed to start server: {}",
+                                e
+                            ),
+                        );
+                        me.view(ids!(status_view))
+                            .set_visible(cx, true);
                     });
                 }
             }
@@ -476,8 +543,10 @@ impl SyncModal {
     }
 
     fn import(&mut self) {
-        let url = self.text_input(ids!(import_view.import_url)).text();
-        let pin = self.text_input(ids!(import_view.import_pin)).text();
+        let url =
+            self.text_input(ids!(import_view.import_url)).text();
+        let pin =
+            self.text_input(ids!(import_view.import_pin)).text();
 
         let ui = self.ui_runner();
         self.sync_status = SyncStatus::Importing;
@@ -485,9 +554,13 @@ impl SyncModal {
         spawn(async move {
             match fetch_json(&url, &pin).await {
                 Ok(json) => {
-                    ui.defer_with_redraw(move |me, cx, scope| {
-                        me.handle_import_success(cx, &json, scope);
-                    });
+                    ui.defer_with_redraw(
+                        move |me, cx, scope| {
+                            me.handle_import_success(
+                                cx, &json, scope,
+                            );
+                        },
+                    );
                 }
                 Err(e) => {
                     ui.defer_with_redraw(move |me, cx, _| {
@@ -498,16 +571,23 @@ impl SyncModal {
         });
     }
 
-    fn handle_import_success(&mut self, cx: &mut Cx, json: &str, scope: &mut Scope) {
+    fn handle_import_success(
+        &mut self,
+        cx: &mut Cx,
+        json: &str,
+        scope: &mut Scope,
+    ) {
         self.view(ids!(status_view)).set_visible(cx, true);
         self.sync_status = SyncStatus::None;
-        let include_mcp_servers = self.check_box(ids!(include_mcp_servers)).active(cx);
+        let include_mcp_servers =
+            self.check_box(ids!(include_mcp_servers)).active(cx);
 
         let store = scope.data.get_mut::<Store>().unwrap();
-        match store
-            .preferences
-            .import_from_json(json, self.should_merge, include_mcp_servers)
-        {
+        match store.preferences.import_from_json(
+            json,
+            self.should_merge,
+            include_mcp_servers,
+        ) {
             Ok(_) => {
                 self.label(ids!(status_message))
                     .set_text(cx, "Import successful");
@@ -532,8 +612,10 @@ impl SyncModal {
     fn handle_import_error(&mut self, cx: &mut Cx, error: Error) {
         ::log::error!("Failed to fetch settings: {:?}", error);
         self.view(ids!(status_view)).set_visible(cx, true);
-        self.label(ids!(status_message))
-            .set_text(cx, &format!("Failed to fetch settings: {:?}", error));
+        self.label(ids!(status_message)).set_text(
+            cx,
+            &format!("Failed to fetch settings: {:?}", error),
+        );
     }
 
     fn reset_state(&mut self, cx: &mut Cx) {
@@ -555,16 +637,14 @@ impl SyncModalRef {
 }
 
 fn get_local_ip_address() -> String {
-    // Use a dummy address to get the local IP for outbound traffic
-    let socket = UdpSocket::bind("0.0.0.0:0").expect("Failed to bind socket");
+    let socket =
+        UdpSocket::bind("0.0.0.0:0").expect("Failed to bind socket");
 
-    // This address doesn't need to be reachable — it's just to force the OS to assign a local IP
     if socket.connect("8.8.8.8:80").is_ok() {
         if let Ok(local_addr) = socket.local_addr() {
             return local_addr.ip().to_string();
         }
     }
 
-    // Fallback if all else fails
     "localhost".to_string()
 }

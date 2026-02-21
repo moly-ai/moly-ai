@@ -4,12 +4,12 @@ pub mod downloaded_files_table;
 pub mod model_info_modal;
 pub mod my_models_screen;
 
-use makepad_widgets::Cx;
+use makepad_widgets::ScriptVm;
 
-pub fn live_design(cx: &mut Cx) {
-    my_models_screen::live_design(cx);
-    downloaded_files_table::live_design(cx);
-    downloaded_files_row::live_design(cx);
-    delete_model_modal::live_design(cx);
-    model_info_modal::live_design(cx);
+pub fn script_mod(vm: &mut ScriptVm) {
+    my_models_screen::script_mod(vm);
+    downloaded_files_table::script_mod(vm);
+    downloaded_files_row::script_mod(vm);
+    delete_model_modal::script_mod(vm);
+    model_info_modal::script_mod(vm);
 }

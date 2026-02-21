@@ -8,110 +8,110 @@ use makepad_widgets::*;
 
 use crate::data::mcp_servers::McpServersConfig;
 
-live_design! {
-    use link::widgets::*;
-    use link::theme::*;
-    use link::shaders::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
+    use makepad_code_editor::code_editor::*
 
-    use crate::shared::widgets::*;
-    use crate::shared::styles::*;
-    use makepad_code_editor::code_editor::*;
-
-    MolyCodeView = {{MolyCodeView}}{
-        editor: <CodeEditor>{
-            pad_left_top: vec2(0.0,-0.0)
-            height:Fit
-            empty_page_at_end: false,
-            read_only: true,
+    let MolyCodeView = MolyCodeView {
+        #(MolyCodeView::register_widget(vm))
+        editor := CodeEditor {
+            pad_left_top: vec2(0.0 -0.0)
+            height: Fit
+            empty_page_at_end: false
+            read_only: true
             show_gutter: false
         }
     }
 
-    McpCodeView = <MolyCodeView> {
+    let McpCodeView = MolyCodeView {
         editor: {
             read_only: false
-            margin: {top: -2, bottom: 2}
-            pad_left_top: vec2(10.0,10.0)
-            width: Fill,
-            height: Fill,
-            draw_bg: { color: #1d2330 },
+            margin: Inset { top: -2 bottom: 2 }
+            pad_left_top: vec2(10.0 10.0)
+            width: Fill
+            height: Fill
+            draw_bg: { color: #1d2330 }
             draw_text: {
                 text_style: {
-                    font_size: 9,
+                    font_size: 9
                 }
             }
 
-            // Inspired by Electron Highlighter theme https://electron-highlighter.github.io
             token_colors: {
-                whitespace: #a8b5d1,        // General text/punctuation color as fallback
-                delimiter: #a8b5d1,          // punctuation
-                delimiter_highlight: #c5cee0, // Using a slightly brighter gray for highlight
-                error_decoration: #f44747,   // token.error-token
-                warning_decoration: #cd9731, // token.warn-token
+                whitespace: #a8b5d1
+                delimiter: #a8b5d1
+                delimiter_highlight: #xc5cee0
+                error_decoration: #f44747
+                warning_decoration: #cd9731
 
-                unknown: #a8b5d1,          // General text color
-                branch_keyword: #d2a6ef,     // keyword.control
-                constant: #ffd9af,         // constant.numeric
-                identifier: #a8b5d1,         // variable
-                loop_keyword: #d2a6ef,       // keyword.control.loop
-                number: #ffd9af,           // constant.numeric
-                other_keyword: #d2a6ef,      // keyword
-                punctuator: #a8b5d1,         // punctuation
-                string: #58ffc7,           // string
-                function: #82aaff,         // entity.name.function
-                typename: #fcf9c3,         // entity.name.class/type
-                comment: #506686,          // comment
+                unknown: #a8b5d1
+                branch_keyword: #xd2a6ef
+                constant: #ffd9af
+                identifier: #a8b5d1
+                loop_keyword: #xd2a6ef
+                number: #ffd9af
+                other_keyword: #xd2a6ef
+                punctuator: #a8b5d1
+                string: #58ffc7
+                function: #82aaff
+                typename: #fcf9c3
+                comment: #506686
             }
         }
     }
 
-    ServersEditorWrapper = <View> {
-        <AdaptiveView> {
+    let ServersEditorWrapper = View {
+        AdaptiveView {
             Desktop = {
-                mcp_code_view = <McpCodeView> {}
+                mcp_code_view := McpCodeView {}
             }
             Mobile = {
-                mcp_code_view = <MolyTextInput> {
+                mcp_code_view := MolyTextInput {
                     width: Fill, height: Fill
                 }
             }
         }
     }
 
-    ServersEditor = <View> {
+    let ServersEditor = View {
         width: Fill, height: Fill
         flow: Down
-        padding: {left: 20, right: 20, bottom: 5}
-        align: {x: 1.0}
+        padding: Inset { left: 20 right: 20 bottom: 5 }
+        align: Align { x: 1.0 }
 
-        <View> {
+        View {
             width: Fill, height: Fill
-            padding: {left: 0, right: 25, top: 8, bottom: 8}
-            servers_editor_wrapper = <ServersEditorWrapper> {}
+            padding: Inset { left: 0 right: 25 top: 8 bottom: 8 }
+            servers_editor_wrapper := ServersEditorWrapper {}
         }
 
-        <View> {
+        View {
             width: Fill, height: Fit
-            align: {x: 1.0, y: 0.5}
-            padding: {left: 0, right: 15, top: 8, bottom: 8}
+            align: Align { x: 1.0 y: 0.5 }
+            padding: Inset { left: 0 right: 15 top: 8 bottom: 8 }
 
-            save_button = <RoundedShadowView> {
-                cursor: Hand
-                margin: {left: 10, right: 10, bottom: 0, top: 0}
+            save_button := RoundedShadowView {
+                cursor: MouseCursor.Hand
+                margin: Inset {
+                    left: 10 right: 10 bottom: 0 top: 0
+                }
                 width: Fit, height: Fit
-                align: {x: 0.5, y: 0.5}
-                padding: {left: 30, right: 30, bottom: 15, top: 15}
+                align: Align { x: 0.5 y: 0.5 }
+                padding: Inset {
+                    left: 30 right: 30 bottom: 15 top: 15
+                }
                 draw_bg: {
                     color: (MAIN_BG_COLOR)
-                    border_radius: 4.5,
-                    uniform shadow_color: #0002
-                    shadow_radius: 8.0,
-                    shadow_offset: vec2(0.0,-1.5)
+                    border_radius: 4.5
+                    shadow_color: uniform(#0002)
+                    shadow_radius: 8.0
+                    shadow_offset: vec2(0.0 -1.5)
                 }
-                <Label> {
+                Label {
                     text: "Save and restart servers"
                     draw_text: {
-                        text_style: <REGULAR_FONT>{font_size: 11}
+                        text_style: REGULAR_FONT { font_size: 11 }
                         color: #000
                     }
                 }
@@ -119,51 +119,45 @@ live_design! {
         }
     }
 
-    SaveStatus = <View> {
-        width: Fill, height: Fit,
-        padding: {left: 10, right: 20, top: 8, bottom: 8}
-        save_status = <Label> {
+    let SaveStatus = View {
+        width: Fill, height: Fit
+        padding: Inset { left: 10 right: 20 top: 8 bottom: 8 }
+        save_status := Label {
             draw_text: {
-                text_style: <BOLD_FONT>{font_size: 10},
+                text_style: BOLD_FONT { font_size: 10 }
                 color: #000
             }
         }
     }
 
-    Instructions = <View> {
-        // Ideally this should be width: Fill but for some reason it won't Fill
-        width: 600, height: Fit,
+    let Instructions = View {
+        width: 600, height: Fit
         flow: Down, spacing: 10
-        instructions = <Label> {
+        instructions := Label {
             width: Fill, height: Fit
             text: "Add new servers by editing the list under 'servers'. You can copy paste you configuration from other applications like Clade Desktop or VSCode.
 You can also add an \"enabled\": false flag to disable a specific server."
             draw_text: {
-                text_style: {font_size: 11},
-                color: #000
-            }
-            draw_text: {
                 wrap: Word
-                text_style: <REGULAR_FONT>{font_size: 11},
+                text_style: REGULAR_FONT { font_size: 11 }
                 color: #000
             }
         }
     }
 
-    ToggleMCPWrapper = <View> {
+    let ToggleMCPWrapper = View {
         width: Fit, height: Fit
         spacing: 12
-        align: {x: 0.5, y: 0.5}
-        <Label> {
+        align: Align { x: 0.5 y: 0.5 }
+        Label {
             text: "Enable MCP Servers"
             draw_text: {
-                text_style: <BOLD_FONT> {font_size: 11}
+                text_style: BOLD_FONT { font_size: 11 }
                 color: #000
             }
         }
 
-        servers_enabled_switch = <MolySwitch> {
-            // Match the default value to avoid the animation on start.
+        servers_enabled_switch := MolySwitch {
             animator: {
                 selected = {
                     default: on
@@ -172,25 +166,25 @@ You can also add an \"enabled\": false flag to disable a specific server."
         }
     }
 
-    DangerousModeWrapper = <View> {
+    let DangerousModeWrapper = View {
         width: Fill, height: Fit
         flow: Down, spacing: 8
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0 y: 0.5 }
 
-        <View> {
+        View {
             width: Fill, height: Fit
             spacing: 12
-            align: {x: 0.0, y: 0.5}
+            align: Align { x: 0.0 y: 0.5 }
 
-            <Label> {
+            Label {
                 text: "⚠️ Dangerous Mode"
                 draw_text: {
-                    text_style: <BOLD_FONT> {font_size: 11}
-                    color: #FF3333
+                    text_style: BOLD_FONT { font_size: 11 }
+                    color: #xFF3333
                 }
             }
 
-            dangerous_mode_switch = <MolySwitch> {
+            dangerous_mode_switch := MolySwitch {
                 animator: {
                     selected = {
                         default: off
@@ -199,61 +193,62 @@ You can also add an \"enabled\": false flag to disable a specific server."
             }
         }
 
-        <Label> {
+        Label {
             text: "WARNING: This mode automatically approves ALL tool calls without asking for permission.
 Only enable if you trust all configured MCP servers completely."
             draw_text: {
                 wrap: Word
-                text_style: <REGULAR_FONT>{font_size: 11}
-                color: #FF6666
+                text_style: REGULAR_FONT { font_size: 11 }
+                color: #xFF6666
             }
             width: Fill
         }
     }
 
-    pub McpServers = {{McpServers}} {
-        <AdaptiveView> {
+    mod.widgets.McpServers = McpServers {
+        #(McpServers::register_widget(vm))
+        AdaptiveView {
             Desktop = {
                 width: Fill, height: Fill
                 flow: Right
-                <ServersEditor> { width: 600 }
-                <View> {
+                ServersEditor { width: 600 }
+                View {
                     flow: Down, spacing: 10
-                    margin: {top: 10}
+                    margin: Inset { top: 10 }
                     width: Fill, height: Fill
-                    <ToggleMCPWrapper> {}
-                    <Instructions> {}
-                    <DangerousModeWrapper> {}
-                    <SaveStatus> {}
+                    ToggleMCPWrapper {}
+                    Instructions {}
+                    DangerousModeWrapper {}
+                    SaveStatus {}
                 }
             }
             Mobile = {
-                <ScrollYView> {
+                ScrollYView {
                     flow: Down
-                    padding: {left: 10}
-                    <ToggleMCPWrapper> {}
-                    <Instructions> {
+                    padding: Inset { left: 10 }
+                    ToggleMCPWrapper {}
+                    Instructions {
                         width: Fill
-                        padding: {left: 0}
-                        <Label> {
+                        padding: Inset { left: 0 }
+                        Label {
                             width: Fill
                             text: "Note that only HTTP/SSE servers are supported on mobile devices"
                             draw_text: {
-                                text_style: <BOLD_FONT>{font_size: 11}
-                                color: #FFA000
+                                text_style: BOLD_FONT { font_size: 11 }
+                                color: #xFFA000
                             }
                         }
                     }
-                    <DangerousModeWrapper> {}
-                    <ServersEditor> { width: Fill }
-                    <SaveStatus> {}
+                    DangerousModeWrapper {}
+                    ServersEditor { width: Fill }
+                    SaveStatus {}
                 }
             }
         }
     }
 }
 
-#[derive(Widget, Live)]
+#[derive(Widget, Script)]
 struct McpServers {
     #[deref]
     view: View,
@@ -265,7 +260,7 @@ struct McpServers {
     initialized: bool,
 }
 
-impl LiveHook for McpServers {
+impl ScriptHook for McpServers {
     fn after_new_from_doc(&mut self, _cx: &mut Cx) {
         self.mcp_servers_config = McpServersConfig::create_sample();
     }
@@ -283,10 +278,8 @@ impl Widget for McpServers {
             let store = scope.data.get::<Store>().unwrap();
             let mut config = store.get_mcp_servers_config().clone();
 
-            // Ensure the local config has the correct enabled state from Store
             config.enabled = store.preferences.get_mcp_servers_enabled();
 
-            // Ensure the local config has the correct dangerous mode state from Store
             config.dangerous_mode_enabled =
                 store.preferences.get_mcp_servers_dangerous_mode_enabled();
 
@@ -309,11 +302,9 @@ impl McpServers {
 
         self.widget(ids!(mcp_code_view)).set_text(cx, &display_json);
 
-        // Sync the toggle UI to match the config's enabled state
         self.check_box(ids!(servers_enabled_switch))
             .set_active(cx, self.mcp_servers_config.enabled);
 
-        // Sync the dangerous mode toggle UI to match the config
         self.check_box(ids!(dangerous_mode_switch))
             .set_active(cx, self.mcp_servers_config.dangerous_mode_enabled);
     }
@@ -328,14 +319,10 @@ impl WidgetMatchEvent for McpServers {
                 Ok(config) => {
                     let store = scope.data.get_mut::<Store>().unwrap();
 
-                    // Update the Store with the new config (including servers)
                     match store.update_mcp_servers_from_json(&json_text) {
                         Ok(()) => {
-                            // Also sync the enabled flag to the Store's preferences
-                            // (in case it was changed in the JSON)
                             store.set_mcp_servers_enabled(config.enabled);
 
-                            // Update our local config and UI
                             self.set_mcp_servers_config(cx, config);
 
                             self.label(ids!(save_status)).set_text(cx, "");
@@ -356,39 +343,31 @@ impl WidgetMatchEvent for McpServers {
             }
         }
 
-        // Handle MCP servers enabled switch
         let servers_enabled_switch = self.check_box(ids!(servers_enabled_switch));
         if let Some(enabled) = servers_enabled_switch.changed(actions) {
-            // Update the local config
             self.mcp_servers_config.enabled = enabled;
 
-            // Update the JSON display to show the new enabled state
             let display_json = self
                 .mcp_servers_config
                 .to_json()
                 .unwrap_or_else(|_| "{}".to_string());
             self.widget(ids!(mcp_code_view)).set_text(cx, &display_json);
 
-            // Sync to Store
             let store = scope.data.get_mut::<Store>().unwrap();
             store.set_mcp_servers_enabled(enabled);
             self.redraw(cx);
         }
 
-        // Handle dangerous mode switch
         let dangerous_mode_switch = self.check_box(ids!(dangerous_mode_switch));
         if let Some(enabled) = dangerous_mode_switch.changed(actions) {
-            // Update the local config
             self.mcp_servers_config.dangerous_mode_enabled = enabled;
 
-            // Update the JSON display to show the new dangerous mode state
             let display_json = self
                 .mcp_servers_config
                 .to_json()
                 .unwrap_or_else(|_| "{}".to_string());
             self.widget(ids!(mcp_code_view)).set_text(cx, &display_json);
 
-            // Sync to Store
             let store = scope.data.get_mut::<Store>().unwrap();
             store.set_mcp_servers_dangerous_mode_enabled(enabled);
             self.redraw(cx);
@@ -405,7 +384,7 @@ impl WidgetMatchEvent for McpServers {
 }
 
 /// Moly's version of Makepad's CodeView (broken upstream)
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct MolyCodeView {
     #[wrap]
     #[live]
@@ -441,29 +420,6 @@ impl Widget for MolyCodeView {
 
         self.editor.draw_walk_editor(cx, session, walk);
 
-        // TODO: Support text input for mobile devices
-        // CodeEditor is not currently showing the IME on mobile devices (which also means keyboard input is ignored in simulators)
-        // and showing it manually from outside causes some issues like duplicated text input.
-
-        // Add IME support for mobile devices
-        // if cx.has_key_focus(self.editor.area()) {
-        //     // Get cursor position
-        //     if let Some(last_selection_index) = session.last_added_selection_index() {
-        //         let last_added_selection = &session.selections()[last_selection_index];
-        //         let (cursor_x, cursor_y) = session.layout().logical_to_normalized_position(
-        //             last_added_selection.cursor.position,
-        //             last_added_selection.cursor.affinity,
-        //         );
-
-        //         let cursor_pos = dvec2(cursor_x, cursor_y);
-
-        //         cx.show_text_ime(
-        //             self.editor.area(),
-        //             cursor_pos,
-        //         );
-        //     }
-        // }
-
         DrawStep::done()
     }
 
@@ -474,10 +430,8 @@ impl Widget for MolyCodeView {
             .editor
             .handle_event(cx, event, &mut Scope::empty(), session)
         {
-            //cx.widget_action(uid, &scope.path, action);
             session.handle_changes();
 
-            // Sync the text field back to match the document state for text changes
             match action {
                 CodeEditorAction::TextDidChange => {
                     let document_text = session.document().as_text().to_string();
@@ -500,7 +454,6 @@ impl Widget for MolyCodeView {
     }
 
     fn set_text(&mut self, cx: &mut Cx, v: &str) {
-        // Get current text to compare
         let current_text = if let Some(session) = &self.session {
             session.document().as_text().to_string()
         } else {
@@ -508,16 +461,12 @@ impl Widget for MolyCodeView {
         };
 
         if current_text != v {
-            // Update the internal text field
             self.text.as_mut_empty().clear();
             self.text.as_mut_empty().push_str(v);
 
-            // If we have an active session, replace the document content
             if let Some(session) = &mut self.session {
                 session.document().replace(v.into());
                 session.handle_changes();
-            } else {
-                // No session yet, will be created on next lazy_init_session
             }
 
             self.redraw(cx);

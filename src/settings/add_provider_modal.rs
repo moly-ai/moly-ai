@@ -5,105 +5,102 @@ use crate::data::{
     store::Store,
 };
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::shared::widgets::MolyButton;
-    use crate::shared::resource_imports::*;
-
-    FormGroup = <View> {
+    let FormGroup = View {
         flow: Down
         height: Fit
         spacing: 10
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0 y: 0.5 }
     }
 
-    ModalTextInput = <MolyTextInput> {
-        draw_bg: {
+    let ModalTextInput = MolyTextInput {
+        draw_bg +: {
             border_size: 1.0
             border_color: #ddd
         }
-        draw_text: {
-            text_style: <REGULAR_FONT>{font_size: 12},
+        draw_text +: {
+            text_style: REGULAR_FONT { font_size: 12 }
             color: #000
             color_hover: #000
             color_focus: #000
             color_empty: #98A2B3
             color_empty_focus: #98A2B3
         }
-        width: Fill, height: Fit
+        width: Fill
+        height: Fit
     }
 
-    ModalLabel = <Label> {
-        draw_text: {
-            text_style: <REGULAR_FONT>{font_size: 12},
+    let ModalLabel = Label {
+        draw_text +: {
+            text_style: REGULAR_FONT { font_size: 12 }
             color: #000
         }
     }
 
-    ProviderDropDown = <DropDownFlat> {
-        draw_text: {
-            text_style: <REGULAR_FONT>{font_size: 12}
-            fn get_color(self) -> vec4 {
+    let ProviderDropDown = DropDownFlat {
+        draw_text +: {
+            text_style: REGULAR_FONT { font_size: 12 }
+            get_color: fn() -> vec4 {
                 return mix(
-                    #2,
-                    #x0,
+                    #2
+                    #x0
                     self.down
                 )
             }
         }
 
         popup_menu: {
-            width: 300, height: Fit,
-            flow: Down,
-            padding: <THEME_MSPACE_1> {}
+            width: 300
+            height: Fit
+            flow: Down
+            padding: theme.mspace_1 {}
 
-            menu_item: <PopupMenuItem> {
-                width: Fill, height: Fit,
-                align: { y: 0.5 }
-                padding: {left: 15, right: 15, top: 10, bottom: 10}
+            menu_item: PopupMenuItem {
+                width: Fill
+                height: Fit
+                align: Align { y: 0.5 }
+                padding: Inset { left: 15 right: 15 top: 10 bottom: 10 }
 
-                draw_text: {
-                    fn get_color(self) -> vec4 {
+                draw_text +: {
+                    get_color: fn() -> vec4 {
                         return mix(
                             mix(
-                                #3,
-                                #x0,
+                                #3
+                                #x0
                                 self.active
-                            ),
-                            #x0,
+                            )
+                            #x0
                             self.hover
                         )
                     }
                 }
 
-                draw_bg: {
-                    instance color: #f //(THEME_COLOR_FLOATING_BG)
-                    instance color_active: #f2 //(THEME_COLOR_CTRL_HOVER)
+                draw_bg +: {
+                    color: instance(#f)
+                    color_active: instance(#f2)
                 }
             }
 
-            draw_bg: {
-                instance color: #f9 //(THEME_COLOR_FLOATING_BG)
+            draw_bg +: {
+                color: instance(#f9)
                 border_size: 1.0
             }
         }
     }
 
-    CustomProviderRadio = <RadioButton> {
-        draw_text: {
+    let CustomProviderRadio = RadioButton {
+        draw_text +: {
             color: #000
             color_hover: #000
             color_active: #000
             color_focus: #000
-            text_style: <REGULAR_FONT>{font_size: 12},
+            text_style: REGULAR_FONT { font_size: 12 }
         }
 
-        draw_bg: {
+        draw_bg +: {
             color: (TRANSPARENT)
             color_hover: (TRANSPARENT)
             color_down: (TRANSPARENT)
@@ -131,81 +128,83 @@ live_design! {
         }
     }
 
-    pub AddProviderModal = {{AddProviderModal}} {
+    mod.widgets.AddProviderModal =
+        #(AddProviderModal::register_widget(vm)) ViewBase {
         width: Fit
         height: Fit
 
-        wrapper = <RoundedView> {
+        wrapper := RoundedView {
             flow: Down
             width: 420
             height: Fit
-            padding: {top: 44, right: 30 bottom: 30 left: 50}
+            padding: Inset { top: 44 right: 30 bottom: 30 left: 50 }
             spacing: 10
 
             show_bg: true
-            draw_bg: {
+            draw_bg +: {
                 color: #fff
                 border_radius: 3
             }
 
-            header = <View> {
-                width: Fill,
-                height: Fit,
+            header := View {
+                width: Fill
+                height: Fit
                 flow: Right
 
-                padding: {top: 8, bottom: 20}
+                padding: Inset { top: 8 bottom: 20 }
 
-                title = <View> {
-                    width: Fit,
-                    height: Fit,
+                title := View {
+                    width: Fit
+                    height: Fit
 
-                    model_name = <Label> {
-                        text: "Add a custom provider",
-                        draw_text: {
-                            text_style: <BOLD_FONT>{font_size: 13},
+                    model_name := Label {
+                        text: "Add a custom provider"
+                        draw_text +: {
+                            text_style: BOLD_FONT { font_size: 13 }
                             color: #000
                         }
                     }
                 }
 
-                filler_x = <View> {width: Fill, height: Fit}
+                filler_x := View { width: Fill height: Fit }
 
-                close_button = <MolyButton> {
-                    width: Fit,
-                    height: Fit,
+                close_button := MolyButton {
+                    width: Fit
+                    height: Fit
 
-                    margin: {top: -8}
+                    margin: Inset { top: -8 }
 
-                    draw_icon: {
-                        svg_file: (ICON_CLOSE),
-                        fn get_color(self) -> vec4 {
-                            return #000;
+                    draw_icon +: {
+                        svg: ICON_CLOSE
+                        get_color: fn() -> vec4 {
+                            return #000
                         }
                     }
-                    icon_walk: {width: 12, height: 12}
+                    icon_walk: Walk { width: 12 height: 12 }
                 }
             }
 
-            body = <View> {
+            body := View {
                 flow: Down
-                width: Fill, height: Fit
+                width: Fill
+                height: Fit
                 spacing: 20
-                align: {x: 0.0, y: 0.5}
+                align: Align { x: 0.0 y: 0.5 }
 
-                <FormGroup> {
-                    <ModalLabel> {
+                FormGroup {
+                    ModalLabel {
                         text: "Name"
                     }
-                    name = <ModalTextInput> {
+                    name := ModalTextInput {
                         empty_text: "OpenAI"
                     }
                 }
 
-                <FormGroup> {
-                    <ModalLabel> {
+                FormGroup {
+                    ModalLabel {
                         text: "API Host"
                     }
-                    api_host = <ModalTextInput> {
+                    api_host := ModalTextInput {
                         empty_text: "e.g. https://api.openai.com/v1"
                         is_multiline: false
                         input_mode: Url
@@ -215,61 +214,72 @@ live_design! {
                     }
                 }
 
-                <FormGroup> {
-                    <ModalLabel> {
+                FormGroup {
+                    ModalLabel {
                         text: "API Key (optional)"
                     }
-                    api_key = <ModalTextInput> {
+                    api_key := ModalTextInput {
                         empty_text: "sk-..."
                         is_password: true
                         is_multiline: false
                     }
                 }
 
-                <FormGroup> {
-                    <ModalLabel> {
+                FormGroup {
+                    ModalLabel {
                         text: "Provider Type"
                     }
 
-                    // TODO: we should replace the radio buttons with a dropdown
-                    // currently the dropdown popup is not working inside the modal
-                    // provider_type = <ProviderDropDown> {
-                    //     width: Fill
-                    //     labels: ["OpenAI", "MoFa"]
-                    //     values: [OpenAI, MoFa]
-                    // }
-
-                    radios = <View> {
-                        flow: Down, spacing: 10
-                        width: Fit, height: Fit,
-                        radio_openai = <CustomProviderRadio> { text: "OpenAI" }
-                        radio_mofa = <CustomProviderRadio> { text: "MoFa" }
-                        radio_deepinquire = <CustomProviderRadio> { text: "DeepInquire" }
-                        radio_moly_server = <CustomProviderRadio> { text: "MolyServer" }
-                        radio_openai_realtime = <CustomProviderRadio> { text: "OpenAI Realtime" }
+                    radios := View {
+                        flow: Down
+                        spacing: 10
+                        width: Fit
+                        height: Fit
+                        radio_openai := CustomProviderRadio {
+                            text: "OpenAI"
+                        }
+                        radio_mofa := CustomProviderRadio {
+                            text: "MoFa"
+                        }
+                        radio_deepinquire := CustomProviderRadio {
+                            text: "DeepInquire"
+                        }
+                        radio_moly_server := CustomProviderRadio {
+                            text: "MolyServer"
+                        }
+                        radio_openai_realtime := CustomProviderRadio {
+                            text: "OpenAI Realtime"
+                        }
                     }
                 }
 
-                error_view = <View> {
+                error_view := View {
                     visible: false
-                    width: Fill, height: Fit
-                    error_message = <Label> {
-                        draw_text: {
-                            text_style: <REGULAR_FONT>{font_size: 12},
+                    width: Fill
+                    height: Fit
+                    error_message := Label {
+                        draw_text +: {
+                            text_style: REGULAR_FONT { font_size: 12 }
                             color: #f00
                         }
                     }
                 }
 
-                <View> {
-                    width: Fill, height: Fit
-                    align: {x: 1.0, y: 0.5}
-                    add_server_button = <MolyButton> {
+                View {
+                    width: Fill
+                    height: Fit
+                    align: Align { x: 1.0 y: 0.5 }
+                    add_server_button := MolyButton {
                         width: 130
                         height: 40
-                        padding: {left: 20, right: 20, top: 0, bottom: 0}
+                        padding: Inset {
+                            left: 20 right: 20 top: 0 bottom: 0
+                        }
                         text: "Add Provider"
-                        draw_bg: { color: (CTA_BUTTON_COLOR), border_color: (CTA_BUTTON_COLOR) }
+                        draw_bg +: {
+                            color: (CTA_BUTTON_COLOR)
+                            border_color: (CTA_BUTTON_COLOR)
+                        }
                     }
                 }
             }
@@ -277,13 +287,14 @@ live_design! {
     }
 }
 
-#[derive(Clone, Debug, DefaultNone)]
+#[derive(Clone, Debug, Default)]
 pub enum AddProviderModalAction {
+    #[default]
     None,
     ModalDismissed,
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct AddProviderModal {
     #[deref]
     view: View,
@@ -317,13 +328,11 @@ impl WidgetMatchEvent for AddProviderModal {
             let api_host = self.text_input(ids!(api_host)).text().trim().to_string();
             let name = self.text_input(ids!(name)).text().trim().to_string();
 
-            // Check if the provider type is selected
             if self.selected_provider.is_none() {
                 self.set_error_message(cx, "Please select a provider type");
                 return;
             }
 
-            // Check if the name is empty
             if name.is_empty() {
                 self.set_error_message(cx, "Please enter a name for the provider");
                 return;
@@ -331,9 +340,7 @@ impl WidgetMatchEvent for AddProviderModal {
 
             let api_key = self.text_input(ids!(api_key)).text().trim().to_string();
 
-            // Generate a unique ID for the custom provider
             let provider_id = {
-                // Create a base ID from the provider name
                 let base = name
                     .to_lowercase()
                     .replace(" ", "_")
@@ -344,7 +351,6 @@ impl WidgetMatchEvent for AddProviderModal {
                     base
                 };
 
-                // Check if this ID already exists and append a number if needed
                 let mut id = base.clone();
                 let mut counter = 1;
                 while store.chats.providers.contains_key(&id) {

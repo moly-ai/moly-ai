@@ -3,171 +3,165 @@ use moly_protocol::data::DownloadedFile;
 
 use crate::{data::store::Store, shared::utils::BYTES_PER_MB};
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::my_models::downloaded_files_table::DownloadedFilesTable;
+    let ICON_EDIT_FOLDER =
+        crate_resource("self://resources/icons/edit_folder.svg")
+    let ICON_SEARCH =
+        crate_resource("self://resources/icons/search.svg")
+    let ICON_SHOW_IN_FILES =
+        crate_resource("self://resources/icons/visibility.svg")
 
-    ICON_EDIT_FOLDER = dep("crate://self/resources/icons/edit_folder.svg")
-    ICON_SEARCH = dep("crate://self/resources/icons/search.svg")
-    ICON_SHOW_IN_FILES = dep("crate://self/resources/icons/visibility.svg")
-
-    DownloadLocationButton = <MolyButton> {
-        width: Fit,
-        height: 28,
-        padding: {top: 6, bottom: 6, left: 14, right: 14}
+    let DownloadLocationButton = MolyButton {
+        width: Fit
+        height: 28
+        padding: Inset { top: 6 bottom: 6 left: 14 right: 14 }
 
         draw_bg: {
-            border_radius: 2.0,
-            color: #FEFEFE,
+            border_radius: 2.0
+            color: #FEFEFE
         }
 
         draw_icon: {
-            svg_file: (ICON_EDIT_FOLDER),
-            color: #000,
+            svg: ICON_EDIT_FOLDER
+            color: #000
         }
-        icon_walk: { margin: { top: 2 } }
+        icon_walk: Walk { margin: Inset { top: 2 } }
 
-        draw_text:{
-            text_style: <REGULAR_FONT>{font_size: 11},
+        draw_text: {
+            text_style: REGULAR_FONT { font_size: 11 }
             color: #000
         }
         text: "Change Download Location"
         enabled: true
     }
 
-    ShowInFilesButton = <MolyButton> {
-        width: Fit,
-        height: 28,
-        margin: {left: 10}
-        padding: {top: 6, bottom: 6, left: 14, right: 14}
+    let ShowInFilesButton = MolyButton {
+        width: Fit
+        height: 28
+        margin: Inset { left: 10 }
+        padding: Inset { top: 6 bottom: 6 left: 14 right: 14 }
 
         draw_bg: {
-            border_radius: 2.0,
-            color: #FEFEFE,
-            color_hover: #999,
+            border_radius: 2.0
+            color: #FEFEFE
+            color_hover: #999
         }
 
         draw_icon: {
-            svg_file: (ICON_SHOW_IN_FILES),
-            color: #000,
+            svg: ICON_SHOW_IN_FILES
+            color: #000
         }
-        icon_walk: { margin: { top: 4 } }
+        icon_walk: Walk { margin: Inset { top: 4 } }
 
-        draw_text:{
-            text_style: <REGULAR_FONT>{font_size: 11},
+        draw_text: {
+            text_style: REGULAR_FONT { font_size: 11 }
             color: #000
         }
         text: "Show in Folder"
     }
 
-    SearchBar = <RoundedView> {
-        width: Fit,
-        height: Fit,
+    let SearchBar = RoundedView {
+        width: Fit
+        height: Fit
 
-        show_bg: true,
+        show_bg: true
         draw_bg: {
             color: #fff
         }
 
-        padding: {top: 3, bottom: 3, left: 20, right: 20}
+        padding: Inset { top: 3 bottom: 3 left: 20 right: 20 }
 
-        spacing: 4,
-        align: {x: 0.0, y: 0.5},
+        spacing: 4
+        align: Align { x: 0.0 y: 0.5 }
 
-        draw_bg: {
-            border_radius: 9.0,
-            border_color: #D0D5DD,
-            border_size: 1.0,
+        draw_bg +: {
+            border_radius: 9.0
+            border_color: #D0D5DD
+            border_size: 1.0
         }
 
-        <Icon> {
+        Icon {
             draw_icon: {
-                svg_file: (ICON_SEARCH),
-                fn get_color(self) -> vec4 {
-                    return #666;
+                svg: ICON_SEARCH
+                get_color: fn() -> vec4 {
+                    return #666
                 }
             }
-            icon_walk: {width: 14, height: Fit}
+            icon_walk: Walk { width: 14 height: Fit }
         }
 
-        input = <MolyTextInput> {
-            width: 260,
-            height: Fit,
+        input := MolyTextInput {
+            width: 260
+            height: Fit
 
             empty_text: "Filter files"
 
             draw_text: {
-                text_style:<REGULAR_FONT>{font_size: 11},
+                text_style: REGULAR_FONT { font_size: 11 }
             }
         }
     }
 
-    pub MyModelsScreen = {{MyModelsScreen}} {
+    mod.widgets.MyModelsScreen =
+        #(MyModelsScreen::register_widget(vm)) {
         width: Fill
         height: Fill
         flow: Overlay
 
 
-        <View> {
-            width: Fill, height: Fill
+        View {
+            width: Fill height: Fill
             flow: Down
-            align: {x: 0.5, y: 0.5}
+            align: Align { x: 0.5 y: 0.5 }
             padding: 60
 
-            header = <View> {
-                width: Fill, height: Fit
+            header := View {
+                width: Fill height: Fit
                 spacing: 15
                 flow: Right
-                align: {x: 0.0, y: 1.0}
+                align: Align { x: 0.0 y: 1.0 }
 
-                title = <Label> {
-                    draw_text:{
-                        text_style: <BOLD_FONT>{font_size: 30}
+                title := Label {
+                    draw_text: {
+                        text_style: BOLD_FONT { font_size: 30 }
                         color: #000
                     }
                     text: "My Models"
                 }
 
-                models_summary = <Label> {
-                    // We need to manually align the text baseline with the title
-                    // There is no way to do this automatically in Makepad yet
-                    margin: { bottom: 3 }
+                models_summary := Label {
+                    margin: Inset { bottom: 3 }
 
-                    draw_text:{
-                        text_style: <REGULAR_FONT>{font_size: 16}
+                    draw_text: {
+                        text_style: REGULAR_FONT { font_size: 16 }
                         color: #535353
                     }
                 }
             }
 
-            sub_header = <View> {
-                width: Fill, height: Fit
+            sub_header := View {
+                width: Fill height: Fit
                 flow: Right
                 spacing: 10
-                margin: {top: 10}
-                align: {x: 0.0, y: 0.5}
+                margin: Inset { top: 10 }
+                align: Align { x: 0.0 y: 0.5 }
 
-                // Commented out for now as we don't have a way to change the download location yet
-                // and we don't know if we'll support it again.
-                // download_location = <DownloadLocationButton> {}
-                show_in_files = <ShowInFilesButton> {}
-                <View> { width: Fill, height: Fit }
-                search = <SearchBar> {}
+                show_in_files := ShowInFilesButton {}
+                View { width: Fill height: Fit }
+                search := SearchBar {}
             }
 
-            table = <DownloadedFilesTable> {
-                margin: {top: 20}
+            table := DownloadedFilesTable {
+                margin: Inset { top: 20 }
             }
         }
     }
 }
 
-#[derive(Widget, LiveHook, Live)]
+#[derive(Widget, ScriptHook, Script)]
 pub struct MyModelsScreen {
     #[deref]
     view: View,
@@ -187,7 +181,7 @@ impl Widget for MyModelsScreen {
             .downloads
             .downloaded_files;
 
-        let summary = generate_models_summary(&downloaded_files);
+        let summary = generate_models_summary(downloaded_files);
         let models_summary_label = self.view.label(ids!(header.models_summary));
         models_summary_label.set_text(cx, &summary);
 
@@ -223,35 +217,12 @@ impl WidgetMatchEvent for MyModelsScreen {
                 .open()
                 .unwrap_or_else(|_| {
                     eprintln!(
-                        "Failed to open models downloads folder: {}. Check for permissions.",
+                        "Failed to open models downloads folder: \
+                        {}. Check for permissions.",
                         models_uri
                     );
                 });
         }
-
-        // Commented out for now as we don't have a way to change the download location yet
-        // and we don't know if we'll support it again.
-        // if self.button(ids!(download_location)).clicked(actions) {
-        //     let scope = &mut scope.data.get_mut::<Store>().unwrap();
-        //     let models_dir = &scope.preferences.downloaded_files_dir;
-        //     let models_uri = &format!("file:///{}", models_dir.display());
-
-        //     let path_buf = PathBuf::from(models_uri);
-
-        //     let res = rfd::FileDialog::new()
-        //         .set_directory(&path_buf)
-        //         .pick_folder();
-
-        //     if let Some(path) = res {
-        //         scope.preferences.set_downloaded_files_dir(path.clone());
-        //         scope
-        //             .backend
-        //             .as_ref()
-        //             .command_sender
-        //             .send(Command::ChangeModelsDir(path))
-        //             .unwrap();
-        //     }
-        // }
 
         if let Some(keywords) = self.text_input(ids!(search.input)).changed(actions) {
             if !keywords.is_empty() {
@@ -263,10 +234,11 @@ impl WidgetMatchEvent for MyModelsScreen {
     }
 }
 
-#[derive(Clone, DefaultNone, Debug)]
+#[derive(Clone, Default, Debug)]
 pub enum MyModelsSearchAction {
     Search(String),
     Reset,
+    #[default]
     None,
 }
 

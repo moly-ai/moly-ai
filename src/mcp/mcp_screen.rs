@@ -1,48 +1,45 @@
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
+    use mod.widgets.McpServers
 
-    use crate::mcp::mcp_servers::McpServers;
-
-    pub McpScreen = {{McpScreen}} {
+    mod.widgets.McpScreen = McpScreen {
+        #(McpScreen::register_widget(vm))
         width: Fill, height: Fill
         spacing: 20
         flow: Down
 
-        header = <View> {
+        header := View {
             height: Fit
             spacing: 20
             flow: Down
 
-            padding: {left: 30, top: 40}
-            <Label> {
-                draw_text:{
-                    text_style: <BOLD_FONT>{font_size: 25}
+            padding: Inset { left: 30 top: 40 }
+            Label {
+                draw_text: {
+                    text_style: BOLD_FONT { font_size: 25 }
                     color: #000
                 }
                 text: "MCP Servers"
             }
 
-            <Label> {
-                draw_text:{
-                    text_style: <BOLD_FONT>{font_size: 12}
+            Label {
+                draw_text: {
+                    text_style: BOLD_FONT { font_size: 12 }
                     color: #000
                 }
                 text: "Manage MCP servers and tools"
             }
         }
 
-        mcp_servers = <McpServers> {}
+        mcp_servers := McpServers {}
     }
 }
 
-#[derive(Widget, LiveHook, Live)]
+#[derive(Widget, ScriptHook, Script)]
 pub struct McpScreen {
     #[deref]
     view: View,

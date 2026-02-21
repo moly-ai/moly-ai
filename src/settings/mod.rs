@@ -5,14 +5,14 @@ pub mod providers;
 pub mod providers_screen;
 pub mod sync_modal;
 pub mod utilities_modal;
-use makepad_widgets::Cx;
+use makepad_widgets::ScriptVm;
 
-pub fn live_design(cx: &mut Cx) {
-    providers_screen::live_design(cx);
-    moly_server_screen::live_design(cx);
-    provider_view::live_design(cx);
-    providers::live_design(cx);
-    add_provider_modal::live_design(cx);
-    sync_modal::live_design(cx);
-    utilities_modal::live_design(cx);
+pub fn script_mod(vm: &mut ScriptVm) {
+    providers_screen::script_mod(vm);
+    moly_server_screen::script_mod(vm);
+    provider_view::script_mod(vm);
+    providers::script_mod(vm);
+    add_provider_modal::script_mod(vm);
+    sync_modal::script_mod(vm);
+    utilities_modal::script_mod(vm);
 }

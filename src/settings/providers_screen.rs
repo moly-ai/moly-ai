@@ -5,77 +5,76 @@ use crate::data::store::Store;
 use super::provider_view::ProviderViewWidgetExt;
 use super::providers::ConnectionSettingsAction;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::settings::configure_connection_modal::ConfigureConnectionModal;
-    use crate::settings::provider_view::ProviderView;
-    use crate::settings::providers::Providers;
-
-    HorizontalSeparator = <RoundedView> {
-        width: 2, height: Fill
+    let HorizontalSeparator = RoundedView {
+        width: 2
+        height: Fill
         show_bg: true
-        draw_bg: {
+        draw_bg +: {
             color: #d3d3d3
         }
     }
 
-    pub ProvidersScreen = {{ProvidersScreen}} {
-        width: Fill, height: Fill
+    mod.widgets.ProvidersScreen =
+        #(ProvidersScreen::register_widget(vm)) ViewBase {
+        width: Fill
+        height: Fill
         spacing: 20
         flow: Down
 
-        header = <View> {
+        header := View {
             height: Fit
             spacing: 20
             flow: Down
 
-            padding: {left: 30, top: 40}
-            <Label> {
-                draw_text:{
-                    text_style: <BOLD_FONT>{font_size: 25}
+            padding: Inset { left: 30 top: 40 }
+            Label {
+                draw_text +: {
+                    text_style: BOLD_FONT { font_size: 25 }
                     color: #000
                 }
                 text: "Provider Settings"
             }
 
-            <Label> {
-                draw_text:{
-                    text_style: <BOLD_FONT>{font_size: 12}
+            Label {
+                draw_text +: {
+                    text_style: BOLD_FONT { font_size: 12 }
                     color: #000
                 }
                 text: "Manage providers and models"
             }
         }
 
-        adaptive_view = <AdaptiveView> {
+        adaptive_view := AdaptiveView {
             Desktop = {
                 spacing: 10
-                padding: {top: 10}
-                providers = <Providers> {}
-                provider_view = <ProviderView> {}
+                padding: Inset { top: 10 }
+                providers := Providers {}
+                provider_view := ProviderView {}
             }
 
             Mobile = {
-                providers = <Providers> {
-                    providers_list = {
-                        provider_item = {
+                providers := Providers {
+                    providers_list := {
+                        provider_item := {
                             height: 45
                         }
                     }
-                    width: Fill, height: Fill
-                    padding: {left: 8, right: 8, top: 0, bottom: 0}
+                    width: Fill
+                    height: Fill
+                    padding: Inset {
+                        left: 8 right: 8 top: 0 bottom: 0
+                    }
                 }
             }
         }
     }
 }
 
-#[derive(Widget, LiveHook, Live)]
+#[derive(Widget, ScriptHook, Script)]
 pub struct ProvidersScreen {
     #[deref]
     view: View,
@@ -99,7 +98,6 @@ impl WidgetMatchEvent for ProvidersScreen {
 
         for action in actions {
             if let ConnectionSettingsAction::ProviderSelected(provider_id) = action.cast() {
-                // fetch provider from store
                 let provider = scope
                     .data
                     .get_mut::<Store>()
