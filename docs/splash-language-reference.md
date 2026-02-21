@@ -482,21 +482,18 @@ TextInput{is_password: true empty_text: "Password"}
 TextInput{is_read_only: true}
 TextInput{is_numeric_only: true}
 TextInput{is_multiline: true width: Fill height: 200}
-TextInput{input_mode: InputMode.Numeric}
 TextInput{input_mode: InputMode.Email autocapitalize: AutoCapitalize.None}
 ```
 
-**New properties (added in recent updates):**
+Additional properties for mobile/IME control (enums available in prelude):
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `is_multiline` | `bool` | `false` | Enables multiline input; Enter inserts newlines instead of submitting |
-| `input_mode` | `InputMode` | `Text` | Controls soft keyboard type on mobile. Values: `Text`, `Numeric`, `Decimal`, `Tel`, `Ascii`, `Url`, `Email`, `Search` |
-| `autocapitalize` | `AutoCapitalize` | (platform default) | Controls auto-capitalization. Values: `None`, `Characters`, `Words`, `Sentences` |
-| `autocorrect` | `AutoCorrect` | (platform default) | Controls autocorrect: `Default`, `Yes`, `No` |
-| `return_key_type` | `ReturnKeyType` | (platform default) | Controls mobile return key label: `Default`, `Go`, `Next`, `Search`, `Send`, `Done` |
-
-These enums are available in the prelude (imported via `use mod.prelude.widgets.*`).
+| Property | Type | Values |
+|----------|------|--------|
+| `is_multiline` | `bool` | Enter inserts newlines instead of submitting |
+| `input_mode` | `InputMode` | `Text`, `Numeric`, `Decimal`, `Tel`, `Ascii`, `Url`, `Email`, `Search` |
+| `autocapitalize` | `AutoCapitalize` | `None`, `Characters`, `Words`, `Sentences` |
+| `autocorrect` | `AutoCorrect` | `Default`, `Yes`, `No` |
+| `return_key_type` | `ReturnKeyType` | `Default`, `Go`, `Next`, `Search`, `Send`, `Done` |
 
 ### Markdown / Html
 
@@ -725,8 +722,7 @@ Shaders are written inline inside `draw_bg +: { ... }` blocks.
 draw_bg +: {
     hover: instance(0.0)       // per-widget, animatable by Animator
     color: uniform(#fff)       // shared across all instances
-    tex: texture_2d(float)     // texture sampler (2D)
-    vid: texture_video(float)  // video/external texture (OES on GLSL)
+    tex: texture_2d(float)     // texture sampler
     my_var: varying(vec2(0))   // vertex->pixel interpolated
 }
 ```
@@ -734,8 +730,6 @@ draw_bg +: {
 - **`instance()`** — state that varies per widget (hover, down, focus, colors). Driven by the Animator.
 - **`uniform()`** — constants shared by all instances (border sizes, theme colors). Cannot be animated.
 - **`varying()`** — data computed in vertex shader and interpolated for pixel shader.
-- **`texture_2d()`** — standard 2D texture sampler. Use `.sample(coord)` to read.
-- **`texture_video()`** — video/external texture (e.g., camera, video playback). Use `.sample_video(coord)` to read. On GLSL this maps to `sample2dOES()`.
 
 ### Pixel Shader
 
