@@ -25,7 +25,7 @@ script_mod! {
             icon := Image {
                 width: 16
                 height: 16
-                source: crate_resource("self://resources/link.png")
+                src: crate_resource("self://resources/link.png")
             }
 
             site := Label {

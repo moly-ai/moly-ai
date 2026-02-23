@@ -67,7 +67,7 @@ script_mod! {
             margin: Inset {bottom: 5}
             Image {
                 width: 50 height: 50
-                source: (ICON_MOLYSERVER)
+                src: (ICON_MOLYSERVER)
             }
         }
 
@@ -150,7 +150,7 @@ script_mod! {
                         flow: Down spacing: 20
                         Image {
                             width: 100 height: 100
-                            source: (ICON_MOLYSERVER)
+                            src: (ICON_MOLYSERVER)
                         }
                         Label {
                             text: "Loading..."

@@ -52,7 +52,7 @@ script_mod! {
                 align: Align { x: 0.5, y: 0.5 }
 
                 icon_fallback_label := Label {
-                    draw_text: {
+                    draw_text +: {
                         text_style: theme.font_bold { font_size: 13.0 }
                         color: #fff
                     }
@@ -60,7 +60,7 @@ script_mod! {
             }
 
             label := Label {
-                draw_text: {
+                draw_text +: {
                     text_style: theme.font_bold { font_size: 10.0 }
                     color: #989898
                 }

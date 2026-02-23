@@ -166,7 +166,7 @@ script_mod! {
                         provider_type := Label {
                             margin: Inset { left: (SM_GAP) }
                             draw_text +: {
-                                text_style: { font_size: 11 }
+                                text_style +: { font_size: 11 }
                                 color: #000
                             }
                         }
@@ -190,7 +190,7 @@ script_mod! {
                         icon := Image {
                             width: 22
                             height: 22
-                            source: (REFRESH_ICON)
+                            src: (REFRESH_ICON)
                         }
                     }
                     provider_enabled_switch := MolySwitch {
@@ -377,7 +377,7 @@ script_mod! {
                         Label {
                             text: "Enable Tools"
                             draw_text +: {
-                                text_style: { font_size: 12 }
+                                text_style +: { font_size: 12 }
                                 color: #000
                             }
                         }

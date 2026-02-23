@@ -67,7 +67,7 @@ script_mod! {
                     padding: Inset {left: 16}
                     left_button +: {
                         height: Fit
-                        icon_walk: Walk {width: 12 height: Fit}
+                        icon_walk +: {width: 12 height: Fit}
                         draw_icon +: {
                             brightness: 0.0
                         }
@@ -105,7 +105,7 @@ script_mod! {
                         text: "\u{f0c9}"
                         draw_text +: {
                             color: #x0
-                            text_style: { font_size: 18.0 }
+                            text_style +: { font_size: 18.0 }
                         }
                     }
                 }
@@ -133,7 +133,7 @@ script_mod! {
                                 text: "\u{f013}"
                                 draw_text +: {
                                     color: #x333
-                                    text_style: { font_size: 18.0 }
+                                    text_style +: { font_size: 18.0 }
                                 }
                             }
                         }
@@ -160,14 +160,14 @@ script_mod! {
                             padding: Inset {
                                 left: 10 right: 10 top: 10 bottom: 10
                             }
-                            icon_walk: Walk {
+                            icon_walk +: {
                                 margin: Inset { top: -1 }
                                 width: 18 height: 18
                             }
                             text: "New Chat"
                             draw_text +: {
                                 color: #xf
-                                text_style: { font_size: 12.0 }
+                                text_style +: { font_size: 12.0 }
                             }
                             draw_icon +: {
                                 svg: (ICON_NEW_CHAT)

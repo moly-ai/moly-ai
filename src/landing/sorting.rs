@@ -12,7 +12,7 @@ script_mod! {
 
         popup_menu_position: BelowInput
 
-        draw_text: {
+        draw_text +: {
             text_style: theme.font_bold { font_size: 9 }
             get_color: fn() -> vec4 {
                 return mix(
@@ -26,7 +26,7 @@ script_mod! {
         popup_menu: {
             width: 220
 
-            draw_bg: {
+            draw_bg +: {
                 color: #fff
                 border_size: 1.5
                 //border_color_1: #EAECF0
@@ -39,7 +39,7 @@ script_mod! {
 
                 padding: Inset {left: 20 top: 15 bottom: 15 right: 20}
 
-                draw_bg: {
+                draw_bg +: {
                     color: #fff
                     color_active: #xeee9
 
@@ -64,7 +64,7 @@ script_mod! {
                     }
                 }
 
-                draw_text: {
+                draw_text +: {
                     text_style: theme.font_bold { font_size: 9 }
                     active: instance(0.0)
                     hover: instance(0.0)
@@ -75,7 +75,7 @@ script_mod! {
             }
         }
 
-        draw_bg: {
+        draw_bg +: {
             open: instance(0.0)
 
             get_bg: fn(inout sdf: Sdf2d) {
@@ -120,7 +120,7 @@ script_mod! {
         align: Align {x: 0.5 y: 0.5}
 
         Label {
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_regular {font_size: 9}
                 color: #667085
             }

@@ -19,18 +19,18 @@ script_mod! {
         height: 28
         padding: Inset { top: 6 bottom: 6 left: 14 right: 14 }
 
-        draw_bg: {
+        draw_bg +: {
             border_radius: 2.0
             color: #FEFEFE
         }
 
-        draw_icon: {
+        draw_icon +: {
             svg: ICON_EDIT_FOLDER
             color: #000
         }
-        icon_walk: Walk { margin: Inset { top: 2 } }
+        icon_walk +: { margin: Inset { top: 2 } }
 
-        draw_text: {
+        draw_text +: {
             text_style: REGULAR_FONT { font_size: 11 }
             color: #000
         }
@@ -44,19 +44,19 @@ script_mod! {
         margin: Inset { left: 10 }
         padding: Inset { top: 6 bottom: 6 left: 14 right: 14 }
 
-        draw_bg: {
+        draw_bg +: {
             border_radius: 2.0
             color: #FEFEFE
             color_hover: #999
         }
 
-        draw_icon: {
+        draw_icon +: {
             svg: ICON_SHOW_IN_FILES
             color: #000
         }
-        icon_walk: Walk { margin: Inset { top: 4 } }
+        icon_walk +: { margin: Inset { top: 4 } }
 
-        draw_text: {
+        draw_text +: {
             text_style: REGULAR_FONT { font_size: 11 }
             color: #000
         }
@@ -68,7 +68,7 @@ script_mod! {
         height: Fit
 
         show_bg: true
-        draw_bg: {
+        draw_bg +: {
             color: #fff
         }
 
@@ -84,13 +84,13 @@ script_mod! {
         }
 
         Icon {
-            draw_icon: {
+            draw_icon +: {
                 svg: ICON_SEARCH
                 get_color: fn() -> vec4 {
                     return #666
                 }
             }
-            icon_walk: Walk { width: 14 height: Fit }
+            icon_walk +: { width: 14 height: Fit }
         }
 
         input := MolyTextInput {
@@ -99,7 +99,7 @@ script_mod! {
 
             empty_text: "Filter files"
 
-            draw_text: {
+            draw_text +: {
                 text_style: REGULAR_FONT { font_size: 11 }
             }
         }
@@ -125,7 +125,7 @@ script_mod! {
                 align: Align { x: 0.0 y: 1.0 }
 
                 title := Label {
-                    draw_text: {
+                    draw_text +: {
                         text_style: BOLD_FONT { font_size: 30 }
                         color: #000
                     }
@@ -135,7 +135,7 @@ script_mod! {
                 models_summary := Label {
                     margin: Inset { bottom: 3 }
 
-                    draw_text: {
+                    draw_text +: {
                         text_style: REGULAR_FONT { font_size: 16 }
                         color: #535353
                     }

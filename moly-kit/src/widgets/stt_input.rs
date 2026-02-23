@@ -68,7 +68,7 @@ script_mod! {
             text: "Recording...",
             draw_text +: {
                 color: #000,
-                text_style: { font_size: 11 }
+                text_style +: { font_size: 11 }
             }
         }
         HorizontalFiller {}

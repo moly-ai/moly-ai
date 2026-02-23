@@ -30,14 +30,14 @@ script_mod! {
                 align: Align {x: 0.5 y: 0.5}
 
                 results := Label {
-                    draw_text: {
+                    draw_text +: {
                         text_style: theme.font_bold {font_size: 16}
                         color: #000
                     }
                     text: "12 Results"
                 }
                 keyword := Label {
-                    draw_text: {
+                    draw_text +: {
                         text_style: theme.font_regular {font_size: 16}
                         color: #000
                     }

@@ -35,7 +35,7 @@ script_mod! {
             caption := Label {
                 width: Fit
                 height: Fit
-                draw_text: {
+                draw_text +: {
                     text_style: BOLD_FONT {font_size: 10}
                     color: #000
                 }
@@ -45,7 +45,7 @@ script_mod! {
                 width: Fill
                 height: Fit
                 label := Label {
-                    draw_text: {
+                    draw_text +: {
                         text_style: REGULAR_FONT {font_size: 9}
                         color: #667085
                     }
@@ -58,7 +58,7 @@ script_mod! {
                 label := Label {
                     width: Fill
                     height: Fit
-                    draw_text: {
+                    draw_text +: {
                         wrap: Wrap.Ellipsis
                         text_style: REGULAR_FONT {font_size: 9}
                         color: #667085
@@ -72,13 +72,13 @@ script_mod! {
                 off: AnimatorState {
                     from: {all: Forward {duration: 0.15}}
                     apply: {
-                        draw_bg: {color: #xF2F4F700}
+                        draw_bg +: {color: #xF2F4F700}
                     }
                 }
                 on: AnimatorState {
                     from: {all: Snap}
                     apply: {
-                        draw_bg: {color: #xEAECEF88}
+                        draw_bg +: {color: #xEAECEF88}
                     }
                 }
             }
@@ -88,7 +88,7 @@ script_mod! {
                     from: {all: Forward {duration: 0.5}}
                     ease: OutExp
                     apply: {
-                        draw_bg: {down: 0.0}
+                        draw_bg +: {down: 0.0}
                     }
                 }
                 on: AnimatorState {
@@ -97,7 +97,7 @@ script_mod! {
                         all: Forward {duration: 0.2}
                     }
                     apply: {
-                        draw_bg: {down: 1.0}
+                        draw_bg +: {down: 1.0}
                     }
                 }
             }

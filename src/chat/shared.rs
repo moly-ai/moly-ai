@@ -21,7 +21,7 @@ script_mod! {
         avatar_label := Label {
             width: Fit
             height: Fit
-            draw_text: {
+            draw_text +: {
                 text_style: BOLD_FONT {font_size: 8}
                 color: #fff
             }
@@ -58,7 +58,7 @@ impl Widget for ChatAgentAvatar {
         if let Some(dep) = self.pending_image_update.take() {
             script_apply_eval!(cx, self, {
                 image = {
-                    source: #(dep)
+                    src: #(dep)
                 }
             })
         }

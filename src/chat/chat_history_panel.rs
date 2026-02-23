@@ -60,7 +60,7 @@ script_mod! {
             new_chat_button := MolyButton {
                 width: Fit
                 height: Fit
-                icon_walk: Walk {
+                icon_walk +: {
                     margin: Inset {top: -1}
                     width: 21 height: 21
                 }

@@ -15,7 +15,7 @@ script_mod! {
         width: Fill
         height: 100
         show_bg: false
-        draw_bg: {
+        draw_bg +: {
             border_radius: 5
             color: #F9FAFB
         }
@@ -27,7 +27,7 @@ script_mod! {
             align: Align {x: 0 y: 0.35}
             server_url_visible: true
 
-            draw_bg: {
+            draw_bg +: {
                 border_radius: 5
             }
             agent_avatar: {
@@ -40,13 +40,13 @@ script_mod! {
                 height: Fit
                 flow: Down
                 caption: {
-                    draw_text: {
+                    draw_text +: {
                         text_style: theme.font_bold {font_size: 11}
                     }
                 }
                 description: {
                     label: {
-                        draw_text: {
+                        draw_text +: {
                             wrap: Word
                             color: #1D2939
                         }
@@ -86,7 +86,7 @@ script_mod! {
                 Header := Label {
                     margin: Inset {bottom: 10 top: 35}
                     padding: Inset {left: 10}
-                    draw_text: {
+                    draw_text +: {
                         text_style: theme.font_bold {font_size: 16}
                         color: #000
                     }
@@ -103,7 +103,7 @@ script_mod! {
             visible: false
 
             show_bg: true
-            draw_bg: {
+            draw_bg +: {
                 color: #FFFE
             }
             search_loading := SearchLoading {}
@@ -116,7 +116,7 @@ script_mod! {
             align: Align {x: 0.5 y: 0.5}
 
             Label {
-                draw_text: {
+                draw_text +: {
                     text_style: theme.font_regular {font_size: 13}
                     color: #000
                 }

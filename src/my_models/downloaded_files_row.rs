@@ -21,15 +21,15 @@ script_mod! {
     let DownloadedFilesRowButton = MolyButton {
         height: 40
 
-        draw_bg: {
+        draw_bg +: {
             border_color_1: #ccc
         }
 
-        draw_icon: {
+        draw_icon +: {
             color: (CTA_BUTTON_COLOR)
         }
 
-        draw_text: {
+        draw_text +: {
             text_style: BOLD_FONT { font_size: 9 }
         }
     }
@@ -47,7 +47,7 @@ script_mod! {
                 align: Align { x: 0.0 y: 0.5 }
                 name := Label {
                     width: Fit
-                    draw_text: {
+                    draw_text +: {
                         text_style: BOLD_FONT { font_size: 9 }
                         color: #x0
                     }
@@ -58,14 +58,14 @@ script_mod! {
                 width: Fit
                 align: Align { x: 0.0 y: 0.5 }
                 base_model := AttributeTag {
-                    draw_bg: { color: #F0D6F5 }
+                    draw_bg +: { color: #F0D6F5 }
                 }
             }
             parameters_tag := View {
                 width: Fit
                 align: Align { x: 0.0 y: 0.5 }
                 parameters := AttributeTag {
-                    draw_bg: { color: #D4E6F7 }
+                    draw_bg +: { color: #D4E6F7 }
                 }
             }
         }
@@ -74,7 +74,7 @@ script_mod! {
             align: Align { x: 0.0 y: 0.5 }
             version := Label {
                 width: Fit
-                draw_text: {
+                draw_text +: {
                     wrap: Ellipsis
                     text_style: REGULAR_FONT { font_size: 9 }
                     color: #667085
@@ -87,7 +87,7 @@ script_mod! {
         width: 100
         align: Align { x: 0.0 y: 0.5 }
         label := Label {
-            draw_text: {
+            draw_text +: {
                 text_style: REGULAR_FONT { font_size: 9 }
                 color: #x0
             }
@@ -103,11 +103,11 @@ script_mod! {
         start_chat_button := DownloadedFilesRowButton {
             width: 140
             text: "Chat with Model"
-            draw_bg: { color_hover: #09925033 }
-            draw_text: {
+            draw_bg +: { color_hover: #09925033 }
+            draw_text +: {
                 color: (MODEL_CTA_COLOR)
             }
-            draw_icon: {
+            draw_icon +: {
                 svg: ICON_START_CHAT
                 color: (MODEL_CTA_COLOR)
             }
@@ -117,8 +117,8 @@ script_mod! {
 
         info_button := DownloadedFilesRowButton {
             width: 40
-            draw_bg: { color_hover: #2654C033 }
-            draw_icon: {
+            draw_bg +: { color_hover: #2654C033 }
+            draw_icon +: {
                 svg: ICON_INFO
                 color: #2654C0
             }
@@ -126,8 +126,8 @@ script_mod! {
 
         delete_button := DownloadedFilesRowButton {
             width: 40
-            draw_bg: { color_hover: #B4605A33 }
-            draw_icon: {
+            draw_bg +: { color_hover: #B4605A33 }
+            draw_icon +: {
                 svg: ICON_DELETE
                 color: #B4605A
             }

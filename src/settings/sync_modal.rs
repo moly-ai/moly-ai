@@ -162,7 +162,7 @@ script_mod! {
                     get_color: fn() -> vec4 {
                         return #222
                     }
-                    text_style: { font_size: 10 }
+                    text_style +: { font_size: 10 }
                 }
 
                 label_walk: Walk { margin: Inset { left: 50 } }
@@ -264,7 +264,7 @@ script_mod! {
                             return #000
                         }
                     }
-                    icon_walk: Walk { width: 12 height: 12 }
+                    icon_walk +: { width: 12 height: 12 }
                 }
             }
 
@@ -284,7 +284,7 @@ script_mod! {
                     hint := ModalLabel {
                         text: "Sync settings between devices"
                         draw_text +: {
-                            text_style: { font_size: 11 }
+                            text_style +: { font_size: 11 }
                         }
                     }
 

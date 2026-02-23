@@ -139,7 +139,7 @@ script_mod! {
 
     let SimpleDropDown = DropDown {
         draw_text +: {
-            text_style: { font_size: 12 }
+            text_style +: { font_size: 12 }
             get_color: fn() -> vec4 {
                 return mix(
                     #2
@@ -197,7 +197,7 @@ script_mod! {
             text: "Transcription model:"
             draw_text +: {
                 color: #222
-                text_style: { font_size: 11 }
+                text_style +: { font_size: 11 }
             }
         }
 
@@ -210,13 +210,13 @@ script_mod! {
 
             draw_text +: {
                 color: #222
-                text_style: { font_size: 11 }
+                text_style +: { font_size: 11 }
             }
 
             popup_menu: PopupMenu {
                 draw_text +: {
                     color: #222
-                    text_style: { font_size: 11 }
+                    text_style +: { font_size: 11 }
                 }
             }
         }
@@ -231,7 +231,7 @@ script_mod! {
             text: "Voice:"
             draw_text +: {
                 color: #222
-                text_style: { font_size: 11 }
+                text_style +: { font_size: 11 }
             }
         }
 
@@ -244,13 +244,13 @@ script_mod! {
 
             draw_text +: {
                 color: #222
-                text_style: { font_size: 11 }
+                text_style +: { font_size: 11 }
             }
 
             popup_menu: PopupMenu {
                 draw_text +: {
                     color: #222
-                    text_style: { font_size: 11 }
+                    text_style +: { font_size: 11 }
                 }
             }
         }
@@ -282,7 +282,7 @@ script_mod! {
         label := Label {
             draw_text +: {
                 color: #222
-                text_style: { font_size: 11 }
+                text_style +: { font_size: 11 }
             }
         }
 
@@ -293,13 +293,13 @@ script_mod! {
 
             draw_text +: {
                 color: #222
-                text_style: { font_size: 11 }
+                text_style +: { font_size: 11 }
             }
 
             popup_menu: PopupMenu {
                 draw_text +: {
                     color: #222
-                    text_style: { font_size: 11 }
+                    text_style +: { font_size: 11 }
                 }
             }
         }
@@ -317,7 +317,7 @@ script_mod! {
             text: "Mute"
             draw_text +: {
                 color: #222
-                text_style: { font_size: 11 }
+                text_style +: { font_size: 11 }
             }
         }
     }
@@ -352,7 +352,7 @@ script_mod! {
             align: Align { x: 0.0, y: 0.5 }
             selected_devices := Label {
                 draw_text +: {
-                    text_style: { font_size: 11 }
+                    text_style +: { font_size: 11 }
                     color: #222
                 }
             }
@@ -365,7 +365,7 @@ script_mod! {
             align: Align { x: 0.0, y: 0.5 }
             selected_voice := Label {
                 draw_text +: {
-                    text_style: { font_size: 11 }
+                    text_style +: { font_size: 11 }
                     color: #222
                 }
             }
@@ -381,7 +381,7 @@ script_mod! {
                 get_color: fn() -> vec4 {
                     return #222
                 }
-                text_style: { font_size: 10 }
+                text_style +: { font_size: 10 }
             }
 
             label_walk: Walk {
@@ -402,7 +402,7 @@ script_mod! {
             draw_text +: {
                 color: #222
                 wrap: Word
-                text_style: { font_size: 11 }
+                text_style +: { font_size: 11 }
             }
         }
 
@@ -427,7 +427,7 @@ script_mod! {
             Label {
                 text: "Request microphone permission"
                 draw_text +: {
-                    text_style: { font_size: 11 }
+                    text_style +: { font_size: 11 }
                     color: #000
                 }
             }
@@ -458,7 +458,7 @@ script_mod! {
             stop_start_label := Label {
                 text: "Start"
                 draw_text +: {
-                    text_style: { font_size: 11 }
+                    text_style +: { font_size: 11 }
                     color: #000
                 }
             }

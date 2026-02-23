@@ -20,7 +20,7 @@ script_mod! {
             spacing: 10
 
             show_bg: true
-            draw_bg: {
+            draw_bg +: {
                 color: #fff
                 border_radius: 3
             }
@@ -38,7 +38,7 @@ script_mod! {
 
                     model_name := Label {
                         text: "Delete Model"
-                        draw_text: {
+                        draw_text +: {
                             text_style: BOLD_FONT { font_size: 13 }
                             color: #000
                         }
@@ -53,13 +53,13 @@ script_mod! {
 
                     margin: Inset { top: -8 }
 
-                    draw_icon: {
+                    draw_icon +: {
                         svg: ICON_CLOSE
                         get_color: fn() -> vec4 {
                             return #000
                         }
                     }
-                    icon_walk: Walk { width: 12 height: 12 }
+                    icon_walk +: { width: 12 height: 12 }
                 }
             }
 
@@ -71,7 +71,7 @@ script_mod! {
 
                 delete_prompt := Label {
                     width: Fill
-                    draw_text: {
+                    draw_text +: {
                         text_style: REGULAR_FONT {
                             font_size: 10
                         }
@@ -93,7 +93,7 @@ script_mod! {
                             top: 10 bottom: 10 left: 14 right: 14
                         }
 
-                        draw_bg: {
+                        draw_bg +: {
                             border_radius: instance(2.0)
                             border_color_1: #D0D5DD
                             border_size: 1.2
@@ -101,7 +101,7 @@ script_mod! {
                         }
 
                         text: "Cancel"
-                        draw_text: {
+                        draw_text +: {
                             text_style: REGULAR_FONT { font_size: 10 }
                             color: #x0
                         }
@@ -114,13 +114,13 @@ script_mod! {
                             top: 10 bottom: 10 left: 14 right: 14
                         }
 
-                        draw_bg: {
+                        draw_bg +: {
                             border_radius: instance(2.0)
                             color: #D92D20
                         }
 
                         text: "Delete"
-                        draw_text: {
+                        draw_text +: {
                             text_style: REGULAR_FONT { font_size: 10 }
                             color: #fff
                         }

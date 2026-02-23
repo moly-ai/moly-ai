@@ -51,7 +51,7 @@ script_mod! {
                 width: 36,
                 height: 36,
                 margin: Inset { left: 2, right: 2, top: 2, bottom: 10 },
-                icon_walk: Walk {
+                icon_walk +: {
                     width: 16, height: 16
                     margin: Inset { left: 4.5, top: 6.5 },
                 }

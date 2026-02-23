@@ -36,7 +36,7 @@ script_mod! {
                     border_radius: 0
                 }
 
-                icon_walk: {width: 12 height: 12}
+                icon_walk +: {width: 12 height: 12}
                 draw_icon +: {
                     svg_file: (ICON_EDIT)
                     get_color: fn() -> vec4 {
@@ -65,7 +65,7 @@ script_mod! {
                     border_radius: 0
                 }
 
-                icon_walk: {width: 12 height: 12}
+                icon_walk +: {width: 12 height: 12}
                 draw_icon +: {
                     svg_file: (ICON_DELETE)
                     get_color: fn() -> vec4 {

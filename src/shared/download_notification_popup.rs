@@ -98,7 +98,7 @@ script_mod! {
                 return #000
             }
         }
-        icon_walk: Walk { width: 10 height: 10 }
+        icon_walk +: { width: 10 height: 10 }
     }
 
     let NotificationIcons = View {
@@ -109,7 +109,7 @@ script_mod! {
             width: Fit
             height: Fit
             Image {
-                source: SUCCESS_ICON
+                src: SUCCESS_ICON
                 width: 35
                 height: 35
             }
@@ -119,7 +119,7 @@ script_mod! {
             width: Fit
             height: Fit
             Image {
-                source: FAILURE_ICON
+                src: FAILURE_ICON
                 width: 35
                 height: 35
             }

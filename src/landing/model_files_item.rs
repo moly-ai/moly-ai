@@ -30,7 +30,7 @@ script_mod! {
         height: Fit
 
         show_bg: true
-        draw_bg: {
+        draw_bg +: {
             color: #00f
             border_radius: vec2(1.0 1.0)
         }
@@ -44,30 +44,30 @@ script_mod! {
     let ModelCardButton = MolyButton {
         width: 140
         height: 32
-        draw_text: {
+        draw_text +: {
             color: #5B6B7D
             text_style: theme.font_bold { font_size: 9}
         }
     }
 
     let DownloadButton = ModelCardButton {
-        draw_bg: { color: (CTA_BUTTON_COLOR) border_size: 0.0 }
+        draw_bg +: { color: (CTA_BUTTON_COLOR) border_size: 0.0 }
         text: "Download"
-        draw_text: {
+        draw_text +: {
             color: (MAIN_BG_COLOR)
         }
-        draw_icon: {
+        draw_icon +: {
             svg_file: (ICON_DOWNLOAD)
         }
     }
 
     let StartChatButton = ModelCardButton {
-        draw_bg: { color: #fff color_hover: #7697E4 border_color_1: (CTA_BUTTON_COLOR) border_size: 1 }
+        draw_bg +: { color: #fff color_hover: #7697E4 border_color_1: (CTA_BUTTON_COLOR) border_size: 1 }
         text: "Chat with Model"
-        draw_text: {
+        draw_text +: {
             color: (CTA_BUTTON_COLOR)
         }
-        draw_icon: {
+        draw_icon +: {
             svg_file: (START_CHAT)
             color: (CTA_BUTTON_COLOR)
         }
@@ -77,7 +77,7 @@ script_mod! {
         width: 25
         height: 25
         padding: 4
-        draw_icon: {
+        draw_icon +: {
             get_color: fn() -> vec4 {
                 return #667085;
             }
@@ -94,7 +94,7 @@ script_mod! {
 
             RoundedView {
                 height: Fill
-                draw_bg: {
+                draw_bg +: {
                     color: #D9D9D9
                     border_radius: 2.5
                 }
@@ -103,7 +103,7 @@ script_mod! {
             progress_fill := RoundedView {
                 width: 0
                 height: Fill
-                draw_bg: {
+                draw_bg +: {
                     border_radius: 2.5
                 }
             }
@@ -113,31 +113,31 @@ script_mod! {
             align: Align {x: 1 y: 0.5}
             progress_text := Label {
                 text: "0%"
-                draw_text: {
+                draw_text +: {
                     text_style: theme.font_bold {font_size: 9}
                 }
             }
         }
 
         resume_download_button := DownloadPendingButton {
-            icon_walk: { margin: Inset { left: 4 } }
-            draw_icon: {
+            icon_walk +: { margin: Inset { left: 4 } }
+            draw_icon +: {
                 svg_file: (ICON_PLAY)
             }
         }
         retry_download_button := DownloadPendingButton {
-            draw_icon: {
+            draw_icon +: {
                 svg_file: (ICON_RETRY)
             }
         }
         pause_download_button := DownloadPendingButton {
-            icon_walk: { margin: Inset { left: 4 } }
-            draw_icon: {
+            icon_walk +: { margin: Inset { left: 4 } }
+            draw_icon +: {
                 svg_file: (ICON_PAUSE)
             }
         }
         cancel_download_button := DownloadPendingButton {
-            draw_icon: {
+            draw_icon +: {
                 svg_file: (ICON_CANCEL)
             }
         }
@@ -145,14 +145,14 @@ script_mod! {
 
     mod.widgets.ModelFilesItem = #(ModelFilesItem::register_widget(vm)) ModelFilesRow {
         show_bg: true
-        draw_bg: {
+        draw_bg +: {
             color: #f
         }
 
         cell1: {
             spacing: 10
             filename := Label {
-                draw_text:{
+                draw_text +: {
                     text_style: theme.font_bold {font_size: 9}
                     color: #000
                 }
@@ -161,7 +161,7 @@ script_mod! {
 
         cell2: {
             full_size := Label {
-                draw_text:{
+                draw_text +: {
                     text_style: theme.font_regular {font_size: 9}
                     color: #000
                 }
@@ -175,7 +175,7 @@ script_mod! {
                 height: Fit
                 padding: Inset {top: 6 bottom: 6 left: 10 right: 10}
 
-                draw_bg: {
+                draw_bg +: {
                     border_radius: instance(2.0)
                     border_color: #B4B4B4
                     border_size: 0.5
@@ -183,7 +183,7 @@ script_mod! {
                 }
 
                 quantization := Label {
-                    draw_text:{
+                    draw_text +: {
                         text_style: theme.font_regular {font_size: 9}
                         color: #000
                     }

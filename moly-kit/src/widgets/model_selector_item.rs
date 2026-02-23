@@ -31,14 +31,14 @@ script_mod! {
                 off: AnimatorState {
                     from: { all: Forward { duration: 0.2 } }
                     apply: {
-                        draw_bg: { hover: 0.0 }
+                        draw_bg +: { hover: 0.0 }
                     }
                 }
 
                 on: AnimatorState {
                     from: { all: Snap }
                     apply: {
-                        draw_bg: { hover: 1.0 }
+                        draw_bg +: { hover: 1.0 }
                     }
                 }
             }
@@ -46,7 +46,7 @@ script_mod! {
 
         label := Label {
             width: Fill
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_regular { font_size: 11 }
                 color: #000
             }
@@ -59,7 +59,7 @@ script_mod! {
                 width: Fit, height: Fit
                 align: Align { x: 1.0, y: 0.5 }
                 text: "\u{f00c}" // fa-check
-                draw_text: {
+                draw_text +: {
                     text_style: theme.font_icons {
                         font_size: 12.
                     }

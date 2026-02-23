@@ -32,7 +32,7 @@ script_mod! {
                 width: Fit
                 height: Fit
                 model_name := Label {
-                    draw_text: {
+                    draw_text +: {
                         text_style: theme.font_bold {font_size: 16}
                         color: #000
                     }
@@ -48,24 +48,24 @@ script_mod! {
 
                 padding: Inset {top: 6 bottom: 6 left: 6 right: 10}
 
-                draw_bg: {
+                draw_bg +: {
                     color: #0000
                     border_color: #98A2B3
                     border_size: 0.8
                 }
                 attr_name := Icon {
-                    draw_icon: {
+                    draw_icon +: {
                         svg_file: (ICON_FAVORITE)
                         get_color: fn() -> vec4 {
                             return #000;
                         }
                     }
-                    icon_walk: {width: 14 height: 14}
+                    icon_walk +: {width: 14 height: 14}
                 }
 
                 attr_value: {
                     margin: Inset {left: 5}
-                    draw_text: {
+                    draw_text +: {
                         color: #000
                         text_style: theme.font_regular {font_size: 9}
                     }
@@ -78,24 +78,24 @@ script_mod! {
 
                 padding: Inset {top: 6 bottom: 6 left: 6 right: 10}
 
-                draw_bg: {
+                draw_bg +: {
                     color: #0000
                     border_color: #98A2B3
                     border_size: 0.8
                 }
                 attr_name := Icon {
-                    draw_icon: {
+                    draw_icon +: {
                         svg_file: (ICON_DOWNLOADS)
                         get_color: fn() -> vec4 {
                             return #000;
                         }
                     }
-                    icon_walk: {width: 12 height: 12}
+                    icon_walk +: {width: 12 height: 12}
                 }
 
                 attr_value: {
                     margin: Inset {left: 5}
-                    draw_text: {
+                    draw_text +: {
                         color: #000
                         text_style: theme.font_regular {font_size: 9}
                     }
@@ -110,18 +110,18 @@ script_mod! {
                     width: Fit
                     height: Fit
 
-                    draw_bg: {
+                    draw_bg +: {
                         color: #0000
                         border_color: #98A2B3
                         border_size: 0.8
                     }
                     attr_name: {
-                        draw_text: { color: #000 }
+                        draw_text +: { color: #000 }
                         text: "Released"
                     }
                     attr_value: {
                         margin: Inset {left: 10}
-                        draw_text: { color: #000 }
+                        draw_text +: { color: #000 }
                     }
                 }
             }
@@ -137,7 +137,7 @@ script_mod! {
         padding: Inset {right: 100}
 
         Label {
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_bold {font_size: 11}
                 color: #000
             }
@@ -145,7 +145,7 @@ script_mod! {
         }
         model_summary := Label {
             width: Fill
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_regular {font_size: 9}
                 word: Wrap
                 color: #000
@@ -158,13 +158,13 @@ script_mod! {
     }
 
     let ExternalLinkIcon = Icon {
-        draw_icon: {
+        draw_icon +: {
             svg_file: (ICON_EXTERNAL_LINK)
             get_color: fn() -> vec4 {
                 return (MODEL_LINK_FONT_COLOR);
             }
         }
-        icon_walk: {width: 14 height: 14}
+        icon_walk +: {width: 14 height: 14}
     }
 
     let ModelDetails = View {
@@ -174,7 +174,7 @@ script_mod! {
         spacing: 20
 
         Label {
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_bold {font_size: 11}
                 color: #000
             }
@@ -219,7 +219,7 @@ script_mod! {
             spacing: 10
 
             show_bg: true
-            draw_bg: {
+            draw_bg +: {
                 color: #fff
                 border_radius: 3
             }
@@ -233,11 +233,11 @@ script_mod! {
                     width: Fit
                     height: Fit
 
-                    draw_icon: {
+                    draw_icon +: {
                         svg_file: (ICON_CLOSE)
                         color: #000
                     }
-                    icon_walk: {width: 12 height: 12}
+                    icon_walk +: {width: 12 height: 12}
                 }
             }
 
@@ -247,7 +247,7 @@ script_mod! {
                 padding: Inset {bottom: 20}
 
                 view_all_model_name := Label {
-                    draw_text: {
+                    draw_text +: {
                         text_style: theme.font_bold {font_size: 16}
                         color: #000
                     }
@@ -261,7 +261,7 @@ script_mod! {
                 spacing: 10
 
                 Label {
-                    draw_text: {
+                    draw_text +: {
                         text_style: theme.font_bold {font_size: 9}
                         color: #000
                     }
@@ -269,7 +269,7 @@ script_mod! {
                 }
                 view_all_model_summary := Label {
                     width: Fill
-                    draw_text: {
+                    draw_text +: {
                         text_style: theme.font_regular {font_size: 9}
                         word: Wrap
                         color: #000
@@ -294,7 +294,7 @@ script_mod! {
             width: Fill
             height: Fit
 
-            draw_bg: {
+            draw_bg +: {
                 color: (MAIN_BG_COLOR_DARK)
                 border_radius: 4.5
                 shadow_color: uniform(#x0002)

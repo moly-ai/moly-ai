@@ -10,7 +10,7 @@ script_mod! {
     let MolyHtml = Html {
         font_color: #000
         draw_fixed: { color: #x0 }
-        draw_block: {
+        draw_block +: {
             code_color: (#EAECF0)
         }
         font_size: 10
@@ -30,7 +30,7 @@ script_mod! {
             spacing: 5
 
             show_bg: true
-            draw_bg: {
+            draw_bg +: {
                 color: #fff
                 border_radius: 3
             }
@@ -47,7 +47,7 @@ script_mod! {
                     height: Fit
 
                     filename := Label {
-                        draw_text: {
+                        draw_text +: {
                             text_style: BOLD_FONT { font_size: 13 }
                             color: #000
                         }
@@ -61,13 +61,13 @@ script_mod! {
                     height: Fit
                     margin: Inset { top: -6 }
 
-                    draw_icon: {
+                    draw_icon +: {
                         svg: ICON_CLOSE
                         get_color: fn() -> vec4 {
                             return #000
                         }
                     }
-                    icon_walk: Walk { width: 12 height: 12 }
+                    icon_walk +: { width: 12 height: 12 }
                 }
             }
 
@@ -80,7 +80,7 @@ script_mod! {
 
                 Label {
                     text: "Read from"
-                    draw_text: {
+                    draw_text +: {
                         text_style: REGULAR_FONT { font_size: 10 }
                         color: #344054
                     }
@@ -113,15 +113,15 @@ script_mod! {
                         }
                         spacing: 10
 
-                        draw_icon: {
+                        draw_icon +: {
                             svg: ICON_COPY
                             get_color: fn() -> vec4 {
                                 return #x0
                             }
                         }
-                        icon_walk: Walk { width: 14 height: 14 }
+                        icon_walk +: { width: 14 height: 14 }
 
-                        draw_bg: {
+                        draw_bg +: {
                             border_radius: instance(2.0)
                             border_color_1: #D0D5DD
                             border_size: 1.2
@@ -129,7 +129,7 @@ script_mod! {
                         }
 
                         text: "Copy to Clipboard"
-                        draw_text: {
+                        draw_text +: {
                             text_style: REGULAR_FONT {
                                 font_size: 10
                             }
@@ -143,7 +143,7 @@ script_mod! {
                             top: 10 bottom: 10 left: 14 right: 14
                         }
 
-                        draw_bg: {
+                        draw_bg +: {
                             border_radius: instance(2.0)
                             border_color_1: #D0D5DD
                             border_size: 1.2
@@ -151,7 +151,7 @@ script_mod! {
                         }
 
                         text: "Model Card on Hugging Face"
-                        draw_text: {
+                        draw_text +: {
                             text_style: REGULAR_FONT {
                                 font_size: 10
                             }

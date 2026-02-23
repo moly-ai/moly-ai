@@ -17,7 +17,7 @@ script_mod! {
         }
 
         caption := Label {
-            draw_text: {
+            draw_text +: {
                 text_style: REGULAR_FONT {font_size: 8}
                 color: #1D2939
             }
@@ -42,7 +42,7 @@ script_mod! {
         }
 
         label := Label {
-            draw_text: {
+            draw_text +: {
                 text_style: REGULAR_FONT {font_size: 11}
                 color: #000
             }
@@ -62,7 +62,7 @@ script_mod! {
 
         file_size_tag := ModelAttributeTag {
             caption: {
-                draw_text: {
+                draw_text +: {
                     color: #000
                 }
             }
@@ -78,7 +78,7 @@ script_mod! {
             icon_tick := Image {
                 width: 14
                 height: 14
-                source: (ICON_TICK)
+                src: (ICON_TICK)
             }
         }
     }
@@ -96,7 +96,7 @@ script_mod! {
         avatar := ChatAgentAvatar {}
 
         label := Label {
-            draw_text: {
+            draw_text +: {
                 text_style: REGULAR_FONT {font_size: 11}
                 color: #000
             }
@@ -108,7 +108,7 @@ script_mod! {
             icon_tick := Image {
                 width: 14
                 height: 14
-                source: (ICON_TICK)
+                src: (ICON_TICK)
             }
         }
     }

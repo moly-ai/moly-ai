@@ -15,13 +15,13 @@ script_mod! {
         height: 40
         padding: Inset {left: 20 top: 10 bottom: 10 right: 20}
         label_walk: { margin: 0 }
-        draw_text: {
+        draw_text +: {
             text_style: theme.font_bold {font_size: 9}
             color_active: #475467
             color: #475467
             color_hover: #173437
         }
-        draw_bg: {
+        draw_bg +: {
             color: #D0D5DD
             color_active: #fff
             color_hover: #D0D5DD
@@ -41,7 +41,7 @@ script_mod! {
         margin: Inset {bottom: 12}
 
         Label {
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_bold {font_size: 9}
                 color: #667085
             }
@@ -52,7 +52,7 @@ script_mod! {
             width: Fit
             height: Fit
 
-            draw_bg: {
+            draw_bg +: {
                 color: #D0D5DD
                 border_radius: 7.0
             }
@@ -66,7 +66,7 @@ script_mod! {
 
     let ModelFilesHeader = ModelFilesRow {
         show_bg: true
-        draw_bg: {
+        draw_bg +: {
             color: #F2F4F7
             border_radius: vec2(3.0 0.5)
         }
@@ -74,7 +74,7 @@ script_mod! {
         cell1: {
             height: 40
             Label {
-                draw_text: {
+                draw_text +: {
                     text_style: theme.font_bold {font_size: 9}
                     color: #667085
                 }
@@ -85,7 +85,7 @@ script_mod! {
         cell2: {
             height: 40
             Label {
-                draw_text: {
+                draw_text +: {
                     text_style: theme.font_bold {font_size: 9}
                     color: #667085
                 }
@@ -96,7 +96,7 @@ script_mod! {
         cell3: {
             height: 40
             Label {
-                draw_text: {
+                draw_text +: {
                     text_style: theme.font_bold {font_size: 9}
                     color: #667085
                 }
@@ -113,17 +113,17 @@ script_mod! {
         align: Align {x: 0.0 y: 0.5}
         spacing: 10
         icon := Icon {
-            draw_icon: {
+            draw_icon +: {
                 svg_file: (ICON_ADD)
                 get_color: fn() -> vec4 {
                     return #667085
                 }
             }
-            icon_walk: {width: 14 height: 14}
+            icon_walk +: {width: 14 height: 14}
         }
         link := Label {
             width: Fit
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_bold {font_size: 9}
                 color: #667085
             }

@@ -18,7 +18,7 @@ script_mod! {
         align: Align { x: 0.0 y: 0.5 }
         label := Label {
             width: Fit
-            draw_text: {
+            draw_text +: {
                 text_style: BOLD_FONT { font_size: 9 }
                 color: #667085
             }
@@ -32,7 +32,7 @@ script_mod! {
         padding: Inset { top: 10 bottom: 10 left: 20 right: 20 }
         spacing: 30
         show_bg: true
-        draw_bg: {
+        draw_bg +: {
             color: #F2F4F7
         }
 
@@ -55,7 +55,7 @@ script_mod! {
         height: Fill
         align: Align { x: 0.5 y: 0.5 }
         show_bg: true
-        draw_bg: {
+        draw_bg +: {
             color: (MAIN_BG_COLOR)
             border_radius: 5
             shadow_color: uniform(#0001)

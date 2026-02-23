@@ -20,7 +20,7 @@ script_mod! {
 
         show_bg: true
 
-        draw_bg: {
+        draw_bg +: {
             color: (MAIN_BG_COLOR_DARK)
             color2: instance(#xa6bec6)
             get_color: fn() -> vec4 {
@@ -45,7 +45,7 @@ script_mod! {
             width: Fit
             height: Fit
             Label {
-                draw_text: {
+                draw_text +: {
                     text_style: theme.font_regular {font_size: 13}
                     color: #000
                 }
@@ -58,7 +58,7 @@ script_mod! {
             height: Fit
 
             show_bg: true
-            draw_bg: {
+            draw_bg +: {
                 color: (MAIN_BG_COLOR)
                 border_radius: 8.5
                 shadow_color: uniform(#x0001)
@@ -73,33 +73,33 @@ script_mod! {
             align: Align {x: 0.0 y: 0.5}
 
             Icon {
-                draw_icon: {
+                draw_icon +: {
                     svg_file: (ICON_SEARCH)
                     get_color: fn() -> vec4 {
                         return #666
                     }
                 }
-                icon_walk: {width: 17 height: 17}
+                icon_walk +: {width: 17 height: 17}
             }
 
             input := MolyTextInput {
                 width: Fill
                 height: Fit
                 empty_text: "Search Model by Keyword"
-                draw_bg: {
+                draw_bg +: {
                     color: (MAIN_BG_COLOR)
                 }
             }
 
             clear_text_button := MolyButton {
                 visible: false
-                draw_icon: {
+                draw_icon +: {
                     svg_file: (ICON_CLOSE)
                     get_color: fn() -> vec4 {
                         return #8
                     }
                 }
-                icon_walk: {width: 10 height: 10}
+                icon_walk +: {width: 10 height: 10}
             }
         }
 

@@ -33,7 +33,7 @@ script_mod! {
                     draw_bg +: {
                         border_size: 0.0
                     }
-                    icon_walk: Walk { width: 12, height: Fit, margin: Inset { left: 10 } }
+                    icon_walk +: { width: 12, height: Fit, margin: Inset { left: 10 } }
                     draw_icon +: {
                         color: #x0
                         color_hover: #3c3c3c

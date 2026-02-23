@@ -43,7 +43,7 @@ script_mod! {
             }
         }
 
-        icon_walk: Walk { width: 12, height: 12 }
+        icon_walk +: { width: 12, height: 12 }
         draw_icon +: {
             get_color: fn() -> vec4 {
                 return #000;
@@ -51,7 +51,7 @@ script_mod! {
         }
 
         draw_text +: {
-            text_style: { font_size: 9 },
+            text_style +: { font_size: 9 },
             get_color: fn() -> vec4 {
                 return #000;
             }
@@ -192,13 +192,13 @@ script_mod! {
                 off = {
                     from: { all: Forward { duration: 0.15 } }
                     apply: {
-                        draw_bg: { hover: 0.0 }
+                        draw_bg +: { hover: 0.0 }
                     }
                 }
                 on = {
                     from: { all: Snap }
                     apply: {
-                        draw_bg: { hover: 1.0 }
+                        draw_bg +: { hover: 1.0 }
                     }
                 }
             }
@@ -208,7 +208,7 @@ script_mod! {
                     from: { all: Forward { duration: 0.5 } }
                     ease: OutExp
                     apply: {
-                        draw_bg: { down: 0.0 }
+                        draw_bg +: { down: 0.0 }
                     }
                 }
                 on = {
@@ -217,7 +217,7 @@ script_mod! {
                         all: Forward { duration: 0.2 }
                     }
                     apply: {
-                        draw_bg: { down: 1.0 }
+                        draw_bg +: { down: 1.0 }
                     }
                 }
             }
@@ -308,7 +308,7 @@ script_mod! {
                         toggle_label := Label {
                             text: "Show details",
                             draw_text +: {
-                                text_style: { font_size: 9.5 },
+                                text_style +: { font_size: 9.5 },
                                 color: #x1a5b9c,
                             }
                         }
@@ -326,7 +326,7 @@ script_mod! {
                         details_text := Label {
                             width: Fill,
                             draw_text +: {
-                                text_style: { font_size: 9 },
+                                text_style +: { font_size: 9 },
                                 color: #333,
                                 wrap: Word,
                             }

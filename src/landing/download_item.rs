@@ -23,12 +23,12 @@ script_mod! {
         padding: Inset {top: 6 bottom: 6 left: 10 right: 10}
 
         spacing: 5
-        draw_bg: {
+        draw_bg +: {
             border_radius: 2.0
         }
 
         caption := Label {
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_regular {font_size: 9}
                 color: #fff
             }
@@ -48,7 +48,7 @@ script_mod! {
             caption := {
                 text: "StableLM"
             }
-            draw_bg: {
+            draw_bg +: {
                 color: #A44EBB
             }
         }
@@ -57,13 +57,13 @@ script_mod! {
             caption := {
                 text: "3B"
             }
-            draw_bg: {
+            draw_bg +: {
                 color: #44899A
             }
         }
 
         filename := Label {
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_regular {font_size: 10}
                 color: #000
             }
@@ -85,7 +85,7 @@ script_mod! {
             flow: Right
 
             progress := Label {
-                draw_text: {
+                draw_text +: {
                     text_style: theme.font_bold {font_size: 9}
                     color: #099250
                 }
@@ -93,7 +93,7 @@ script_mod! {
             }
             View { width: Fill height: 1 }
             downloaded_size := Label {
-                draw_text: {
+                draw_text +: {
                     text_style: theme.font_regular {font_size: 9}
                     color: #667085
                 }
@@ -110,7 +110,7 @@ script_mod! {
             RoundedView {
                 width: 600
                 height: Fill
-                draw_bg: {
+                draw_bg +: {
                     color: #D9D9D9
                     border_radius: 2.0
                 }
@@ -119,7 +119,7 @@ script_mod! {
             progress_bar := RoundedView {
                 width: 0
                 height: Fill
-                draw_bg: {
+                draw_bg +: {
                     color: #099250
                     border_radius: 2.0
                 }
@@ -131,7 +131,7 @@ script_mod! {
         width: 40
         height: 40
 
-        draw_bg: {
+        draw_bg +: {
             border_color_1: #EAECF0
             border_size: 1.0
             color: #fff
@@ -139,7 +139,7 @@ script_mod! {
             border_radius: 2.0
         }
 
-        draw_icon: {
+        draw_icon +: {
             color: #667085
         }
     }
@@ -153,30 +153,30 @@ script_mod! {
         align: Align {x: 0.5 y: 0.5}
 
         pause_button := ActionButton {
-            draw_icon: {
+            draw_icon +: {
                 svg_file: (ICON_PAUSE)
             }
-            icon_walk: { margin: Inset { left: 6 } }
+            icon_walk +: { margin: Inset { left: 6 } }
         }
 
         play_button := ActionButton {
-            draw_icon: {
+            draw_icon +: {
                 svg_file: (ICON_PLAY)
             }
-            icon_walk: { margin: Inset { left: 6 } }
+            icon_walk +: { margin: Inset { left: 6 } }
         }
 
         retry_button := ActionButton {
-            draw_icon: {
+            draw_icon +: {
                 svg_file: (ICON_RETRY)
             }
         }
 
         cancel_button := ActionButton {
-            draw_icon: {
+            draw_icon +: {
                 svg_file: (ICON_CANCEL)
             }
-            icon_walk: { margin: 0 }
+            icon_walk +: { margin: 0 }
         }
     }
 
@@ -191,7 +191,7 @@ script_mod! {
 
         cursor: MouseCursor.Default
 
-        draw_bg: {
+        draw_bg +: {
             border_color: #EAECF0
             border_size: 1.0
             color: #fff

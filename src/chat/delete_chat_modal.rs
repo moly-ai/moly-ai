@@ -57,7 +57,7 @@ script_mod! {
                             return #000;
                         }
                     }
-                    icon_walk: {width: 12 height: 12}
+                    icon_walk +: {width: 12 height: 12}
                 }
             }
 

@@ -180,7 +180,7 @@ script_mod! {
                     width: Fill
                     draw_text +: {
                         wrap: Word
-                        text_style: {font_size: 11}
+                        text_style +: {font_size: 11}
                         color: #x0
                     }
                 }
@@ -216,7 +216,7 @@ script_mod! {
                     apply: {
                         wrapper: {
                             header: {
-                                stage_toggle: { draw_bg: {
+                                stage_toggle: { draw_bg +: {
                                     shadow_offset: vec2(0.0 f32(-2.0))
                                     shadow_color: #x0001
                                 } }
@@ -230,7 +230,7 @@ script_mod! {
                     apply: {
                         wrapper: {
                             header: {
-                                stage_toggle: { draw_bg: {
+                                stage_toggle: { draw_bg +: {
                                     shadow_offset: vec2(0.0 f32(-4.0))
                                     shadow_color: #x0002
                                 } }
@@ -244,7 +244,7 @@ script_mod! {
                     apply: {
                         wrapper: {
                             header: {
-                                stage_toggle: { draw_bg: {
+                                stage_toggle: { draw_bg +: {
                                     shadow_offset: vec2(3.0 f32(-2.0))
                                     shadow_color: #x0002
                                 } }
@@ -258,7 +258,7 @@ script_mod! {
                     apply: {
                         wrapper: {
                             header: {
-                                stage_toggle: { draw_bg: {
+                                stage_toggle: { draw_bg +: {
                                     shadow_offset: vec2(0.0 1.0)
                                     shadow_color: #x0002
                                 } }
@@ -272,7 +272,7 @@ script_mod! {
                     apply: {
                         wrapper: {
                             header: {
-                                stage_toggle: { draw_bg: {
+                                stage_toggle: { draw_bg +: {
                                     shadow_offset: vec2(f32(-3.0) f32(-2.0))
                                     shadow_color: #x0002
                                 } }

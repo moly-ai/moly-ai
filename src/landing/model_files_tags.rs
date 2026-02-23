@@ -9,13 +9,13 @@ script_mod! {
         height: Fit
         padding: Inset {top: 6 bottom: 6 left: 10 right: 10}
 
-        draw_bg: {
+        draw_bg +: {
             border_radius: instance(2.0)
             color: #E6F1EC
         }
 
         label := Label {
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_regular {font_size: 9}
                 color: #1C1917
             }

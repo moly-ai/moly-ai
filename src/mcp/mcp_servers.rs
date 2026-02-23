@@ -31,9 +31,9 @@ script_mod! {
             pad_left_top: vec2(10.0 10.0)
             width: Fill
             height: Fill
-            draw_bg: { color: #1d2330 }
-            draw_text: {
-                text_style: {
+            draw_bg +: { color: #1d2330 }
+            draw_text +: {
+                text_style +: {
                     font_size: 9
                 }
             }
@@ -101,7 +101,7 @@ script_mod! {
                 padding: Inset {
                     left: 30 right: 30 bottom: 15 top: 15
                 }
-                draw_bg: {
+                draw_bg +: {
                     color: (MAIN_BG_COLOR)
                     border_radius: 4.5
                     shadow_color: uniform(#0002)
@@ -110,7 +110,7 @@ script_mod! {
                 }
                 Label {
                     text: "Save and restart servers"
-                    draw_text: {
+                    draw_text +: {
                         text_style: REGULAR_FONT { font_size: 11 }
                         color: #000
                     }
@@ -123,7 +123,7 @@ script_mod! {
         width: Fill, height: Fit
         padding: Inset { left: 10 right: 20 top: 8 bottom: 8 }
         save_status := Label {
-            draw_text: {
+            draw_text +: {
                 text_style: BOLD_FONT { font_size: 10 }
                 color: #000
             }
@@ -137,7 +137,7 @@ script_mod! {
             width: Fill, height: Fit
             text: "Add new servers by editing the list under 'servers'. You can copy paste you configuration from other applications like Clade Desktop or VSCode.
 You can also add an \"enabled\": false flag to disable a specific server."
-            draw_text: {
+            draw_text +: {
                 wrap: Word
                 text_style: REGULAR_FONT { font_size: 11 }
                 color: #000
@@ -151,7 +151,7 @@ You can also add an \"enabled\": false flag to disable a specific server."
         align: Align { x: 0.5 y: 0.5 }
         Label {
             text: "Enable MCP Servers"
-            draw_text: {
+            draw_text +: {
                 text_style: BOLD_FONT { font_size: 11 }
                 color: #000
             }
@@ -178,7 +178,7 @@ You can also add an \"enabled\": false flag to disable a specific server."
 
             Label {
                 text: "⚠️ Dangerous Mode"
-                draw_text: {
+                draw_text +: {
                     text_style: BOLD_FONT { font_size: 11 }
                     color: #xFF3333
                 }
@@ -196,7 +196,7 @@ You can also add an \"enabled\": false flag to disable a specific server."
         Label {
             text: "WARNING: This mode automatically approves ALL tool calls without asking for permission.
 Only enable if you trust all configured MCP servers completely."
-            draw_text: {
+            draw_text +: {
                 wrap: Word
                 text_style: REGULAR_FONT { font_size: 11 }
                 color: #xFF6666
@@ -233,7 +233,7 @@ Only enable if you trust all configured MCP servers completely."
                         Label {
                             width: Fill
                             text: "Note that only HTTP/SSE servers are supported on mobile devices"
-                            draw_text: {
+                            draw_text +: {
                                 text_style: BOLD_FONT { font_size: 11 }
                                 color: #xFFA000
                             }

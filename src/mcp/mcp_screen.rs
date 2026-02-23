@@ -19,7 +19,7 @@ script_mod! {
 
             padding: Inset { left: 30 top: 40 }
             Label {
-                draw_text: {
+                draw_text +: {
                     text_style: BOLD_FONT { font_size: 25 }
                     color: #000
                 }
@@ -27,7 +27,7 @@ script_mod! {
             }
 
             Label {
-                draw_text: {
+                draw_text +: {
                     text_style: BOLD_FONT { font_size: 12 }
                     color: #000
                 }

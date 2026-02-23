@@ -11,11 +11,11 @@ script_mod! {
     let CollapseButton = MolyButton {
         width: Fit
         height: Fit
-        draw_icon: {
+        draw_icon +: {
             svg_file: (ICON_COLLAPSE)
             color: #667085
         }
-        icon_walk: {width: 18 height: Fit}
+        icon_walk +: {width: 18 height: Fit}
     }
 
     let Header = View {
@@ -26,7 +26,7 @@ script_mod! {
 
         Label {
             margin: Inset {right: 20.0}
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_bold {font_size: 9}
                 color: #000
             }
@@ -34,7 +34,7 @@ script_mod! {
         }
 
         downloading_count := Label {
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_regular {font_size: 9}
                 color: #099250
             }
@@ -42,7 +42,7 @@ script_mod! {
         }
 
         paused_count := Label {
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_regular {font_size: 9}
                 color: #667085
             }
@@ -50,7 +50,7 @@ script_mod! {
         }
 
         failed_count := Label {
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_regular {font_size: 9}
                 color: #B42318
             }
@@ -60,7 +60,7 @@ script_mod! {
         VerticalFiller {}
 
         collapse := CollapseButton {
-            draw_icon: { rotation_angle: 180.0 }
+            draw_icon +: { rotation_angle: 180.0 }
         }
     }
 
@@ -82,12 +82,12 @@ script_mod! {
         flow: Down
 
         show_bg: true
-        draw_bg: {
+        draw_bg +: {
             color: #FCFCFD
         }
 
         // TODO there is a better way to have only top-border?
-        Line { draw_bg: { color: #EAECF0 }}
+        Line { draw_bg +: { color: #EAECF0 }}
         Header {
             padding: Inset {top: 20.0 bottom: 20.0 left: 43.0}
         }

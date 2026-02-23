@@ -93,7 +93,7 @@ script_mod! {
             close_button := MolyButton {
                 width: Fit
                 height: Fit
-                icon_walk: Walk { width: 14 height: Fit }
+                icon_walk +: { width: 14 height: Fit }
                 draw_icon +: {
                     svg: ICON_CLOSE
                     get_color: fn() -> vec4 {

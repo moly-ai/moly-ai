@@ -42,7 +42,7 @@ script_mod! {
                 return sdf.result
             }
         }
-        icon_walk: Walk {
+        icon_walk +: {
             width: 12,
             height: 12
             margin: Inset { top: 0, left: 2 },
@@ -154,7 +154,7 @@ script_mod! {
                         color_focus: #000
                         color_empty: #x98A2B3
                         color_empty_focus: #x98A2B3
-                        text_style: { font_size: 11 }
+                        text_style +: { font_size: 11 }
                     }
                     draw_selection +: {
                         color: #xd9e7e9

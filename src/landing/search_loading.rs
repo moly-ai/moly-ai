@@ -9,7 +9,7 @@ script_mod! {
     let LoadingBall = CircleView {
         width: 28
         height: 28
-        draw_bg: {
+        draw_bg +: {
             border_radius: 14.0
             get_color: fn() -> vec4 {
                 let top_color = #E6F2D8
@@ -38,7 +38,7 @@ script_mod! {
         }
 
         Label {
-            draw_text: {
+            draw_text +: {
                 text_style: theme.font_regular {font_size: 14}
                 color: #667085
             }
@@ -51,12 +51,12 @@ script_mod! {
                 start: AnimatorState {
                     redraw: true
                     from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle1 = { draw_bg: {border_radius: 1.0} }}}
+                    apply: {content = { circle1 = { draw_bg +: {border_radius: 1.0} }}}
                 }
                 run: AnimatorState {
                     redraw: true
                     from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle1 = { draw_bg: {border_radius: 14.0} }}}
+                    apply: {content = { circle1 = { draw_bg +: {border_radius: 14.0} }}}
                 }
             }
 
@@ -65,12 +65,12 @@ script_mod! {
                 start: AnimatorState {
                     redraw: true
                     from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle2 = { draw_bg: {border_radius: 1.0} }}}
+                    apply: {content = { circle2 = { draw_bg +: {border_radius: 1.0} }}}
                 }
                 run: AnimatorState {
                     redraw: true
                     from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle2 = { draw_bg: {border_radius: 14.0} }}}
+                    apply: {content = { circle2 = { draw_bg +: {border_radius: 14.0} }}}
                 }
             }
 
@@ -79,12 +79,12 @@ script_mod! {
                 start: AnimatorState {
                     redraw: true
                     from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle3 = { draw_bg: {border_radius: 1.0} }}}
+                    apply: {content = { circle3 = { draw_bg +: {border_radius: 1.0} }}}
                 }
                 run: AnimatorState {
                     redraw: true
                     from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle3 = { draw_bg: {border_radius: 14.0} }}}
+                    apply: {content = { circle3 = { draw_bg +: {border_radius: 14.0} }}}
                 }
             }
         }

@@ -30,7 +30,7 @@ script_mod! {
         flow: Right
         align: Align { x: 0.0 y: 0.5 }
 
-        icon_walk: Walk { margin: 0 width: 22 height: 22 }
+        icon_walk +: { margin: 0 width: 22 height: 22 }
 
         draw_bg +: {
             radio_type: Tab
@@ -90,7 +90,7 @@ script_mod! {
                 width: Fill
                 height: Fit
                 draw_text +: {
-                    text_style: { font_size: 12 }
+                    text_style +: { font_size: 12 }
                     color: #000
                 }
                 text: "MolyServer is a local HTTP server that powers the Moly app by providing capabilities for searching, downloading, and running local LLMs).\nYou can install MolyServer by following the instructions in https://github.com/moly-ai/moly-local."

@@ -217,13 +217,13 @@ script_mod! {
                     off: AnimatorState {
                         from: {all: Forward {duration: 0.15}}
                         apply: {
-                            draw_bg: {color: #xF2F4F700}
+                            draw_bg +: {color: #xF2F4F700}
                         }
                     }
                     on: AnimatorState {
                         from: {all: Forward {duration: 0.15}}
                         apply: {
-                            draw_bg: {color: #xEAECEF88}
+                            draw_bg +: {color: #xEAECEF88}
                         }
                     }
                 }
@@ -233,7 +233,7 @@ script_mod! {
                         from: {all: Forward {duration: 0.5}}
                         ease: OutExp
                         apply: {
-                            draw_bg: {down: instance(0.0)}
+                            draw_bg +: {down: instance(0.0)}
                         }
                     }
                     on: AnimatorState {
@@ -242,7 +242,7 @@ script_mod! {
                             all: Forward {duration: 0.2}
                         }
                         apply: {
-                            draw_bg: {down: instance(1.0)}
+                            draw_bg +: {down: instance(1.0)}
                         }
                     }
                 }

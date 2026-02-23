@@ -69,7 +69,7 @@ script_mod! {
         spacing: 8.0
         align: Align { x: 0.5 y: 0.5 }
 
-        icon_walk: Walk { margin: 0 width: 25 height: 25 }
+        icon_walk +: { margin: 0 width: 25 height: 25 }
         label_walk: Walk { margin: 0 }
 
         draw_bg +: {
@@ -237,7 +237,7 @@ script_mod! {
                 )))
             }
         }
-        icon_walk: Walk { width: 14 height: 14 }
+        icon_walk +: { width: 14 height: 14 }
 
         draw_text +: {
             color: #fff
@@ -485,7 +485,7 @@ script_mod! {
     mod.widgets.TogglePanelButton = MolyButton {
         width: Fit
         height: Fit
-        icon_walk: Walk { width: 20 height: 20 }
+        icon_walk +: { width: 20 height: 20 }
         draw_icon +: {
             get_color: fn() -> vec4 {
                 return #475467

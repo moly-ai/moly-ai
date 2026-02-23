@@ -21,7 +21,7 @@ script_mod! {
         margin: Inset {left: 4 bottom: 4}
         width: Fill
         draw_text +: {
-            text_style: {font_size: 8.5}
+            text_style +: {font_size: 8.5}
             color: #3
         }
     }
