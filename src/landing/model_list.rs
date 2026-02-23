@@ -191,7 +191,7 @@ impl Widget for ModelList {
                                 agents,
                                 margin_bottom,
                             } => {
-                                let row = list.item(cx, item_id, id!(AgentRow));
+                                let mut row = list.item(cx, item_id, id!(AgentRow));
 
                                 script_apply_eval!(cx, row, {
                                     margin: Inset {bottom: #(margin_bottom)}
@@ -202,11 +202,11 @@ impl Widget for ModelList {
                                     .enumerate()
                                     .for_each(|(i, id)| {
                                         if let Some(agent) = agents.get(i) {
-                                            let cell = row.view(*id);
+                                            let mut cell = row.view(cx, *id);
                                             script_apply_eval!(cx, cell, {
                                                 show_bg: true
                                             });
-                                            let mut button = cell.entity_button(ids!(button));
+                                            let mut button = cell.entity_button(cx, ids!(button));
                                             button.set_bot_id(cx, &agent.id);
                                             button.set_description_visible(cx, true);
                                         }
@@ -245,12 +245,12 @@ const SCROLLING_AT_TOP_THRESHOLD: f64 = -30.0;
 
 impl WidgetMatchEvent for ModelList {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        let portal_list = self.portal_list(ids!(list));
+        let portal_list = self.portal_list(cx, ids!(list));
 
         let clicked_entity_button = portal_list
             .items_with_actions(actions)
             .iter()
-            .map(|(_, item)| item.entity_button(ids!(button)))
+            .map(|(_, item)| item.entity_button(cx, ids!(button)))
             .find(|button| button.clicked(actions));
 
         if let Some(entity_button) = clicked_entity_button {
@@ -267,9 +267,9 @@ impl WidgetMatchEvent for ModelList {
 
             match action.cast() {
                 StoreAction::Search(_) | StoreAction::ResetSearch => {
-                    self.view(ids!(search_error)).set_visible(cx, false);
-                    self.view(ids!(loading)).set_visible(cx, true);
-                    self.search_loading(ids!(search_loading)).animate(cx);
+                    self.view(cx, ids!(search_error)).set_visible(cx, false);
+                    self.view(cx, ids!(loading)).set_visible(cx, true);
+                    self.search_loading(cx, ids!(search_loading)).animate(cx);
                     portal_list.set_first_id_and_scroll(0, 0.0);
 
                     self.redraw(cx);
@@ -294,14 +294,16 @@ impl ModelList {
     fn update_loading_and_error_message(&mut self, cx: &mut Cx, scope: &mut Scope) {
         let store = scope.data.get::<Store>().unwrap();
         let is_loading = store.search.is_pending();
-        self.view(ids!(loading)).set_visible(cx, is_loading);
+        self.view(cx, ids!(loading)).set_visible(cx, is_loading);
         if is_loading {
-            self.search_loading(ids!(search_loading)).animate(cx);
+            self.search_loading(cx, ids!(search_loading)).animate(cx);
         } else {
-            self.search_loading(ids!(search_loading)).stop_animation();
+            self.search_loading(cx, ids!(search_loading))
+                .stop_animation();
         }
 
         let is_errored = store.search.was_error();
-        self.view(ids!(search_error)).set_visible(cx, is_errored);
+        self.view(cx, ids!(search_error))
+            .set_visible(cx, is_errored);
     }
 }

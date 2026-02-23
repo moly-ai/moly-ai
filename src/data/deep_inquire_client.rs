@@ -99,11 +99,10 @@ pub struct Stage {
     pub stage_type: StageType,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Default, Script, ScriptHook)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Default)]
 pub enum StageType {
     #[default]
     Thinking,
-    #[pick]
     Content,
     Completion,
 }
@@ -459,7 +458,10 @@ impl CustomContent for DeepInquireCustomContent {
         let widget = if previous_widget.as_deep_inquire_content().borrow().is_some() {
             previous_widget
         } else {
-            WidgetRef::new_from_script_object(cx, self.template)
+            cx.with_vm(|vm| {
+                let template_value: ScriptValue = self.template.as_object().into();
+                WidgetRef::script_from_value(vm, template_value)
+            })
         };
 
         widget

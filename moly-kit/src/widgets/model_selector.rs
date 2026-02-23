@@ -159,7 +159,7 @@ impl Widget for ModelSelector {
         self.widget_match_event(cx, event, scope);
 
         // Handle button click to open/close modal
-        if self.button(ids!(button)).clicked(event.actions()) {
+        if self.button(cx, ids!(button)).clicked(event.actions()) {
             if !self.open {
                 self.open_modal(cx);
             } else {
@@ -168,21 +168,21 @@ impl Widget for ModelSelector {
         }
 
         // Handle modal dismissal
-        if self.moly_modal(ids!(modal)).dismissed(event.actions()) {
+        if self.moly_modal(cx, ids!(modal)).dismissed(event.actions()) {
             self.close_modal(cx);
             self.clear_search(cx);
-            self.button(ids!(button)).reset_hover(cx);
+            self.button(cx, ids!(button)).reset_hover(cx);
         }
 
         // On mobile, handle clicks on background view to dismiss modal
         if self.open && !cx.display_context.is_desktop() {
             if let Hit::FingerUp(fe) =
-                event.hits(cx, self.view(ids!(modal.bg_view)).area())
+                event.hits(cx, self.view(cx, ids!(modal.bg_view)).area())
             {
                 if fe.was_tap() {
                     self.close_modal(cx);
                     self.clear_search(cx);
-                    self.button(ids!(button)).reset_hover(cx);
+                    self.button(cx, ids!(button)).reset_hover(cx);
                 }
             }
         }
@@ -206,22 +206,22 @@ impl Widget for ModelSelector {
 
         // Handle empty bots case - disable button
         if bots.is_empty() {
-            self.button(ids!(button))
+            self.button(cx, ids!(button))
                 .set_text(cx, "No models available");
-            self.button(ids!(button)).set_enabled(cx, false);
+            self.button(cx, ids!(button)).set_enabled(cx, false);
         } else {
-            self.button(ids!(button)).set_enabled(cx, true);
+            self.button(cx, ids!(button)).set_enabled(cx, true);
 
             // Update button text based on selected bot
             if let Some(bot_id) = &selected_bot_id {
                 if let Some(bot) = bots.iter().find(|b| &b.id == bot_id) {
-                    self.button(ids!(button)).set_text(cx, &bot.name);
+                    self.button(cx, ids!(button)).set_text(cx, &bot.name);
                 } else {
-                    self.button(ids!(button))
+                    self.button(cx, ids!(button))
                         .set_text(cx, "Choose an AI assistant");
                 }
             } else {
-                self.button(ids!(button))
+                self.button(cx, ids!(button))
                     .set_text(cx, "Choose an AI assistant");
             }
         }
@@ -229,7 +229,7 @@ impl Widget for ModelSelector {
         // Set the chat controller on the list before drawing
         if let Some(controller) = &self.chat_controller
             && let Some(mut list) = self
-                .widget(ids!(options.list_container.list))
+                .widget(cx, ids!(options.list_container.list))
                 .borrow_mut::<ModelSelectorList>()
             && Arc::as_ptr(controller)
                 != list
@@ -256,11 +256,11 @@ impl WidgetMatchEvent for ModelSelector {
     ) {
         // Handle search input changes
         if let Some(text) = self
-            .text_input(ids!(options.search_container.search_input))
+            .text_input(cx, ids!(options.search_container.search_input))
             .changed(actions)
         {
             if let Some(mut list) = self
-                .widget(ids!(options.list_container.list))
+                .widget(cx, ids!(options.list_container.list))
                 .borrow_mut::<ModelSelectorList>()
             {
                 list.search_filter = text;
@@ -273,7 +273,7 @@ impl WidgetMatchEvent for ModelSelector {
         // Only process actions from our own list widget to avoid
         // handling global actions.
         let list_widget =
-            self.widget(ids!(options.list_container.list));
+            self.widget(cx, ids!(options.list_container.list));
         for action in actions {
             let Some(action) = action.as_widget_action() else {
                 continue;
@@ -294,7 +294,7 @@ impl WidgetMatchEvent for ModelSelector {
                             );
                     }
 
-                    self.button(ids!(button)).reset_hover(cx);
+                    self.button(cx, ids!(button)).reset_hover(cx);
                     self.close_modal(cx);
                     self.clear_search(cx);
                     self.redraw(cx);
@@ -309,7 +309,7 @@ impl ModelSelector {
     fn open_modal(&mut self, cx: &mut Cx) {
         self.open = true;
 
-        let button_rect = self.button(ids!(button)).area().rect(cx);
+        let button_rect = self.button(cx, ids!(button)).area().rect(cx);
 
         const LIST_HEIGHT: f64 = 200.0;
         const SEARCH_HEIGHT: f64 = 40.0;
@@ -335,7 +335,7 @@ impl ModelSelector {
             bg_view_visible = true;
         }
 
-        let modal = self.moly_modal(ids!(modal));
+        let mut modal = self.moly_modal(cx, ids!(modal));
         script_apply_eval!(cx, modal, {
             bg_view: {
                 visible: #(bg_view_visible)
@@ -369,19 +369,19 @@ impl ModelSelector {
 
     fn close_modal(&mut self, cx: &mut Cx) {
         self.open = false;
-        self.moly_modal(ids!(modal)).close(cx);
+        self.moly_modal(cx, ids!(modal)).close(cx);
     }
 
     fn clear_search(&mut self, cx: &mut Cx) {
         if let Some(mut list) = self
-            .widget(ids!(options.list_container.list))
+            .widget(cx, ids!(options.list_container.list))
             .borrow_mut::<ModelSelectorList>()
         {
             list.search_filter.clear();
             list.items.clear();
             list.total_height = None;
         }
-        self.text_input(ids!(options.search_container.search_input))
+        self.text_input(cx, ids!(options.search_container.search_input))
             .set_text(cx, "");
         self.redraw(cx);
     }
@@ -404,13 +404,13 @@ impl ModelSelectorRef {
     /// BotId). Applications can provide a custom grouping function to
     /// add provider icons, custom display names, or different grouping
     /// logic.
-    pub fn set_grouping<F>(&mut self, grouping: F)
+    pub fn set_grouping<F>(&mut self, cx: &Cx, grouping: F)
     where
         F: Fn(&Bot) -> BotGroup + 'static,
     {
         if let Some(inner) = self.borrow_mut() {
             if let Some(mut list) = inner
-                .widget(ids!(options.list_container.list))
+                .widget(cx, ids!(options.list_container.list))
                 .borrow_mut::<ModelSelectorList>()
             {
                 list.grouping = Box::new(grouping);

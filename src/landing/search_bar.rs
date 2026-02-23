@@ -133,6 +133,9 @@ script_mod! {
 
 #[derive(Animator, Script, ScriptHook, Widget)]
 pub struct SearchBar {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     view: View,
 
@@ -160,7 +163,7 @@ impl Widget for SearchBar {
         if self.search_timer.is_event(event).is_some() {
             self.search_timer = Timer::default();
 
-            let input = self.text_input(ids!(input));
+            let input = self.text_input(cx, ids!(input));
             let keywords = input.text();
             const MIN_SEARCH_LENGTH: usize = 2;
 
@@ -179,8 +182,8 @@ impl Widget for SearchBar {
 
 impl WidgetMatchEvent for SearchBar {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        let input = self.text_input(ids!(input));
-        let clear_text_button = self.button(ids!(clear_text_button));
+        let input = self.text_input(cx, ids!(input));
+        let clear_text_button = self.button(cx, ids!(clear_text_button));
 
         if let Some((keywords, _)) = input.returned(actions) {
             if keywords.len() > 0 {
@@ -196,7 +199,7 @@ impl WidgetMatchEvent for SearchBar {
             self.search_timer = cx.start_timeout(self.search_debounce_time);
         }
 
-        if self.button(ids!(clear_text_button)).clicked(actions) {
+        if self.button(cx, ids!(clear_text_button)).clicked(actions) {
             input.set_text(cx, "");
             clear_text_button.set_visible(cx, false);
             input.set_key_focus(cx);
@@ -227,7 +230,7 @@ impl SearchBarRef {
         });
 
         inner
-            .sorting(ids!(search_sorting))
+            .sorting(cx, ids!(search_sorting))
             .set_selected_item(cx, selected_sort);
         inner.animator_play(cx, ids!(search_bar.collapsed));
     }

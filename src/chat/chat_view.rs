@@ -169,11 +169,14 @@ impl ScriptHook for ChatView {
         value: ScriptValue,
     ) {
         if let Some(obj) = value.as_object() {
-            vm.vec_with(obj, |_vm, vec| {
+            vm.vec_with(obj, |vm, vec| {
                 for kv in vec {
                     if let Some(id) = kv.key.as_id() {
                         if id == id!(deep_inquire_content) {
-                            self.deep_inquire_content = Some(kv.value);
+                            if let Some(template_obj) = kv.value.as_object() {
+                                self.deep_inquire_content =
+                                    Some(vm.bx.heap.new_object_ref(template_obj));
+                            }
                         }
                     }
                 }
@@ -182,12 +185,15 @@ impl ScriptHook for ChatView {
     }
 
     fn on_after_new(&mut self, vm: &mut ScriptVm) {
-        if let Some(template) = self.deep_inquire_content {
-            self.messages(ids!(chat.messages))
-                .write()
-                .register_custom_content(DeepInquireCustomContent::new(template));
-        }
-        self.prompt_input(ids!(chat.prompt)).write().disable();
+        let deep_inquire_content = self.deep_inquire_content.take();
+        vm.with_cx_mut(|cx| {
+            if let Some(template) = deep_inquire_content {
+                self.messages(cx, ids!(chat.messages))
+                    .write()
+                    .register_custom_content(DeepInquireCustomContent::new(template));
+            }
+            self.prompt_input(cx, ids!(chat.prompt)).write().disable();
+        });
         let plugin_id = self
             .chat_controller
             .lock()
@@ -198,7 +204,7 @@ impl ScriptHook for ChatView {
         self.chat_controller.lock().unwrap().set_basic_spawner();
 
         vm.with_cx_mut(|cx| {
-            self.chat(ids!(chat))
+            self.chat(cx, ids!(chat))
                 .write()
                 .set_chat_controller(cx, Some(self.chat_controller.clone()));
         });
@@ -208,11 +214,7 @@ impl ScriptHook for ChatView {
 impl Drop for ChatView {
     fn drop(&mut self) {
         if let Some(plugin_id) = self.plugin_id.take() {
-            self.chat(ids!(chat))
-                .write()
-                .chat_controller()
-                .as_ref()
-                .expect("chat controller missing")
+            self.chat_controller
                 .lock()
                 .unwrap()
                 .remove_plugin(plugin_id);
@@ -224,18 +226,18 @@ impl Drop for ChatView {
 
 impl Widget for ChatView {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
-        self.bind_bot_context(scope);
+        self.bind_bot_context(cx, scope);
         self.configure_stt(scope, cx);
 
         self.ui_runner().handle(cx, event, scope, self);
         self.view.handle_event(cx, event, scope);
 
-        self.handle_current_bot(scope);
-        self.handle_unread_messages(scope);
+        self.handle_current_bot(cx, scope);
+        self.handle_unread_messages(cx, scope);
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        self.bind_bot_context(scope);
+        self.bind_bot_context(cx, scope);
 
         // Sync bot_id from Store to Controller on first draw
         if !self.initial_bot_synced {
@@ -246,20 +248,20 @@ impl Widget for ChatView {
         // On mobile, only set padding on top of the prompt
         // TODO: do this with AdaptiveView instead of script_apply_eval
         if !cx.display_context.is_desktop() && cx.display_context.is_screen_size_known() {
-            let prompt = self.prompt_input(ids!(chat.prompt));
+            let mut prompt = self.prompt_input(cx, ids!(chat.prompt));
             script_apply_eval!(cx, prompt, {
                 padding: Inset {bottom: 50 left: 20 right: 20}
             });
-            let stt = self.stt_input(ids!(chat.stt_input));
+            let mut stt = self.stt_input(cx, ids!(chat.stt_input));
             script_apply_eval!(cx, stt, {
                 margin: Inset {bottom: 50 left: 20 right: 20}
             });
         } else {
-            let prompt = self.prompt_input(ids!(chat.prompt));
+            let mut prompt = self.prompt_input(cx, ids!(chat.prompt));
             script_apply_eval!(cx, prompt, {
                 padding: Inset {left: 10 right: 10 top: 8 bottom: 8}
             });
-            let stt = self.stt_input(ids!(chat.stt_input));
+            let mut stt = self.stt_input(cx, ids!(chat.stt_input));
             script_apply_eval!(cx, stt, {
                 margin: Inset {left: 10 right: 10 top: 8 bottom: 8}
             });
@@ -281,7 +283,7 @@ impl ChatView {
     /// - **Controller** (`ChatState.bot_id`): Runtime source of truth for active selection
     /// - **Store** (`Chat.associated_bot`): Persistent source of truth, survives provider disable/enable
     /// - **Available Bots**: Dynamic list filtered by enabled status + provider status
-    fn handle_current_bot(&mut self, scope: &mut Scope) {
+    fn handle_current_bot(&mut self, cx: &mut Cx, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
 
         // Read controller state once to minimize lock contention
@@ -305,6 +307,7 @@ impl ChatView {
 
         // 3. UI STATE: Update prompt input based on bot availability and streaming status
         self.update_prompt_input_state(
+            cx,
             &controller_bot_id,
             controller_bot_available,
             is_streaming,
@@ -394,12 +397,13 @@ impl ChatView {
     /// - Exception: Always enabled during streaming (to allow stopping)
     fn update_prompt_input_state(
         &mut self,
+        cx: &mut Cx,
         controller_bot_id: &Option<BotId>,
         controller_bot_available: bool,
         is_streaming: bool,
         store: &Store,
     ) {
-        let mut prompt_input = self.prompt_input(ids!(chat.prompt));
+        let mut prompt_input = self.prompt_input(cx, ids!(chat.prompt));
 
         // Always enable during streaming (allows user to stop)
         if is_streaming {
@@ -419,12 +423,12 @@ impl ChatView {
         }
     }
 
-    fn handle_unread_messages(&mut self, scope: &mut Scope) {
+    fn handle_unread_messages(&mut self, cx: &mut Cx, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
         if self.message_updated_while_inactive {
             // If the message is done writing, and this chat view is not focused
             // set the chat as having unread messages (show a badge on the chat history card)
-            if !self.chat(ids!(chat)).read().is_streaming() && !self.focused {
+            if !self.chat(cx, ids!(chat)).read().is_streaming() && !self.focused {
                 if let Some(chat) = store.chats.get_chat_by_id(self.chat_id) {
                     chat.borrow_mut().has_unread_messages = true;
                     self.message_updated_while_inactive = false;
@@ -454,7 +458,7 @@ impl ChatView {
         }
     }
 
-    pub fn bind_bot_context(&mut self, scope: &mut Scope) {
+    pub fn bind_bot_context(&mut self, cx: &mut Cx, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
 
         let store_bot_context_id = store.bot_context.as_ref().map(|bc| bc.id());
@@ -484,7 +488,7 @@ impl ChatView {
                 if let Some(provider) = store.chats.providers.get(&provider_bot.provider_id) {
                     let icon = store
                         .get_provider_icon(&provider.name)
-                        .map(|dep| EntityAvatar::Image(dep.as_str().to_string()));
+                        .map(|dep| EntityAvatar::Image(dep.to_string()));
                     bot_groups.insert(
                         bot_id.clone(),
                         BotGroup {
@@ -497,12 +501,12 @@ impl ChatView {
             }
 
             // Set grouping on the ModelSelector inside PromptInput
-            let chat = self.chat(ids!(chat));
+            let chat = self.chat(cx, ids!(chat));
             chat.read()
-                .prompt_input_ref()
-                .widget(ids!(model_selector))
+                .prompt_input_ref(cx)
+                .widget(cx, ids!(model_selector))
                 .as_model_selector()
-                .set_grouping(move |bot: &moly_kit::aitk::protocol::Bot| {
+                .set_grouping(cx, move |bot: &moly_kit::aitk::protocol::Bot| {
                     bot_groups
                         .get(&bot.id)
                         .cloned()
@@ -510,11 +514,11 @@ impl ChatView {
                 });
 
             // Update filter when bot_context changes
-            let chat = self.chat(ids!(chat));
+            let chat = self.chat(cx, ids!(chat));
             if let Some(mut list) = chat
                 .read()
-                .prompt_input_ref()
-                .widget(ids!(model_selector.options.list_container.list))
+                .prompt_input_ref(cx)
+                .widget(cx, ids!(model_selector.options.list_container.list))
                 .borrow_mut::<moly_kit::widgets::model_selector_list::ModelSelectorList>()
             {
                 let filter = crate::chat::moly_bot_filter::MolyBotFilter::new(
@@ -536,7 +540,7 @@ impl ChatView {
         if let Some(stt_config) = self.stt_config.pull(store.preferences.stt_config()) {
             if !stt_config.enabled || stt_config.url.is_empty() || stt_config.model_name.is_empty()
             {
-                self.chat(ids!(chat)).write().set_stt_utility(None);
+                self.chat(cx, ids!(chat)).write().set_stt_utility(cx, None);
                 self.redraw(cx);
                 return;
             }
@@ -552,9 +556,9 @@ impl ChatView {
                 bot_id: BotId::new(&stt_config.model_name),
             };
 
-            self.chat(ids!(chat))
+            self.chat(cx, ids!(chat))
                 .write()
-                .set_stt_utility(Some(stt_utility));
+                .set_stt_utility(cx, Some(stt_utility));
 
             self.redraw(cx);
         }
@@ -812,8 +816,8 @@ impl Glue {
             }
 
             // Let's update the attachments back with the persisted key and reader.
-            ui.defer(move |me, _cx, _scope| {
-                let chat = me.chat(ids!(chat));
+            ui.defer(move |me, cx, _scope| {
+                let chat = me.chat(cx, ids!(chat));
                 let chat_controller = chat.read().chat_controller().expect("chat controller missing").clone();
                 let mut found = false;
 

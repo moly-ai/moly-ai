@@ -1,3 +1,5 @@
+use makepad_widgets::command_text_input::CommandTextInput;
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use makepad_widgets::*;
 use std::cell::{Ref, RefMut};
 
@@ -246,12 +248,12 @@ impl Widget for PromptInput {
         self.deref.handle_event(cx, event, scope);
         self.ui_runner().handle(cx, event, scope, self);
 
-        if self.button(ids!(attach)).clicked(event.actions()) {
+        if self.button(cx, ids!(attach)).clicked(event.actions()) {
             let ui = self.ui_runner();
             Attachment::pick_multiple(move |result| match result {
                 Ok(attachments) => {
-                    ui.defer_with_redraw(move |me, _, _| {
-                        let mut list = me.attachment_list_ref();
+                    ui.defer_with_redraw(move |me: &mut PromptInput, cx, _| {
+                        let mut list = me.attachment_list_ref(cx);
                         list.write().attachments.extend(attachments);
                         list.write().on_tap(move |list, index| {
                             list.attachments.remove(index);
@@ -264,7 +266,7 @@ impl Widget for PromptInput {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        let button = self.button(ids!(submit));
+        let mut button = self.button(cx, ids!(submit));
 
         match self.task {
             Task::Send => {
@@ -314,26 +316,26 @@ impl PromptInput {
     /// Shadows the [`CommandTextInput::reset`] method.
     pub fn reset(&mut self, cx: &mut Cx) {
         self.deref.reset(cx);
-        self.attachment_list_ref().write().attachments.clear();
+        self.attachment_list_ref(cx).write().attachments.clear();
     }
 
     /// Check if the submit button or the return key was pressed.
     ///
     /// Note: To know what the button submission means, check [Self::task] or
     /// the utility methods.
-    pub fn submitted(&self, actions: &Actions) -> bool {
-        let submit = self.button(ids!(submit));
-        let input = self.text_input_ref();
+    pub fn submitted(&self, cx: &Cx, actions: &Actions) -> bool {
+        let submit = self.button(cx, ids!(submit));
+        let input = self.text_input_ref(cx);
         (submit.clicked(actions) || input.returned(actions).is_some())
             && self.interactivity == Interactivity::Enabled
     }
 
-    pub fn call_pressed(&self, actions: &Actions) -> bool {
-        self.button(ids!(audio)).clicked(actions)
+    pub fn call_pressed(&self, cx: &Cx, actions: &Actions) -> bool {
+        self.button(cx, ids!(audio)).clicked(actions)
     }
 
-    pub fn stt_pressed(&self, actions: &Actions) -> bool {
-        self.button(ids!(stt)).clicked(actions)
+    pub fn stt_pressed(&self, cx: &Cx, actions: &Actions) -> bool {
+        self.button(cx, ids!(stt)).clicked(actions)
     }
 
     /// Shorthand to check if [Self::task] is set to [Task::Send].
@@ -366,19 +368,20 @@ impl PromptInput {
         self.task = Task::Stop;
     }
 
-    pub(crate) fn attachment_list_ref(&self) -> AttachmentListRef {
-        self.attachment_list(ids!(attachments))
+    pub(crate) fn attachment_list_ref(&self, cx: &Cx) -> AttachmentListRef {
+        self.attachment_list(cx, ids!(attachments))
     }
 
     /// Set the chat controller for the model selector
     pub fn set_chat_controller(
         &mut self,
+        cx: &Cx,
         controller: Option<
             std::sync::Arc<std::sync::Mutex<crate::aitk::controllers::chat::ChatController>>,
         >,
     ) {
         if let Some(mut inner) = self
-            .widget(ids!(model_selector))
+            .widget(cx, ids!(model_selector))
             .borrow_mut::<crate::widgets::model_selector::ModelSelector>()
         {
             inner.chat_controller = controller;
@@ -392,7 +395,7 @@ impl PromptInput {
     }
 
     pub fn set_stt_visible(&mut self, cx: &mut Cx, visible: bool) {
-        self.button(ids!(stt)).set_visible(cx, visible);
+        self.button(cx, ids!(stt)).set_visible(cx, visible);
     }
 
     /// Update button visibility based on bot capabilities
@@ -415,7 +418,7 @@ impl PromptInput {
             target_os = "linux",
             target_arch = "wasm32"
         ))]
-        self.button(ids!(attach))
+        self.button(cx, ids!(attach))
             .set_visible(cx, supports_attachments);
 
         #[cfg(not(any(
@@ -424,26 +427,27 @@ impl PromptInput {
             target_os = "linux",
             target_arch = "wasm32"
         )))]
-        self.button(ids!(attach)).set_visible(cx, false);
+        self.button(cx, ids!(attach)).set_visible(cx, false);
 
         #[cfg(not(target_arch = "wasm32"))]
-        self.button(ids!(audio)).set_visible(cx, supports_realtime);
+        self.button(cx, ids!(audio))
+            .set_visible(cx, supports_realtime);
 
-        self.button(ids!(submit))
+        self.button(cx, ids!(submit))
             .set_visible(cx, !supports_realtime);
 
         if supports_realtime {
             self.interactivity = Interactivity::Disabled;
-            self.text_input_ref().set_is_read_only(cx, true);
-            self.text_input_ref().set_empty_text(
+            self.text_input_ref(cx).set_is_read_only(cx, true);
+            self.text_input_ref(cx).set_empty_text(
                 cx,
                 "For realtime models, use the audio feature ->".to_string(),
             );
             self.redraw(cx);
         } else {
             self.interactivity = Interactivity::Enabled;
-            self.text_input_ref().set_is_read_only(cx, false);
-            self.text_input_ref().set_text(cx, "");
+            self.text_input_ref(cx).set_is_read_only(cx, false);
+            self.text_input_ref(cx).set_text(cx, "");
             self.redraw(cx);
         }
     }

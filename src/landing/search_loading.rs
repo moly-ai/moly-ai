@@ -93,6 +93,9 @@ script_mod! {
 
 #[derive(Animator, Script, ScriptHook, Widget)]
 pub struct SearchLoading {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     view: View,
 

@@ -261,7 +261,7 @@ struct McpServers {
 }
 
 impl ScriptHook for McpServers {
-    fn after_new_from_doc(&mut self, _cx: &mut Cx) {
+    fn on_after_new(&mut self, _vm: &mut ScriptVm) {
         self.mcp_servers_config = McpServersConfig::create_sample();
     }
 }
@@ -271,7 +271,7 @@ impl Widget for McpServers {
         self.view.handle_event(cx, event, scope);
         self.widget_match_event(cx, event, scope);
 
-        let editor = self.widget(ids!(mcp_code_view));
+        let editor = self.widget(cx, ids!(mcp_code_view));
 
         if !self.initialized || editor.text().is_empty() {
             self.initialized = true;
@@ -300,20 +300,25 @@ impl McpServers {
             .to_json()
             .unwrap_or_else(|_| "{}".to_string());
 
-        self.widget(ids!(mcp_code_view)).set_text(cx, &display_json);
+        self.widget(cx, ids!(mcp_code_view))
+            .set_text(cx, &display_json);
 
-        self.check_box(ids!(servers_enabled_switch))
+        self.check_box(cx, ids!(servers_enabled_switch))
             .set_active(cx, self.mcp_servers_config.enabled);
 
-        self.check_box(ids!(dangerous_mode_switch))
+        self.check_box(cx, ids!(dangerous_mode_switch))
             .set_active(cx, self.mcp_servers_config.dangerous_mode_enabled);
     }
 }
 
 impl WidgetMatchEvent for McpServers {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
-        if self.view(ids!(save_button)).finger_up(actions).is_some() {
-            let json_text = self.widget(ids!(mcp_code_view)).text();
+        if self
+            .view(cx, ids!(save_button))
+            .finger_up(actions)
+            .is_some()
+        {
+            let json_text = self.widget(cx, ids!(mcp_code_view)).text();
 
             match McpServersConfig::from_json(&json_text) {
                 Ok(config) => {
@@ -325,25 +330,25 @@ impl WidgetMatchEvent for McpServers {
 
                             self.set_mcp_servers_config(cx, config);
 
-                            self.label(ids!(save_status)).set_text(cx, "");
+                            self.label(cx, ids!(save_status)).set_text(cx, "");
                             self.redraw(cx);
                         }
                         Err(e) => {
-                            self.label(ids!(save_status))
+                            self.label(cx, ids!(save_status))
                                 .set_text(cx, &format!("{}", e));
                             self.redraw(cx);
                         }
                     }
                 }
                 Err(e) => {
-                    self.label(ids!(save_status))
+                    self.label(cx, ids!(save_status))
                         .set_text(cx, &format!("Invalid JSON: {}", e));
                     self.redraw(cx);
                 }
             }
         }
 
-        let servers_enabled_switch = self.check_box(ids!(servers_enabled_switch));
+        let servers_enabled_switch = self.check_box(cx, ids!(servers_enabled_switch));
         if let Some(enabled) = servers_enabled_switch.changed(actions) {
             self.mcp_servers_config.enabled = enabled;
 
@@ -351,14 +356,15 @@ impl WidgetMatchEvent for McpServers {
                 .mcp_servers_config
                 .to_json()
                 .unwrap_or_else(|_| "{}".to_string());
-            self.widget(ids!(mcp_code_view)).set_text(cx, &display_json);
+            self.widget(cx, ids!(mcp_code_view))
+                .set_text(cx, &display_json);
 
             let store = scope.data.get_mut::<Store>().unwrap();
             store.set_mcp_servers_enabled(enabled);
             self.redraw(cx);
         }
 
-        let dangerous_mode_switch = self.check_box(ids!(dangerous_mode_switch));
+        let dangerous_mode_switch = self.check_box(cx, ids!(dangerous_mode_switch));
         if let Some(enabled) = dangerous_mode_switch.changed(actions) {
             self.mcp_servers_config.dangerous_mode_enabled = enabled;
 
@@ -366,7 +372,8 @@ impl WidgetMatchEvent for McpServers {
                 .mcp_servers_config
                 .to_json()
                 .unwrap_or_else(|_| "{}".to_string());
-            self.widget(ids!(mcp_code_view)).set_text(cx, &display_json);
+            self.widget(cx, ids!(mcp_code_view))
+                .set_text(cx, &display_json);
 
             let store = scope.data.get_mut::<Store>().unwrap();
             store.set_mcp_servers_dangerous_mode_enabled(enabled);
@@ -384,9 +391,8 @@ impl WidgetMatchEvent for McpServers {
 }
 
 /// Moly's version of Makepad's CodeView (broken upstream)
-#[derive(Script, ScriptHook, Widget)]
+#[derive(Script, ScriptHook, WidgetRegister, WidgetRef)]
 pub struct MolyCodeView {
-    #[wrap]
     #[live]
     pub editor: CodeEditor,
     #[rust]
@@ -410,6 +416,27 @@ impl MolyCodeView {
                 self.editor.keep_cursor_in_view = KeepCursorInView::Once
             }
         }
+    }
+}
+
+impl WidgetNode for MolyCodeView {
+    fn walk(&mut self, cx: &mut Cx) -> Walk {
+        self.editor.walk(cx)
+    }
+    fn area(&self) -> Area {
+        self.editor.area()
+    }
+    fn redraw(&mut self, cx: &mut Cx) {
+        self.editor.redraw(cx)
+    }
+    fn find_widgets_from_point(&self, cx: &Cx, point: DVec2, found: &mut dyn FnMut(&WidgetRef)) {
+        self.editor.find_widgets_from_point(cx, point, found)
+    }
+    fn visible(&self) -> bool {
+        self.editor.visible()
+    }
+    fn set_visible(&mut self, cx: &mut Cx, visible: bool) {
+        self.editor.set_visible(cx, visible)
     }
 }
 

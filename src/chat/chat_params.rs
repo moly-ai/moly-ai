@@ -223,15 +223,15 @@ impl Widget for ChatParams {
             let chat = chat.borrow();
             let ip = &chat.inferences_params;
 
-            let temperature = self.slider(ids!(temperature));
-            let top_p = self.slider(ids!(top_p));
-            let max_tokens = self.slider(ids!(max_tokens));
-            let frequency_penalty = self.slider(ids!(frequency_penalty));
-            let presence_penalty = self.slider(ids!(presence_penalty));
-            let stop = self.text_input(ids!(stop));
-            let stream = self.check_box(ids!(stream));
+            let temperature = self.slider(cx, ids!(temperature));
+            let top_p = self.slider(cx, ids!(top_p));
+            let max_tokens = self.slider(cx, ids!(max_tokens));
+            let frequency_penalty = self.slider(cx, ids!(frequency_penalty));
+            let presence_penalty = self.slider(cx, ids!(presence_penalty));
+            let stop = self.text_input(cx, ids!(stop));
+            let stream = self.check_box(cx, ids!(stream));
 
-            let system_prompt = self.text_input(ids!(system_prompt));
+            let system_prompt = self.text_input(cx, ids!(system_prompt));
 
             temperature.set_value(cx, ip.temperature.into());
             top_p.set_value(cx, ip.top_p.into());
@@ -273,35 +273,35 @@ impl WidgetMatchEvent for ChatParams {
 
             let ip = &mut chat.inferences_params;
 
-            if let Some(value) = self.slider(ids!(temperature)).slided(&actions) {
+            if let Some(value) = self.slider(cx, ids!(temperature)).slided(&actions) {
                 ip.temperature = value as f32;
             }
 
-            if let Some(value) = self.slider(ids!(top_p)).slided(&actions) {
+            if let Some(value) = self.slider(cx, ids!(top_p)).slided(&actions) {
                 ip.top_p = value as f32;
             }
 
-            if let Some(value) = self.slider(ids!(max_tokens)).slided(&actions) {
+            if let Some(value) = self.slider(cx, ids!(max_tokens)).slided(&actions) {
                 ip.max_tokens = value as u32;
             }
 
-            if let Some(value) = self.slider(ids!(frequency_penalty)).slided(&actions) {
+            if let Some(value) = self.slider(cx, ids!(frequency_penalty)).slided(&actions) {
                 ip.frequency_penalty = value as f32;
             }
 
-            if let Some(value) = self.slider(ids!(presence_penalty)).slided(&actions) {
+            if let Some(value) = self.slider(cx, ids!(presence_penalty)).slided(&actions) {
                 ip.presence_penalty = value as f32;
             }
 
-            if let Some(value) = self.text_input(ids!(stop)).changed(&actions) {
+            if let Some(value) = self.text_input(cx, ids!(stop)).changed(&actions) {
                 ip.stop = value;
             }
 
-            if let Some(value) = self.check_box(ids!(stream)).changed(actions) {
+            if let Some(value) = self.check_box(cx, ids!(stream)).changed(actions) {
                 ip.stream = value;
             }
 
-            if let Some(value) = self.text_input(ids!(system_prompt)).changed(&actions) {
+            if let Some(value) = self.text_input(cx, ids!(system_prompt)).changed(&actions) {
                 if value.is_empty() {
                     chat.system_prompt = None;
                 } else {
@@ -427,8 +427,8 @@ impl ChatParams {
         cx: &mut Cx,
         actions: &Actions,
     ) {
-        let slider = self.slider(slider_id);
-        let mut tooltip = self.tooltip(ids!(tooltip));
+        let slider = self.slider(cx, slider_id);
+        let mut tooltip = self.tooltip(cx, ids!(tooltip));
 
         if let Some(rect) = slider.label_hover_in(&actions) {
             tooltip.show_with_options(cx, rect.pos + offset, &text);
@@ -446,8 +446,8 @@ impl ChatParams {
         cx: &mut Cx,
         actions: &Actions,
     ) {
-        let label = self.label(label_id);
-        let mut tooltip = self.tooltip(ids!(tooltip));
+        let label = self.label(cx, label_id);
+        let mut tooltip = self.tooltip(cx, ids!(tooltip));
 
         if let Some(rect) = label.hover_in(&actions) {
             tooltip.show_with_options(cx, rect.pos + offset, &text);

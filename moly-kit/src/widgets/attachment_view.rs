@@ -7,6 +7,7 @@ use crate::{
     widgets::image_view::{ImageViewRef, ImageViewWidgetExt},
 };
 use makepad_widgets::*;
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 
 script_mod! {
     use mod.prelude.widgets.*
@@ -93,12 +94,12 @@ impl AttachmentView {
         if self.attachment != attachment {
             self.attachment = attachment;
 
-            let icon = self.label(ids!(icon));
-            let tag_label = self.label(ids!(tag_label));
-            let title = self.label(ids!(title));
+            let icon = self.label(cx, ids!(icon));
+            let tag_label = self.label(cx, ids!(tag_label));
+            let title = self.label(cx, ids!(title));
 
-            self.icon_wrapper_ref().set_visible(cx, true);
-            self.image_wrapper_ref().set_visible(cx, false);
+            self.icon_wrapper_ref(cx).set_visible(cx, true);
+            self.image_wrapper_ref(cx).set_visible(cx, false);
 
             tag_label.set_text(
                 cx,
@@ -111,7 +112,7 @@ impl AttachmentView {
             );
 
             let color = no_preview_color();
-            let tag_bg = self.tag_bg_ref();
+            let mut tag_bg = self.tag_bg_ref(cx);
             script_apply_eval!(cx, tag_bg, {
                 draw_bg +: {
                     color: #(color)
@@ -131,7 +132,7 @@ impl AttachmentView {
                 icon.set_text(cx, "\u{f127}");
                 tag_label.set_text(cx, "Unavailable");
                 let color = unavailable_color();
-                let tag_bg = self.tag_bg_ref();
+                let mut tag_bg = self.tag_bg_ref(cx);
                 script_apply_eval!(cx, tag_bg, {
                     draw_bg +: {
                         color: #(color)
@@ -142,28 +143,28 @@ impl AttachmentView {
     }
 
     #[allow(unused)]
-    pub fn get_texture(&self) -> Option<Texture> {
-        self.image_ref().borrow().unwrap().get_texture()
+    pub fn get_texture(&self, cx: &Cx) -> Option<Texture> {
+        self.image_ref(cx).borrow().unwrap().get_texture()
     }
 
     pub fn get_attachment(&self) -> &Attachment {
         &self.attachment
     }
 
-    fn image_ref(&self) -> ImageViewRef {
-        self.image_view(ids!(image))
+    fn image_ref(&self, cx: &Cx) -> ImageViewRef {
+        self.image_view(cx, ids!(image))
     }
 
-    fn image_wrapper_ref(&self) -> ViewRef {
-        self.view(ids!(image_wrapper))
+    fn image_wrapper_ref(&self, cx: &Cx) -> ViewRef {
+        self.view(cx, ids!(image_wrapper))
     }
 
-    fn icon_wrapper_ref(&self) -> ViewRef {
-        self.view(ids!(icon_wrapper))
+    fn icon_wrapper_ref(&self, cx: &Cx) -> ViewRef {
+        self.view(cx, ids!(icon_wrapper))
     }
 
-    fn tag_bg_ref(&self) -> ViewRef {
-        self.view(ids!(tag_bg))
+    fn tag_bg_ref(&self, cx: &Cx) -> ViewRef {
+        self.view(cx, ids!(tag_bg))
     }
 
     fn try_load_preview(&mut self) {
@@ -186,9 +187,9 @@ impl AttachmentView {
                 return;
             };
 
-            ui.defer_with_redraw(move |me, cx, _| {
+            ui.defer_with_redraw(move |me: &mut AttachmentView, cx, _| {
                 if let Err(e) = me
-                    .image_ref()
+                    .image_ref(cx)
                     .borrow_mut()
                     .unwrap()
                     .load_with_contet_type(
@@ -205,10 +206,10 @@ impl AttachmentView {
                     );
                 }
 
-                me.icon_wrapper_ref().set_visible(cx, false);
-                me.image_wrapper_ref().set_visible(cx, true);
+                me.icon_wrapper_ref(cx).set_visible(cx, false);
+                me.image_wrapper_ref(cx).set_visible(cx, true);
                 let color = preview_color();
-                let tag_bg = me.tag_bg_ref();
+                let mut tag_bg = me.tag_bg_ref(cx);
                 script_apply_eval!(cx, tag_bg, {
                     draw_bg +: {
                         color: #(color)

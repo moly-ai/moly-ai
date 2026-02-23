@@ -76,7 +76,13 @@ impl ModelFilesTagsRef {
         tags_widget.items.clear();
         for (i, tag) in tags.iter().enumerate() {
             let item_id = LiveId(i as u64).into();
-            let item_widget = WidgetRef::new_from_ptr(cx, tags_widget.template);
+            let mut item_widget = {
+                let template = tags_widget.template.clone();
+                cx.with_vm(|vm| {
+                    let obj = template.as_object().expect("template not set");
+                    WidgetRef::script_from_value(vm, obj.into())
+                })
+            };
             script_apply_eval!(cx, item_widget, { label: { text: #(tag) } });
             tags_widget.items.insert(item_id, item_widget);
         }

@@ -301,7 +301,7 @@ impl Widget for ChatHistoryCard {
             .unwrap();
 
         if let Some(current_chat_id) = store.chats.get_current_chat_id() {
-            let content_view_highlight = self.view(ids!(selected_bg));
+            let mut content_view_highlight = self.view(cx, ids!(selected_bg));
 
             if current_chat_id == self.chat_id {
                 script_apply_eval!(cx, content_view_highlight, {
@@ -309,7 +309,8 @@ impl Widget for ChatHistoryCard {
                 });
             } else {
                 if chat.borrow().has_unread_messages {
-                    self.view(ids!(unread_message_badge)).set_visible(cx, true);
+                    self.view(cx, ids!(unread_message_badge))
+                        .set_visible(cx, true);
                 }
                 script_apply_eval!(cx, content_view_highlight, {
                     draw_bg: {color: #x0000}
@@ -343,30 +344,31 @@ impl WidgetMatchEvent for ChatHistoryCard {
             TitleState::OnEdit => self.handle_title_on_edit_actions(cx, actions, scope),
         }
 
-        let chat_options_wrapper_rect = self.view(ids!(chat_options_wrapper)).area().rect(cx);
-        if self.button(ids!(chat_options)).clicked(actions) {
+        let chat_options_wrapper_rect = self.view(cx, ids!(chat_options_wrapper)).area().rect(cx);
+        if self.button(cx, ids!(chat_options)).clicked(actions) {
             let wrapper_coords = chat_options_wrapper_rect.pos;
             let coords = dvec2(
                 wrapper_coords.x - 100.,
                 wrapper_coords.y + chat_options_wrapper_rect.size.y - 12.0,
             );
 
-            self.chat_history_card_options(ids!(chat_history_card_options))
+            self.chat_history_card_options(cx, ids!(chat_history_card_options))
                 .selected(cx, self.chat_id);
 
-            let modal = self.moly_modal(ids!(chat_history_card_options_modal));
+            let modal = self.moly_modal(cx, ids!(chat_history_card_options_modal));
             modal.open_as_popup(cx, coords);
             return;
         }
 
-        if let Some(fe) = self.view(ids!(content)).finger_down(actions) {
+        if let Some(fe) = self.view(cx, ids!(content)).finger_down(actions) {
             if fe.tap_count == 1 {
                 let store = scope.data.get_mut::<Store>().unwrap();
                 store.chats.set_current_chat(Some(self.chat_id));
 
                 if let Some(chat) = store.chats.get_chat_by_id(self.chat_id) {
                     chat.borrow_mut().has_unread_messages = false;
-                    self.view(ids!(unread_message_badge)).set_visible(cx, false);
+                    self.view(cx, ids!(unread_message_badge))
+                        .set_visible(cx, false);
                 }
 
                 cx.action(ChatAction::ChatSelected(self.chat_id));
@@ -381,7 +383,7 @@ impl WidgetMatchEvent for ChatHistoryCard {
                     | DeleteChatModalAction::CloseButtonClicked
                     | DeleteChatModalAction::ChatDeleted
             ) {
-                self.moly_modal(ids!(delete_chat_modal)).close(cx);
+                self.moly_modal(cx, ids!(delete_chat_modal)).close(cx);
             }
         }
     }
@@ -396,25 +398,28 @@ impl ChatHistoryCard {
     }
 
     fn set_title_text(&mut self, cx: &mut Cx, text: &str, caption: &str) {
-        self.view.label(ids!(title_label)).set_text(cx, text.trim());
+        self.view
+            .label(cx, ids!(title_label))
+            .set_text(cx, text.trim());
         if let TitleState::Editable = self.title_edition_state {
             self.view
-                .text_input(ids!(title_input))
+                .text_input(cx, ids!(title_input))
                 .set_text(cx, text.trim());
         }
-        self.label(ids!(model_or_agent_name_label))
+        self.label(cx, ids!(model_or_agent_name_label))
             .set_text(cx, &human_readable_name(caption));
     }
 
     fn update_title_visibility(&mut self, cx: &mut Cx) {
         let on_edit = matches!(self.title_edition_state, TitleState::OnEdit);
-        self.view(ids!(edit_buttons)).set_visible(cx, on_edit);
-        self.view(ids!(title_input_container))
+        self.view(cx, ids!(edit_buttons)).set_visible(cx, on_edit);
+        self.view(cx, ids!(title_input_container))
             .set_visible(cx, on_edit);
-        self.button(ids!(chat_options)).set_visible(cx, !on_edit);
+        self.button(cx, ids!(chat_options))
+            .set_visible(cx, !on_edit);
 
         let editable = matches!(self.title_edition_state, TitleState::Editable);
-        self.view(ids!(title_label_container))
+        self.view(cx, ids!(title_label_container))
             .set_visible(cx, editable);
     }
 
@@ -448,8 +453,8 @@ impl ChatHistoryCard {
             match action.cast() {
                 ChatHistoryCardAction::MenuClosed(chat_id) => {
                     if chat_id == self.chat_id {
-                        self.button(ids!(chat_options)).reset_hover(cx);
-                        self.moly_modal(ids!(chat_history_card_options_modal))
+                        self.button(cx, ids!(chat_options)).reset_hover(cx);
+                        self.moly_modal(cx, ids!(chat_history_card_options_modal))
                             .close(cx);
                     }
                 }
@@ -461,20 +466,21 @@ impl ChatHistoryCard {
                 ChatHistoryCardAction::DeleteChatOptionSelected(chat_id) => {
                     if chat_id == self.chat_id {
                         let mut delete_modal_inner =
-                            self.delete_chat_modal(ids!(delete_chat_modal_inner));
+                            self.delete_chat_modal(cx, ids!(delete_chat_modal_inner));
                         delete_modal_inner.set_chat_id(self.chat_id);
 
-                        self.moly_modal(ids!(delete_chat_modal)).open_as_dialog(cx);
+                        self.moly_modal(cx, ids!(delete_chat_modal))
+                            .open_as_dialog(cx);
                     }
                 }
                 _ => {}
             }
 
             if self
-                .moly_modal(ids!(chat_history_card_options_modal))
+                .moly_modal(cx, ids!(chat_history_card_options_modal))
                 .dismissed(actions)
             {
-                self.button(ids!(chat_options)).reset_hover(cx);
+                self.button(cx, ids!(chat_options)).reset_hover(cx);
             }
         }
     }
@@ -482,8 +488,8 @@ impl ChatHistoryCard {
     fn handle_title_on_edit_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
 
-        if self.button(ids!(save)).clicked(actions) {
-            let updated_title = self.text_input(ids!(title_input)).text();
+        if self.button(cx, ids!(save)).clicked(actions) {
+            let updated_title = self.text_input(cx, ids!(title_input)).text();
             let chat = store
                 .chats
                 .saved_chats
@@ -499,7 +505,7 @@ impl ChatHistoryCard {
             self.transition_title_state(cx)
         }
 
-        if let Some((val, _)) = self.text_input(ids!(title_input)).returned(actions) {
+        if let Some((val, _)) = self.text_input(cx, ids!(title_input)).returned(actions) {
             let chat = store
                 .chats
                 .saved_chats
@@ -515,7 +521,7 @@ impl ChatHistoryCard {
             self.transition_title_state(cx)
         }
 
-        if self.button(ids!(cancel)).clicked(actions) {
+        if self.button(cx, ids!(cancel)).clicked(actions) {
             self.transition_title_state(cx)
         }
     }

@@ -319,14 +319,14 @@ impl WidgetMatchEvent for AddProviderModal {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
 
-        if self.button(ids!(close_button)).clicked(actions) {
+        if self.button(cx, ids!(close_button)).clicked(actions) {
             cx.action(AddProviderModalAction::ModalDismissed);
         }
 
-        if self.button(ids!(add_server_button)).clicked(actions) {
+        if self.button(cx, ids!(add_server_button)).clicked(actions) {
             self.clear_error_message(cx);
-            let api_host = self.text_input(ids!(api_host)).text().trim().to_string();
-            let name = self.text_input(ids!(name)).text().trim().to_string();
+            let api_host = self.text_input(cx, ids!(api_host)).text().trim().to_string();
+            let name = self.text_input(cx, ids!(name)).text().trim().to_string();
 
             if self.selected_provider.is_none() {
                 self.set_error_message(cx, "Please select a provider type");
@@ -338,7 +338,7 @@ impl WidgetMatchEvent for AddProviderModal {
                 return;
             }
 
-            let api_key = self.text_input(ids!(api_key)).text().trim().to_string();
+            let api_key = self.text_input(cx, ids!(api_key)).text().trim().to_string();
 
             let provider_id = {
                 let base = name
@@ -489,7 +489,7 @@ impl WidgetMatchEvent for AddProviderModal {
         }
 
         let selected = self
-            .radio_button_set(ids_array!(
+            .radio_button_set(cx, ids_array!(
                 radios.radio_openai,
                 radios.radio_mofa,
                 radios.radio_deepinquire,
@@ -512,18 +512,18 @@ impl WidgetMatchEvent for AddProviderModal {
 
 impl AddProviderModal {
     fn set_error_message(&mut self, cx: &mut Cx, message: &str) {
-        self.view(ids!(error_view)).set_visible(cx, true);
-        self.label(ids!(error_message)).set_text(cx, message);
+        self.view(cx, ids!(error_view)).set_visible(cx, true);
+        self.label(cx, ids!(error_message)).set_text(cx, message);
     }
 
     fn clear_error_message(&mut self, cx: &mut Cx) {
-        self.label(ids!(error_message)).set_text(cx, "");
-        self.view(ids!(error_view)).set_visible(cx, false);
+        self.label(cx, ids!(error_message)).set_text(cx, "");
+        self.view(cx, ids!(error_view)).set_visible(cx, false);
     }
 
     fn clear_form(&mut self, cx: &mut Cx) {
-        self.text_input(ids!(api_host)).set_text(cx, "");
-        self.text_input(ids!(api_key)).set_text(cx, "");
+        self.text_input(cx, ids!(api_host)).set_text(cx, "");
+        self.text_input(cx, ids!(api_key)).set_text(cx, "");
         self.clear_error_message(cx);
         self.selected_provider = None;
     }

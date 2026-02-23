@@ -6,7 +6,10 @@ use std::{
 
 use crate::{
     aitk::{controllers::chat::ChatController, protocol::*},
-    utils::makepad::{events::EventExt, portal_list::ItemsRangeIter, ui_runner::DeferRedraw},
+    utils::makepad::{
+        events::EventExt, portal_list::ItemsRangeIter,
+        ui_runner::DeferRedraw,
+    },
     widgets::{
         avatar::AvatarWidgetRefExt, chat_line::ChatLineAction,
         message_loading::MessageLoadingWidgetRefExt,
@@ -162,12 +165,18 @@ pub struct Messages {
 }
 
 impl Widget for Messages {
-    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+    fn handle_event(
+        &mut self,
+        cx: &mut Cx,
+        event: &Event,
+        scope: &mut Scope,
+    ) {
         self.ui_runner().handle(cx, event, scope, self);
         self.deref.handle_event(cx, event, scope);
         self.handle_list(cx, event, scope);
 
-        let jump_to_bottom = self.button(ids!(jump_to_bottom));
+        let jump_to_bottom =
+            self.button(cx, ids!(jump_to_bottom));
 
         if jump_to_bottom.clicked(event.actions()) {
             self.animated_scroll_to_bottom(cx);
@@ -176,7 +185,8 @@ impl Widget for Messages {
 
         for action in event.widget_actions() {
             if let CitationAction::Open(url) = action.cast() {
-                let _ = robius_open::Uri::new(url.as_str()).open();
+                let _ =
+                    robius_open::Uri::new(url.as_str()).open();
             }
         }
     }
@@ -187,7 +197,7 @@ impl Widget for Messages {
         scope: &mut Scope,
         walk: Walk,
     ) -> DrawStep {
-        let list = self.portal_list(ids!(list));
+        let list = self.portal_list(cx, ids!(list));
         let list_uid = list.widget_uid();
 
         while let Some(widget) =
@@ -214,7 +224,11 @@ impl Widget for Messages {
 }
 
 impl Messages {
-    fn draw_list(&mut self, cx: &mut Cx2d, list_ref: PortalListRef) {
+    fn draw_list(
+        &mut self,
+        cx: &mut Cx2d,
+        list_ref: PortalListRef,
+    ) {
         self.is_list_end_drawn = false;
         self.visible_range = None;
 
@@ -223,7 +237,8 @@ impl Messages {
             .clone()
             .expect("no chat controller set");
 
-        let mut chat_controller = chat_controller.lock().unwrap();
+        let mut chat_controller =
+            chat_controller.lock().unwrap();
 
         let last_message_index =
             chat_controller.state().messages.len().checked_sub(1);
@@ -266,94 +281,138 @@ impl Messages {
         );
 
         while let Some(index) = list.next_visible_item(cx) {
-            if index >= chat_controller.state().messages.len() {
+            if index
+                >= chat_controller.state().messages.len()
+            {
                 continue;
             }
 
-            if let Some((_start, end)) = &mut self.visible_range {
+            if let Some((_start, end)) =
+                &mut self.visible_range
+            {
                 *end = (*end).max(index);
             } else {
                 self.visible_range = Some((index, index));
             }
 
-            let message = &chat_controller.state().messages[index];
+            let message =
+                &chat_controller.state().messages[index];
 
             let item = match &message.from {
                 EntityId::System => {
-                    let item = if message.metadata.is_writing() {
-                        let item =
-                            list.item(cx, index, id!(LoadingLine));
-                        item.message_loading(
-                            ids!(content_section.loading),
-                        )
-                        .animate(cx);
-                        item
-                    } else {
-                        list.item(cx, index, id!(SystemLine))
-                    };
+                    let item =
+                        if message.metadata.is_writing() {
+                            let item = list.item(
+                                cx,
+                                index,
+                                id!(LoadingLine),
+                            );
+                            item.message_loading(
+                                cx,
+                                ids!(content_section.loading),
+                            )
+                            .animate(cx);
+                            item
+                        } else {
+                            list.item(
+                                cx,
+                                index,
+                                id!(SystemLine),
+                            )
+                        };
 
-                    item.avatar(ids!(avatar))
+                    item.avatar(cx, ids!(avatar))
                         .borrow_mut()
                         .unwrap()
                         .avatar =
                         Some(EntityAvatar::Text("S".into()));
-                    item.label(ids!(name)).set_text(cx, "System");
+                    item.label(cx, ids!(name))
+                        .set_text(cx, "System");
 
                     if !message.metadata.is_writing() {
-                        item.slot(ids!(content))
+                        item.slot(cx, ids!(content))
                             .current()
                             .as_standard_message_content()
-                            .set_content(cx, &message.content);
+                            .set_content(
+                                cx,
+                                &message.content,
+                            );
                     }
 
-                    self.apply_editor_visibility(cx, &item, index);
+                    self.apply_editor_visibility(
+                        cx, &item, index,
+                    );
                     item
                 }
                 EntityId::Tool => {
-                    let item = if message.metadata.is_writing() {
-                        let item =
-                            list.item(cx, index, id!(LoadingLine));
-                        item.message_loading(
-                            ids!(content_section.loading),
-                        )
-                        .animate(cx);
-                        item
-                    } else {
-                        list.item(cx, index, id!(ToolResultLine))
-                    };
+                    let item =
+                        if message.metadata.is_writing() {
+                            let item = list.item(
+                                cx,
+                                index,
+                                id!(LoadingLine),
+                            );
+                            item.message_loading(
+                                cx,
+                                ids!(content_section.loading),
+                            )
+                            .animate(cx);
+                            item
+                        } else {
+                            list.item(
+                                cx,
+                                index,
+                                id!(ToolResultLine),
+                            )
+                        };
 
-                    item.avatar(ids!(avatar))
+                    item.avatar(cx, ids!(avatar))
                         .borrow_mut()
                         .unwrap()
                         .avatar =
                         Some(EntityAvatar::Text("T".into()));
-                    item.label(ids!(name)).set_text(cx, "Tool");
+                    item.label(cx, ids!(name))
+                        .set_text(cx, "Tool");
 
                     if !message.metadata.is_writing() {
-                        item.slot(ids!(content))
+                        item.slot(cx, ids!(content))
                             .current()
                             .as_standard_message_content()
-                            .set_content(cx, &message.content);
+                            .set_content(
+                                cx,
+                                &message.content,
+                            );
                     }
 
-                    self.apply_editor_visibility(cx, &item, index);
+                    self.apply_editor_visibility(
+                        cx, &item, index,
+                    );
                     item
                 }
                 EntityId::App => {
                     if message.content.text == "EOC" {
-                        let item =
-                            list.item(cx, index, id!(Empty));
+                        let mut item = list.item(
+                            cx,
+                            index,
+                            id!(Empty),
+                        );
                         script_apply_eval!(cx, item, {
                             height: 0.1
                         });
-                        item.draw_all(cx, &mut Scope::empty());
+                        item.draw_all(
+                            cx,
+                            &mut Scope::empty(),
+                        );
                         self.is_list_end_drawn = true;
                         item
                     } else if message.content.text == "FIL" {
                         did_filler_draw = true;
 
-                        let item =
-                            list.item(cx, index, id!(Empty));
+                        let mut item = list.item(
+                            cx,
+                            index,
+                            id!(Empty),
+                        );
 
                         const MAX_SECOND_LAST_MESSAGE_VISIBILITY: f64 =
                             100.0;
@@ -362,10 +421,11 @@ impl Messages {
 
                         let height = (self.list_height
                             - last_message_height
-                            - second_last_message_height.clamp(
-                                0.0,
-                                MAX_SECOND_LAST_MESSAGE_VISIBILITY,
-                            )
+                            - second_last_message_height
+                                .clamp(
+                                    0.0,
+                                    MAX_SECOND_LAST_MESSAGE_VISIBILITY,
+                                )
                             - SECOND_LAST_MESSAGE_DRAW_GUARANTEE)
                             .clamp(0.0, f64::INFINITY);
 
@@ -381,61 +441,87 @@ impl Messages {
                             .map(|s| s.to_lowercase())
                             .as_deref()
                     {
-                        let item =
-                            list.item(cx, index, id!(ErrorLine));
-                        item.avatar(ids!(avatar))
+                        let item = list.item(
+                            cx,
+                            index,
+                            id!(ErrorLine),
+                        );
+                        item.avatar(cx, ids!(avatar))
                             .borrow_mut()
                             .unwrap()
-                            .avatar =
-                            Some(EntityAvatar::Text("X".into()));
-                        item.label(ids!(name))
+                            .avatar = Some(
+                            EntityAvatar::Text("X".into()),
+                        );
+                        item.label(cx, ids!(name))
                             .set_text(cx, left);
 
                         let error_content = MessageContent {
                             text: right.to_string(),
                             ..Default::default()
                         };
-                        item.slot(ids!(content))
+                        item.slot(cx, ids!(content))
                             .current()
                             .as_standard_message_content()
-                            .set_content(cx, &error_content);
+                            .set_content(
+                                cx,
+                                &error_content,
+                            );
 
-                        let error_text = &message.content.text;
-                        let note = error_note_for(error_text);
+                        let error_text =
+                            &message.content.text;
+                        let note =
+                            error_note_for(error_text);
                         let has_note = !note.is_empty();
 
                         if has_note {
-                            item.label(ids!(error_note))
-                                .set_text(cx, note);
+                            item.label(
+                                cx,
+                                ids!(error_note),
+                            )
+                            .set_text(cx, note);
                         }
 
                         let has_details = message
                             .content
                             .data
                             .as_ref()
-                            .is_some_and(|d| !d.trim().is_empty());
-                        let show_section = has_note || has_details;
-                        item.view(ids!(error_details_section))
-                            .set_visible(cx, show_section);
-                        item.view(ids!(error_note))
+                            .is_some_and(|d| {
+                                !d.trim().is_empty()
+                            });
+                        let show_section =
+                            has_note || has_details;
+                        item.view(
+                            cx,
+                            ids!(error_details_section),
+                        )
+                        .set_visible(cx, show_section);
+                        item.view(cx, ids!(error_note))
                             .set_visible(cx, has_note);
-                        item.view(ids!(error_details_toggle))
-                            .set_visible(cx, has_details);
+                        item.view(
+                            cx,
+                            ids!(error_details_toggle),
+                        )
+                        .set_visible(cx, has_details);
 
-                        let is_expanded =
-                            self.expanded_error_details.contains(&index);
-                        item.view(ids!(error_details))
+                        let is_expanded = self
+                            .expanded_error_details
+                            .contains(&index);
+                        item.view(cx, ids!(error_details))
                             .set_visible(cx, is_expanded);
                         let toggle_text = if is_expanded {
                             "Hide details"
                         } else {
                             "Show details"
                         };
-                        item.label(ids!(toggle_label))
+                        item.label(cx, ids!(toggle_label))
                             .set_text(cx, toggle_text);
 
                         if has_details && is_expanded {
-                            item.label(ids!(details_text)).set_text(
+                            item.label(
+                                cx,
+                                ids!(details_text),
+                            )
+                            .set_text(
                                 cx,
                                 message
                                     .content
@@ -450,18 +536,25 @@ impl Messages {
                         );
                         item
                     } else {
-                        let item =
-                            list.item(cx, index, id!(AppLine));
-                        item.avatar(ids!(avatar))
+                        let item = list.item(
+                            cx,
+                            index,
+                            id!(AppLine),
+                        );
+                        item.avatar(cx, ids!(avatar))
                             .borrow_mut()
                             .unwrap()
-                            .avatar =
-                            Some(EntityAvatar::Text("A".into()));
+                            .avatar = Some(
+                            EntityAvatar::Text("A".into()),
+                        );
 
-                        item.slot(ids!(content))
+                        item.slot(cx, ids!(content))
                             .current()
                             .as_standard_message_content()
-                            .set_content(cx, &message.content);
+                            .set_content(
+                                cx,
+                                &message.content,
+                            );
 
                         self.apply_editor_visibility(
                             cx, &item, index,
@@ -470,22 +563,28 @@ impl Messages {
                     }
                 }
                 EntityId::User => {
-                    let item =
-                        list.item(cx, index, id!(UserLine));
+                    let item = list.item(
+                        cx,
+                        index,
+                        id!(UserLine),
+                    );
 
-                    item.avatar(ids!(avatar))
+                    item.avatar(cx, ids!(avatar))
                         .borrow_mut()
                         .unwrap()
                         .avatar =
                         Some(EntityAvatar::Text("Y".into()));
-                    item.label(ids!(name)).set_text(cx, "You");
+                    item.label(cx, ids!(name))
+                        .set_text(cx, "You");
 
-                    item.slot(ids!(content))
+                    item.slot(cx, ids!(content))
                         .current()
                         .as_standard_message_content()
                         .set_content(cx, &message.content);
 
-                    self.apply_editor_visibility(cx, &item, index);
+                    self.apply_editor_visibility(
+                        cx, &item, index,
+                    );
                     item
                 }
                 EntityId::Bot(id) => {
@@ -494,7 +593,9 @@ impl Messages {
 
                     let (name, avatar) = bot
                         .as_ref()
-                        .map(|b| (b.name.clone(), b.avatar.clone()))
+                        .map(|b| {
+                            (b.name.clone(), b.avatar.clone())
+                        })
                         .unwrap_or_else(|| {
                             let model_name = format!(
                                 "{} (unavailable)",
@@ -512,70 +613,92 @@ impl Messages {
                             (model_name, avatar)
                         });
 
-                    let item = if message.metadata.is_writing()
-                        && message.content.is_empty()
-                    {
-                        let item =
-                            list.item(cx, index, id!(LoadingLine));
-                        item.message_loading(
-                            ids!(content_section.loading),
-                        )
-                        .animate(cx);
-                        item
-                    } else if !message
-                        .content
-                        .tool_calls
-                        .is_empty()
-                    {
-                        let item = list.item(
-                            cx,
-                            index,
-                            id!(ToolRequestLine),
-                        );
-
-                        let has_pending = message
+                    let item =
+                        if message.metadata.is_writing()
+                            && message.content.is_empty()
+                        {
+                            let item = list.item(
+                                cx,
+                                index,
+                                id!(LoadingLine),
+                            );
+                            item.message_loading(
+                                cx,
+                                ids!(content_section.loading),
+                            )
+                            .animate(cx);
+                            item
+                        } else if !message
                             .content
                             .tool_calls
-                            .iter()
-                            .any(|tc| {
-                                tc.permission_status
-                                    == ToolCallPermissionStatus::Pending
-                            });
-                        let has_denied = message
-                            .content
-                            .tool_calls
-                            .iter()
-                            .any(|tc| {
-                                tc.permission_status
-                                    == ToolCallPermissionStatus::Denied
-                            });
+                            .is_empty()
+                        {
+                            let item = list.item(
+                                cx,
+                                index,
+                                id!(ToolRequestLine),
+                            );
 
-                        item.view(ids!(tool_actions))
+                            let has_pending = message
+                                .content
+                                .tool_calls
+                                .iter()
+                                .any(|tc| {
+                                    tc.permission_status
+                                        == ToolCallPermissionStatus::Pending
+                                });
+                            let has_denied = message
+                                .content
+                                .tool_calls
+                                .iter()
+                                .any(|tc| {
+                                    tc.permission_status
+                                        == ToolCallPermissionStatus::Denied
+                                });
+
+                            item.view(
+                                cx,
+                                ids!(tool_actions),
+                            )
                             .set_visible(cx, has_pending);
 
-                        if has_denied {
-                            item.view(ids!(status_view))
+                            if has_denied {
+                                item.view(
+                                    cx,
+                                    ids!(status_view),
+                                )
                                 .set_visible(cx, true);
-                            item.label(ids!(approved_status))
+                                item.label(
+                                    cx,
+                                    ids!(approved_status),
+                                )
                                 .set_text(cx, "Denied");
-                        } else {
-                            item.view(ids!(status_view))
+                            } else {
+                                item.view(
+                                    cx,
+                                    ids!(status_view),
+                                )
                                 .set_visible(cx, false);
-                        }
+                            }
 
-                        item
-                    } else {
-                        list.item(cx, index, id!(BotLine))
-                    };
+                            item
+                        } else {
+                            list.item(
+                                cx,
+                                index,
+                                id!(BotLine),
+                            )
+                        };
 
-                    item.avatar(ids!(avatar))
+                    item.avatar(cx, ids!(avatar))
                         .borrow_mut()
                         .unwrap()
                         .avatar = Some(avatar);
-                    item.label(ids!(name))
+                    item.label(cx, ids!(name))
                         .set_text(cx, name.as_str());
 
-                    let mut slot = item.slot(ids!(content));
+                    let mut slot =
+                        item.slot(cx, ids!(content));
                     if let Some(custom_content) = self
                         .custom_contents
                         .iter_mut()
@@ -627,7 +750,8 @@ impl Messages {
                 last_message_index
                 && index == last_message_index
             {
-                last_message_height = item.area().rect(cx).size.y;
+                last_message_height =
+                    item.area().rect(cx).size.y;
             }
         }
 
@@ -645,7 +769,7 @@ impl Messages {
             assert!(message.content.text.starts_with("FIL"));
         }
 
-        self.button(ids!(jump_to_bottom))
+        self.button(cx, ids!(jump_to_bottom))
             .set_visible(cx, !self.is_at_bottom());
     }
 
@@ -655,15 +779,24 @@ impl Messages {
     }
 
     /// Jump to the end of the list instantly.
-    pub fn instant_scroll_to_bottom(&mut self, cx: &mut Cx) {
+    pub fn instant_scroll_to_bottom(
+        &mut self,
+        cx: &mut Cx,
+    ) {
         let chat_controller = self
             .chat_controller
             .as_ref()
             .expect("no chat controller set");
 
-        if chat_controller.lock().unwrap().state().messages.len() > 0
+        if chat_controller
+            .lock()
+            .unwrap()
+            .state()
+            .messages
+            .len()
+            > 0
         {
-            let list = self.portal_list(ids!(list));
+            let list = self.portal_list(cx, ids!(list));
 
             list.set_first_id_and_scroll(
                 chat_controller
@@ -684,7 +817,10 @@ impl Messages {
     ///
     /// Warning: Do not continuously fire this method. Use
     /// [`Self::instant_scroll_to_bottom`] instead.
-    pub fn animated_scroll_to_bottom(&mut self, cx: &mut Cx) {
+    pub fn animated_scroll_to_bottom(
+        &mut self,
+        cx: &mut Cx,
+    ) {
         if self.is_at_bottom() {
             self.instant_scroll_to_bottom(cx);
             return;
@@ -695,17 +831,23 @@ impl Messages {
             .as_ref()
             .expect("no chat controller set");
 
-        if chat_controller.lock().unwrap().state().messages.len() > 0
+        if chat_controller
+            .lock()
+            .unwrap()
+            .state()
+            .messages
+            .len()
+            > 0
         {
-            let list = self.portal_list(ids!(list));
+            let list = self.portal_list(cx, ids!(list));
             list.smooth_scroll_to_end(cx, 100.0, None);
         }
     }
 
     /// Show or hide the editor for a message.
     ///
-    /// Limitation: Only one editor can be shown at a time. If you try
-    /// to show another editor, the previous one will be hidden.
+    /// Limitation: Only one editor can be shown at a time. If you
+    /// try to show another editor, the previous one will be hidden.
     pub fn set_message_editor_visibility(
         &mut self,
         index: usize,
@@ -729,33 +871,45 @@ impl Messages {
         }
 
         if visible {
-            let buffer = chat_controller.lock().unwrap().state()
+            let buffer = chat_controller
+                .lock()
+                .unwrap()
+                .state()
                 .messages[index]
                 .content
                 .text
                 .clone();
             self.current_editor =
                 Some(Editor { index, buffer });
-        } else if self.current_editor.as_ref().map(|e| e.index)
+        } else if self
+            .current_editor
+            .as_ref()
+            .map(|e| e.index)
             == Some(index)
         {
             self.current_editor = None;
         }
     }
 
-    /// If currently editing a message, returns the text in its editor.
-    pub fn current_editor_text(&self) -> Option<String> {
+    /// If currently editing a message, returns the text in its
+    /// editor.
+    pub fn current_editor_text(
+        &self,
+        cx: &Cx,
+    ) -> Option<String> {
         self.current_editor
             .as_ref()
             .and_then(|editor| {
-                self.portal_list(ids!(list)).get_item(editor.index)
+                self.portal_list(cx, ids!(list))
+                    .get_item(editor.index)
             })
             .map(|(_id, widget)| {
-                widget.text_input(ids!(input)).text()
+                widget.text_input(cx, ids!(input)).text()
             })
     }
 
-    /// If currently editing a message, returns the index of the message.
+    /// If currently editing a message, returns the index of the
+    /// message.
     pub fn current_editor_index(&self) -> Option<usize> {
         self.current_editor.as_ref().map(|e| e.index)
     }
@@ -770,11 +924,15 @@ impl Messages {
             return;
         };
 
-        let list = self.portal_list(ids!(list));
+        let list = self.portal_list(cx, ids!(list));
         let range = range.0..=range.1;
 
-        for (index, item) in ItemsRangeIter::new(list, range) {
-            for action in item.filter_actions(event.actions()) {
+        for (index, item) in
+            ItemsRangeIter::new(list, range)
+        {
+            for action in
+                item.filter_actions(event.actions())
+            {
                 match action.cast() {
                     ChatLineAction::Copy => {
                         cx.widget_action(
@@ -809,13 +967,17 @@ impl Messages {
                     ChatLineAction::SaveAndRegenerate => {
                         cx.widget_action(
                             self.widget_uid(),
-                            MessagesAction::EditRegenerate(index),
+                            MessagesAction::EditRegenerate(
+                                index,
+                            ),
                         );
                     }
                     ChatLineAction::ToolApprove => {
                         cx.widget_action(
                             self.widget_uid(),
-                            MessagesAction::ToolApprove(index),
+                            MessagesAction::ToolApprove(
+                                index,
+                            ),
                         );
                     }
                     ChatLineAction::ToolDeny => {
@@ -825,8 +987,9 @@ impl Messages {
                         );
                     }
                     ChatLineAction::EditorChanged => {
-                        let text =
-                            item.text_input(ids!(input)).text();
+                        let text = item
+                            .text_input(cx, ids!(input))
+                            .text();
                         self.current_editor
                             .as_mut()
                             .unwrap()
@@ -837,7 +1000,8 @@ impl Messages {
                             .expanded_error_details
                             .remove(&index)
                         {
-                            self.expanded_error_details.insert(index);
+                            self.expanded_error_details
+                                .insert(index);
                         }
                         self.redraw(cx);
                     }
@@ -847,15 +1011,29 @@ impl Messages {
         }
 
         // Handle code copy
-        if let Some(wa) =
-            event.actions().widget_action(ids!(copy_code_button))
-        {
-            if wa.widget().as_button().pressed(event.actions()) {
-                let code_view =
-                    wa.widget_nth(2).widget(ids!(code_view));
-                let text_to_copy = code_view.as_code_view().text();
-                cx.copy_to_clipboard(&text_to_copy);
+        for action in event.actions() {
+            let Some(wa) =
+                action.downcast_ref::<WidgetAction>()
+            else {
+                continue;
+            };
+            if !matches!(
+                wa.action.downcast_ref::<ButtonAction>(),
+                Some(ButtonAction::Clicked(_))
+            ) {
+                continue;
             }
+            let tree = cx.widget_tree();
+            let path = tree.path_to(wa.widget_uid);
+            if !path.contains(&id!(copy_code_button)) {
+                continue;
+            }
+            let cv = tree.find_flood(
+                wa.widget_uid,
+                ids!(code_view),
+            );
+            let text = cv.as_code_view().text();
+            cx.copy_to_clipboard(&text);
         }
     }
 
@@ -865,22 +1043,31 @@ impl Messages {
         widget: &WidgetRef,
         index: usize,
     ) {
-        let editor = widget.view(ids!(editor));
-        let edit_actions = widget.view(ids!(edit_actions));
-        let content_section = widget.view(ids!(content_section));
+        let editor = widget.view(cx, ids!(editor));
+        let edit_actions =
+            widget.view(cx, ids!(edit_actions));
+        let content_section =
+            widget.view(cx, ids!(content_section));
 
-        let is_current_editor =
-            self.current_editor.as_ref().map(|e| e.index)
-                == Some(index);
+        let is_current_editor = self
+            .current_editor
+            .as_ref()
+            .map(|e| e.index)
+            == Some(index);
 
         edit_actions.set_visible(cx, is_current_editor);
         editor.set_visible(cx, is_current_editor);
-        content_section.set_visible(cx, !is_current_editor);
+        content_section
+            .set_visible(cx, !is_current_editor);
 
         if is_current_editor {
-            editor.text_input(ids!(input)).set_text(
+            editor.text_input(cx, ids!(input)).set_text(
                 cx,
-                &self.current_editor.as_ref().unwrap().buffer,
+                &self
+                    .current_editor
+                    .as_ref()
+                    .unwrap()
+                    .buffer,
             );
         }
     }
@@ -894,14 +1081,15 @@ impl Messages {
     }
 }
 
-/// Extracts an HTTP status code from error text matching the pattern
-/// "status {code}".
+/// Extracts an HTTP status code from error text matching the
+/// pattern "status {code}".
 fn extract_status_code(error_text: &str) -> Option<u16> {
     let mut tokens = error_text.split_whitespace();
     while let Some(token) = tokens.next() {
         if token.eq_ignore_ascii_case("status") {
-            if let Some(code) =
-                tokens.next().and_then(|t| t.parse::<u16>().ok())
+            if let Some(code) = tokens
+                .next()
+                .and_then(|t| t.parse::<u16>().ok())
             {
                 return Some(code);
             }
@@ -910,29 +1098,32 @@ fn extract_status_code(error_text: &str) -> Option<u16> {
     None
 }
 
-/// Returns a user-friendly note for common HTTP error status codes found
-/// in the error text, or an empty string if no match.
+/// Returns a user-friendly note for common HTTP error status
+/// codes found in the error text, or an empty string if no match.
 fn error_note_for(error_text: &str) -> &'static str {
     match extract_status_code(error_text) {
         Some(429) => {
-            "This usually means you've hit a rate limit, run out of \
-             quota/credits, or do not have access to this \
-             resource/model in your current plan."
+            "This usually means you've hit a rate limit, \
+             run out of quota/credits, or do not have \
+             access to this resource/model in your \
+             current plan."
         }
         Some(401) => {
-            "This usually means your API key is invalid or expired."
+            "This usually means your API key is invalid \
+             or expired."
         }
         Some(403) => {
-            "This usually means you do not have permission to access \
-             this resource."
+            "This usually means you do not have \
+             permission to access this resource."
         }
         Some(400) => {
-            "This might be an error on our side. If the problem \
-             persists, please file an issue on GitHub."
+            "This might be an error on our side. If the \
+             problem persists, please file an issue on \
+             GitHub."
         }
         Some(500 | 502 | 503 | 504) => {
-            "A server error occurred. This is likely a temporary \
-             issue with the provider."
+            "A server error occurred. This is likely a \
+             temporary issue with the provider."
         }
         _ => "",
     }
@@ -941,28 +1132,35 @@ fn error_note_for(error_text: &str) -> &'static str {
 impl MessagesRef {
     /// Immutable access to the underlying [`Messages`].
     ///
-    /// Panics if the widget reference is empty or if it's already borrowed.
+    /// Panics if the widget reference is empty or if it's already
+    /// borrowed.
     pub fn read(&self) -> Ref<'_, Messages> {
         self.borrow().unwrap()
     }
 
     /// Mutable access to the underlying [`Messages`].
     ///
-    /// Panics if the widget reference is empty or if it's already borrowed.
+    /// Panics if the widget reference is empty or if it's already
+    /// borrowed.
     pub fn write(&mut self) -> RefMut<'_, Messages> {
         self.borrow_mut().unwrap()
     }
 
     /// Immutable reader to the underlying [`Messages`].
     ///
-    /// Panics if the widget reference is empty or if it's already borrowed.
-    pub fn read_with<R>(&self, f: impl FnOnce(&Messages) -> R) -> R {
+    /// Panics if the widget reference is empty or if it's already
+    /// borrowed.
+    pub fn read_with<R>(
+        &self,
+        f: impl FnOnce(&Messages) -> R,
+    ) -> R {
         f(&*self.read())
     }
 
     /// Mutable writer to the underlying [`Messages`].
     ///
-    /// Panics if the widget reference is empty or if it's already borrowed.
+    /// Panics if the widget reference is empty or if it's already
+    /// borrowed.
     pub fn write_with<R>(
         &mut self,
         f: impl FnOnce(&mut Messages) -> R,

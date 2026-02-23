@@ -341,26 +341,26 @@ impl Widget for ModelCard {
         self.model_id = model.model_id.clone();
 
         let name = &model.name;
-        self.label(ids!(model_name)).set_text(cx, name);
+        self.label(cx, ids!(model_name)).set_text(cx, name);
 
         let download_count = &model.download_count;
-        self.label(ids!(model_download_count.attr_value))
+        self.label(cx, ids!(model_download_count.attr_value))
             .set_text(cx, &format!("{}", download_count));
 
         let like_count = &model.like_count;
-        self.label(ids!(model_like_count.attr_value))
+        self.label(cx, ids!(model_like_count.attr_value))
             .set_text(cx, &format!("{}", like_count));
 
         let size = &model.size;
-        self.label(ids!(model_size_tag.attr_value))
+        self.label(cx, ids!(model_size_tag.attr_value))
             .set_text(cx, size);
 
         let requires = &model.requires;
-        self.label(ids!(model_requires_tag.attr_value))
+        self.label(cx, ids!(model_requires_tag.attr_value))
             .set_text(cx, requires);
 
         let architecture = &model.architecture;
-        self.label(ids!(model_architecture_tag.attr_value))
+        self.label(cx, ids!(model_architecture_tag.attr_value))
             .set_text(cx, architecture);
 
         let summary = &model.summary;
@@ -374,28 +374,28 @@ impl Widget for ModelCard {
         } else {
             summary.to_string()
         };
-        self.label(ids!(model_summary))
+        self.label(cx, ids!(model_summary))
             .set_text(cx, &trimmed_summary);
 
         let author_name = &model.author.name;
         let author_url = &model.author.url;
-        let mut author_external_link = self.external_link(ids!(author_link));
+        let mut author_external_link = self.external_link(cx, ids!(author_link));
         author_external_link
-            .link_label(ids!(link))
+            .link_label(cx, ids!(link))
             .set_text(cx, author_name);
         author_external_link.set_url(author_url);
 
         let model_hugging_face_url = hugging_face_model_url(&model.model_id);
         let mut model_hugging_face_external_link =
-            self.external_link(ids!(model_hugging_face_link));
+            self.external_link(cx, ids!(model_hugging_face_link));
         model_hugging_face_external_link.set_url(&model_hugging_face_url);
 
         let author_description = &model.author.description;
-        self.label(ids!(author_description))
+        self.label(cx, ids!(author_description))
             .set_text(cx, author_description);
 
         let released_at_str = formatted_model_release_date(&model);
-        self.label(ids!(model_released_at_tag.attr_value))
+        self.label(cx, ids!(model_released_at_tag.attr_value))
             .set_text(cx, &released_at_str);
 
         self.view.draw_walk(cx, scope, walk)
@@ -404,14 +404,14 @@ impl Widget for ModelCard {
 
 impl WidgetMatchEvent for ModelCard {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if self.link_label(ids!(view_all_button.link)).clicked(actions) {
-            self.moly_modal(ids!(modal)).open(cx);
+        if self.link_label(cx, ids!(view_all_button.link)).clicked(actions) {
+            self.moly_modal(cx, ids!(modal)).open(cx);
             self.redraw(cx);
         }
 
         for action in actions {
             if let ModelCardViewAllModalAction::CloseButtonClicked = action.cast() {
-                self.moly_modal(ids!(modal)).close(cx);
+                self.moly_modal(cx, ids!(modal)).close(cx);
                 self.redraw(cx);
             }
         }
@@ -441,10 +441,10 @@ impl Widget for ModelCardViewAllModal {
         let model = &scope.data.get::<ModelWithDownloadInfo>().unwrap();
 
         let name = &model.name;
-        self.label(ids!(view_all_model_name)).set_text(cx, name);
+        self.label(cx, ids!(view_all_model_name)).set_text(cx, name);
 
         let summary = &model.summary;
-        self.label(ids!(view_all_model_summary))
+        self.label(cx, ids!(view_all_model_summary))
             .set_text(cx, summary);
 
         self.view
@@ -454,7 +454,7 @@ impl Widget for ModelCardViewAllModal {
 
 impl WidgetMatchEvent for ModelCardViewAllModal {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if self.button(ids!(close_button)).clicked(actions) {
+        if self.button(cx, ids!(close_button)).clicked(actions) {
             cx.action(ModelCardViewAllModalAction::CloseButtonClicked);
         }
     }

@@ -2,6 +2,7 @@ use std::net::UdpSocket;
 
 use anyhow::Error;
 use makepad_widgets::*;
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_sync::fetch_json;
 
@@ -381,9 +382,9 @@ impl Widget for SyncModal {
     ) -> DrawStep {
         #[cfg(target_arch = "wasm32")]
         {
-            self.view(ids!(sync_buttons)).set_visible(cx, false);
-            self.view(ids!(import_view)).set_visible(cx, true);
-            self.label(ids!(hint)).set_text(
+            self.view(cx, ids!(sync_buttons)).set_visible(cx, false);
+            self.view(cx, ids!(import_view)).set_visible(cx, true);
+            self.label(cx, ids!(hint)).set_text(
                 cx,
                 "Import your settings from another Moly instance",
             );
@@ -401,12 +402,12 @@ impl WidgetMatchEvent for SyncModal {
         actions: &Actions,
         scope: &mut Scope,
     ) {
-        if self.button(ids!(close_button)).clicked(actions) {
+        if self.button(cx, ids!(close_button)).clicked(actions) {
             self.reset_state(cx);
             cx.action(SyncModalAction::ModalDismissed);
         }
 
-        if self.view(ids!(serve)).finger_down(actions).is_some() {
+        if self.view(cx, ids!(serve)).finger_down(actions).is_some() {
             self.show_export(cx);
             if let SyncStatus::None = self.sync_status {
                 self.serve(cx, scope);
@@ -414,7 +415,7 @@ impl WidgetMatchEvent for SyncModal {
         }
 
         if self
-            .view(ids!(stop_server))
+            .view(cx, ids!(stop_server))
             .finger_down(actions)
             .is_some()
         {
@@ -422,21 +423,21 @@ impl WidgetMatchEvent for SyncModal {
         }
 
         if self
-            .view(ids!(show_import))
+            .view(cx, ids!(show_import))
             .finger_down(actions)
             .is_some()
         {
             self.show_import(cx);
         }
 
-        if self.view(ids!(import)).finger_down(actions).is_some() {
+        if self.view(cx, ids!(import)).finger_down(actions).is_some() {
             if let SyncStatus::None = self.sync_status {
-                self.import();
+                self.import(cx);
             }
         }
 
         if let Some(selected_sync_mode) = self
-            .radio_button_set(ids_array!(
+            .radio_button_set(cx, ids_array!(
                 radios.radio_merge,
                 radios.radio_replace
             ))
@@ -448,7 +449,7 @@ impl WidgetMatchEvent for SyncModal {
                 _ => true,
             };
         } else {
-            self.radio_button(ids!(radios.radio_merge))
+            self.radio_button(cx, ids!(radios.radio_merge))
                 .select(cx, scope);
         }
     }
@@ -475,9 +476,8 @@ impl SyncModal {
                         "Sync server started at {:?}",
                         addr
                     );
-                    ui.defer_with_redraw(move |me, cx, _| {
-                        me.sync_status = SyncStatus::Serving;
-                        me.label(ids!(sync_pin))
+                    ui.defer_with_redraw(move |me: &mut SyncModal, cx, _| {
+                        me.label(cx, ids!(sync_pin))
                             .set_text(cx, &server_handle.pin);
                         me.server_handle = Some(server_handle);
 
@@ -486,7 +486,7 @@ impl SyncModal {
                             get_local_ip_address(),
                             addr.port()
                         );
-                        me.label(ids!(serving_url))
+                        me.label(cx, ids!(serving_url))
                             .set_text(cx, &full_server_url);
                     });
                 }
@@ -495,16 +495,16 @@ impl SyncModal {
                         "Failed to start sync server: {}",
                         e
                     );
-                    ui.defer_with_redraw(move |me, cx, _| {
+                    ui.defer_with_redraw(move |me: &mut SyncModal, cx, _| {
                         me.sync_status = SyncStatus::None;
-                        me.label(ids!(status_message)).set_text(
+                        me.label(cx, ids!(status_message)).set_text(
                             cx,
                             &format!(
                                 "Failed to start server: {}",
                                 e
                             ),
                         );
-                        me.view(ids!(status_view))
+                        me.view(cx, ids!(status_view))
                             .set_visible(cx, true);
                     });
                 }
@@ -519,7 +519,7 @@ impl SyncModal {
             ::log::info!("Sync server stopped");
         }
         self.sync_status = SyncStatus::None;
-        self.view(ids!(export_view)).set_visible(cx, false);
+        self.view(cx, ids!(export_view)).set_visible(cx, false);
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -533,20 +533,20 @@ impl SyncModal {
     }
 
     fn show_export(&mut self, cx: &mut Cx) {
-        self.view(ids!(import_view)).set_visible(cx, false);
-        self.view(ids!(export_view)).set_visible(cx, true);
+        self.view(cx, ids!(import_view)).set_visible(cx, false);
+        self.view(cx, ids!(export_view)).set_visible(cx, true);
     }
 
     fn show_import(&mut self, cx: &mut Cx) {
-        self.view(ids!(import_view)).set_visible(cx, true);
-        self.view(ids!(export_view)).set_visible(cx, false);
+        self.view(cx, ids!(import_view)).set_visible(cx, true);
+        self.view(cx, ids!(export_view)).set_visible(cx, false);
     }
 
-    fn import(&mut self) {
+    fn import(&mut self, cx: &mut Cx) {
         let url =
-            self.text_input(ids!(import_view.import_url)).text();
+            self.text_input(cx, ids!(import_view.import_url)).text();
         let pin =
-            self.text_input(ids!(import_view.import_pin)).text();
+            self.text_input(cx, ids!(import_view.import_pin)).text();
 
         let ui = self.ui_runner();
         self.sync_status = SyncStatus::Importing;
@@ -555,7 +555,7 @@ impl SyncModal {
             match fetch_json(&url, &pin).await {
                 Ok(json) => {
                     ui.defer_with_redraw(
-                        move |me, cx, scope| {
+                        move |me: &mut SyncModal, cx, scope| {
                             me.handle_import_success(
                                 cx, &json, scope,
                             );
@@ -563,7 +563,7 @@ impl SyncModal {
                     );
                 }
                 Err(e) => {
-                    ui.defer_with_redraw(move |me, cx, _| {
+                    ui.defer_with_redraw(move |me: &mut SyncModal, cx, _| {
                         me.handle_import_error(cx, e);
                     });
                 }
@@ -577,10 +577,10 @@ impl SyncModal {
         json: &str,
         scope: &mut Scope,
     ) {
-        self.view(ids!(status_view)).set_visible(cx, true);
+        self.view(cx, ids!(status_view)).set_visible(cx, true);
         self.sync_status = SyncStatus::None;
         let include_mcp_servers =
-            self.check_box(ids!(include_mcp_servers)).active(cx);
+            self.check_box(cx, ids!(include_mcp_servers)).active(cx);
 
         let store = scope.data.get_mut::<Store>().unwrap();
         match store.preferences.import_from_json(
@@ -589,7 +589,7 @@ impl SyncModal {
             include_mcp_servers,
         ) {
             Ok(_) => {
-                self.label(ids!(status_message))
+                self.label(cx, ids!(status_message))
                     .set_text(cx, "Import successful");
                 store.bot_context = None;
                 store.load_preference_connections();
@@ -603,7 +603,7 @@ impl SyncModal {
             }
             Err(e) => {
                 ::log::error!("Failed to import: {}", e);
-                self.label(ids!(status_message))
+                self.label(cx, ids!(status_message))
                     .set_text(cx, "Failed to import");
             }
         }
@@ -611,18 +611,18 @@ impl SyncModal {
 
     fn handle_import_error(&mut self, cx: &mut Cx, error: Error) {
         ::log::error!("Failed to fetch settings: {:?}", error);
-        self.view(ids!(status_view)).set_visible(cx, true);
-        self.label(ids!(status_message)).set_text(
+        self.view(cx, ids!(status_view)).set_visible(cx, true);
+        self.label(cx, ids!(status_message)).set_text(
             cx,
             &format!("Failed to fetch settings: {:?}", error),
         );
     }
 
     fn reset_state(&mut self, cx: &mut Cx) {
-        self.view(ids!(export_view)).set_visible(cx, false);
-        self.view(ids!(import_view)).set_visible(cx, false);
-        self.view(ids!(status_view)).set_visible(cx, false);
-        self.label(ids!(status_message)).set_text(cx, "");
+        self.view(cx, ids!(export_view)).set_visible(cx, false);
+        self.view(cx, ids!(import_view)).set_visible(cx, false);
+        self.view(cx, ids!(status_view)).set_visible(cx, false);
+        self.label(cx, ids!(status_message)).set_text(cx, "");
         self.sync_status = SyncStatus::None;
         self.stop_server(cx);
     }

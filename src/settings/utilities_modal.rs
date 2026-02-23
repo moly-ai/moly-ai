@@ -253,43 +253,43 @@ impl Widget for UtilitiesModal {
 
 impl WidgetMatchEvent for UtilitiesModal {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
-        if self.button(ids!(close_button)).clicked(actions) {
+        if self.button(cx, ids!(close_button)).clicked(actions) {
             cx.action(UtilitiesModalAction::ModalDismissed);
         }
 
         let store = scope.data.get_mut::<Store>().unwrap();
         let prefs = &mut store.preferences;
 
-        if let Some(value) = self.check_box(ids!(enabled_toggle)).changed(actions) {
+        if let Some(value) = self.check_box(cx, ids!(enabled_toggle)).changed(actions) {
             prefs.update_stt_config(|config| {
                 config.enabled = value;
             });
         }
 
-        if let Some(value) = self.text_input(ids!(url_input)).changed(actions) {
+        if let Some(value) = self.text_input(cx, ids!(url_input)).changed(actions) {
             prefs.update_stt_config(|config| {
                 config.url = value;
             });
         }
 
-        if let Some(value) = self.text_input(ids!(api_key_input)).changed(actions) {
+        if let Some(value) = self.text_input(cx, ids!(api_key_input)).changed(actions) {
             prefs.update_stt_config(|config| {
                 config.api_key = value;
             });
         }
 
-        if self.button(ids!(toggle_key_visibility)).clicked(actions) {
-            let api_key_input = self.text_input(ids!(api_key_input));
+        if self.button(cx, ids!(toggle_key_visibility)).clicked(actions) {
+            let api_key_input = self.text_input(cx, ids!(api_key_input));
             api_key_input.set_is_password(cx, !api_key_input.is_password());
             if api_key_input.is_password() {
-                self.button(ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye-slash
+                self.button(cx, ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye-slash
             } else {
-                self.button(ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye
+                self.button(cx, ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye
             }
             self.redraw(cx);
         }
 
-        if let Some(value) = self.text_input(ids!(model_input)).changed(actions) {
+        if let Some(value) = self.text_input(cx, ids!(model_input)).changed(actions) {
             prefs.update_stt_config(|config| {
                 config.model_name = value;
             });
@@ -301,16 +301,16 @@ impl UtilitiesModal {
     fn pull(&mut self, cx: &mut Cx, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
         if let Some(stt_config) = self.stt_config.pull(store.preferences.stt_config()) {
-            self.check_box(ids!(enabled_toggle))
+            self.check_box(cx, ids!(enabled_toggle))
                 .set_active(cx, stt_config.enabled);
 
-            self.text_input(ids!(url_input))
+            self.text_input(cx, ids!(url_input))
                 .set_text(cx, &stt_config.url);
 
-            self.text_input(ids!(api_key_input))
+            self.text_input(cx, ids!(api_key_input))
                 .set_text(cx, &stt_config.api_key);
 
-            self.text_input(ids!(model_input))
+            self.text_input(cx, ids!(model_input))
                 .set_text(cx, &stt_config.model_name);
 
             self.redraw(cx);

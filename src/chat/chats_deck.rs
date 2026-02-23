@@ -56,11 +56,14 @@ impl ScriptHook for ChatsDeck {
         value: ScriptValue,
     ) {
         if let Some(obj) = value.as_object() {
-            vm.vec_with(obj, |_vm, vec| {
+            vm.vec_with(obj, |vm, vec| {
                 for kv in vec {
                     if let Some(id) = kv.key.as_id() {
                         if id == id!(chat_view_template) {
-                            self.chat_view_template = Some(kv.value);
+                            if let Some(template_obj) = kv.value.as_object() {
+                                self.chat_view_template =
+                                    Some(vm.bx.heap.new_object_ref(template_obj));
+                            }
                         }
                     }
                 }
@@ -158,7 +161,7 @@ impl WidgetMatchEvent for ChatsDeck {
                 if let Some(chat_id) = self.currently_visible_chat_id {
                     if let Some(chat_view) = self.chat_view_refs.get_mut(&chat_id) {
                         chat_view
-                            .prompt_input(ids!(prompt))
+                            .prompt_input(cx, ids!(prompt))
                             .write()
                             .set_text(cx, event.contents());
                     }
@@ -192,10 +195,15 @@ impl ChatsDeck {
         }
 
         // No existing instance, create a new one
-        let chat_view = WidgetRef::new_from_script_object(
-            cx,
-            self.chat_view_template.expect("chat_view_template not set"),
-        );
+        let chat_view = cx.with_vm(|vm| {
+            let template_value: ScriptValue = self
+                .chat_view_template
+                .as_ref()
+                .expect("chat_view_template not set")
+                .as_object()
+                .into();
+            WidgetRef::script_from_value(vm, template_value)
+        });
         let mut chat_view = chat_view.as_chat_view();
 
         // Initialize new instance
@@ -237,7 +245,7 @@ impl ChatsDeck {
             let oldest_id = self.chat_view_accessed_order.pop_front().unwrap();
             if let Some(oldest_view) = self.chat_view_refs.get_mut(&oldest_id) {
                 // Don't evict if currently streaming
-                if !oldest_view.chat(ids!(chat)).read().is_streaming() {
+                if !oldest_view.chat(cx, ids!(chat)).read().is_streaming() {
                     self.chat_view_refs.remove(&oldest_id);
                 } else {
                     // Put back in queue if streaming

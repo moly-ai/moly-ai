@@ -164,7 +164,7 @@ impl Widget for DeleteChatModal {
             "Are you sure you want to delete {}?\nThis action cannot be undone.",
             chat_title
         );
-        self.label(ids!(wrapper.body.delete_prompt))
+        self.label(cx, ids!(wrapper.body.delete_prompt))
             .set_text(cx, &prompt_text);
 
         self.view
@@ -174,18 +174,18 @@ impl Widget for DeleteChatModal {
 
 impl WidgetMatchEvent for DeleteChatModal {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
-        if self.button(ids!(close_button)).clicked(actions) {
+        if self.button(cx, ids!(close_button)).clicked(actions) {
             cx.action(DeleteChatModalAction::CloseButtonClicked);
         }
 
-        if self.button(ids!(delete_button)).clicked(actions) {
+        if self.button(cx, ids!(delete_button)).clicked(actions) {
             let store = scope.data.get_mut::<Store>().unwrap();
             store.delete_chat(self.chat_id);
             cx.action(DeleteChatModalAction::ChatDeleted);
             cx.redraw_all();
         }
 
-        if self.button(ids!(cancel_button)).clicked(actions) {
+        if self.button(cx, ids!(cancel_button)).clicked(actions) {
             cx.action(DeleteChatModalAction::Cancelled);
         }
     }

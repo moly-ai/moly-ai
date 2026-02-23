@@ -182,11 +182,11 @@ impl Widget for MyModelsScreen {
             .downloaded_files;
 
         let summary = generate_models_summary(downloaded_files);
-        let models_summary_label = self.view.label(ids!(header.models_summary));
+        let models_summary_label = self.view.label(cx, ids!(header.models_summary));
         models_summary_label.set_text(cx, &summary);
 
         self.view
-            .button(ids!(show_in_files))
+            .button(cx, ids!(show_in_files))
             .set_text(cx, &file_manager_label());
 
         self.view.draw_walk(cx, scope, walk)
@@ -205,7 +205,7 @@ fn file_manager_label() -> String {
 
 impl WidgetMatchEvent for MyModelsScreen {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
-        if self.button(ids!(show_in_files)).clicked(actions) {
+        if self.button(cx, ids!(show_in_files)).clicked(actions) {
             let models_dir = &scope
                 .data
                 .get::<Store>()
@@ -224,7 +224,7 @@ impl WidgetMatchEvent for MyModelsScreen {
                 });
         }
 
-        if let Some(keywords) = self.text_input(ids!(search.input)).changed(actions) {
+        if let Some(keywords) = self.text_input(cx, ids!(search.input)).changed(actions) {
             if !keywords.is_empty() {
                 cx.action(MyModelsSearchAction::Search(keywords.to_string()));
             } else {

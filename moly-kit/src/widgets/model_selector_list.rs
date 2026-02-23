@@ -192,11 +192,12 @@ impl WidgetMatchEvent for ModelSelectorList {
 }
 
 impl ModelSelectorList {
-    fn create_widget_from_template(&self, cx: &mut Cx, template_name: LiveId) -> WidgetRef {
-        let template_ref = self
-            .templates
-            .get(&template_name)
-            .expect("template not found");
+    fn create_widget_from_template(
+        templates: &HashMap<LiveId, ScriptObjectRef>,
+        cx: &mut Cx,
+        template_name: LiveId,
+    ) -> WidgetRef {
+        let template_ref = templates.get(&template_name).expect("template not found");
         let template_value: ScriptValue = template_ref.as_object().into();
         cx.with_vm(|vm| WidgetRef::script_from_value(vm, template_value))
     }
@@ -249,11 +250,14 @@ impl ModelSelectorList {
         for (group_id, ((group_label, group_icon), mut group_bots)) in group_list {
             // Render section header
             let section_id = LiveId::from_str(&format!("section_{}", group_id));
+            let templates = &self.templates;
             let section_label = self.items.get_or_insert(cx, section_id, |cx| {
-                self.create_widget_from_template(cx, id!(section_label_template))
+                Self::create_widget_from_template(templates, cx, id!(section_label_template))
             });
 
-            section_label.label(ids!(label)).set_text(cx, &group_label);
+            section_label
+                .label(cx, ids!(label))
+                .set_text(cx, &group_label);
 
             match group_icon
                 .or_else(|| EntityAvatar::from_first_grapheme(&group_label.to_uppercase()))
@@ -261,25 +265,29 @@ impl ModelSelectorList {
             {
                 EntityAvatar::Image(image) => {
                     section_label
-                        .view(ids!(icon_fallback_view))
+                        .view(cx, ids!(icon_fallback_view))
                         .set_visible(cx, false);
-                    section_label.view(ids!(icon_view)).set_visible(cx, true);
+                    section_label
+                        .view(cx, ids!(icon_view))
+                        .set_visible(cx, true);
                     let _ = section_label
-                        .image(ids!(icon_image))
+                        .image(cx, ids!(icon_image))
                         .load_image_dep_by_path(cx, image.as_str())
                         .or_else(|_| {
                             section_label
-                                .image(ids!(icon_image))
+                                .image(cx, ids!(icon_image))
                                 .load_image_file_by_path(cx, image.as_ref())
                         });
                 }
                 EntityAvatar::Text(text) => {
-                    section_label.view(ids!(icon_view)).set_visible(cx, false);
                     section_label
-                        .view(ids!(icon_fallback_view))
+                        .view(cx, ids!(icon_view))
+                        .set_visible(cx, false);
+                    section_label
+                        .view(cx, ids!(icon_fallback_view))
                         .set_visible(cx, true);
                     section_label
-                        .label(ids!(icon_fallback_label))
+                        .label(cx, ids!(icon_fallback_label))
                         .set_text(cx, &text);
                 }
             }
@@ -294,8 +302,9 @@ impl ModelSelectorList {
             for bot in group_bots {
                 let item_id = LiveId::from_str(bot.id.as_str());
 
+                let templates = &self.templates;
                 let item_widget = self.items.get_or_insert(cx, item_id, |cx| {
-                    self.create_widget_from_template(cx, id!(item_template))
+                    Self::create_widget_from_template(templates, cx, id!(item_template))
                 });
 
                 let mut item = item_widget.as_model_selector_item();

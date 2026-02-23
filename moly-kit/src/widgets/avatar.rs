@@ -66,18 +66,18 @@ impl Widget for Avatar {
         if let Some(avatar) = &self.avatar {
             match avatar {
                 EntityAvatar::Text(grapheme) => {
-                    self.view(ids!(grapheme)).set_visible(cx, true);
-                    self.view(ids!(dependency)).set_visible(cx, false);
-                    self.label(ids!(label)).set_text(cx, &grapheme);
+                    self.view(cx, ids!(grapheme)).set_visible(cx, true);
+                    self.view(cx, ids!(dependency)).set_visible(cx, false);
+                    self.label(cx, ids!(label)).set_text(cx, &grapheme);
                 }
                 EntityAvatar::Image(path) => {
-                    self.view(ids!(dependency)).set_visible(cx, true);
-                    self.view(ids!(grapheme)).set_visible(cx, false);
+                    self.view(cx, ids!(dependency)).set_visible(cx, true);
+                    self.view(cx, ids!(grapheme)).set_visible(cx, false);
                     let _ = self
-                        .image(ids!(image))
+                        .image(cx, ids!(image))
                         .load_image_dep_by_path(cx, path)
                         .or_else(|_| {
-                            self.image(ids!(image))
+                            self.image(cx, ids!(image))
                                 .load_image_file_by_path(cx, path.as_ref())
                         });
                 }

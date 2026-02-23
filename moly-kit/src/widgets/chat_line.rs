@@ -451,160 +451,106 @@ impl Widget for ChatLine {
         self.deref.handle_event(cx, event, scope);
         let actions = event.actions();
 
-        if self.copy_ref().clicked(actions) {
-            self.actions_modal_ref().close(cx);
+        if self.copy_ref(cx).clicked(actions) {
+            self.actions_modal_ref(cx).close(cx);
             cx.widget_action(self.widget_uid(), ChatLineAction::Copy);
         }
 
-        if self.edit_ref().clicked(actions) {
-            self.actions_modal_ref().close(cx);
+        if self.edit_ref(cx).clicked(actions) {
+            self.actions_modal_ref(cx).close(cx);
             cx.widget_action(self.widget_uid(), ChatLineAction::Edit);
         }
 
-        if self.delete_ref().clicked(actions) {
-            self.actions_modal_ref().close(cx);
+        if self.delete_ref(cx).clicked(actions) {
+            self.actions_modal_ref(cx).close(cx);
             cx.widget_action(self.widget_uid(), ChatLineAction::Delete);
         }
 
-        if self.save_ref().clicked(actions) {
+        if self.save_ref(cx).clicked(actions) {
             cx.widget_action(self.widget_uid(), ChatLineAction::Save);
         }
 
-        if self.save_and_regenerate_ref().clicked(actions) {
+        if self.save_and_regenerate_ref(cx).clicked(actions) {
             cx.widget_action(self.widget_uid(), ChatLineAction::SaveAndRegenerate);
         }
 
-        if self.cancel_ref().clicked(actions) {
+        if self.cancel_ref(cx).clicked(actions) {
             cx.widget_action(self.widget_uid(), ChatLineAction::EditCancel);
         }
 
-        if self.approve_ref().clicked(actions) {
+        if self.approve_ref(cx).clicked(actions) {
             cx.widget_action(self.widget_uid(), ChatLineAction::ToolApprove);
         }
 
-        if self.deny_ref().clicked(actions) {
+        if self.deny_ref(cx).clicked(actions) {
             cx.widget_action(self.widget_uid(), ChatLineAction::ToolDeny);
         }
 
-        if self.input_ref().changed(actions).is_some() {
+        if self.input_ref(cx).changed(actions).is_some() {
             cx.widget_action(self.widget_uid(), ChatLineAction::EditorChanged);
         }
 
         if self
-            .view(ids!(error_details_toggle))
+            .view(cx, ids!(error_details_toggle))
             .finger_up(&actions)
             .is_some()
         {
             cx.widget_action(self.widget_uid(), ChatLineAction::ErrorDetailsToggle);
         }
 
-        if self.edit_ref().clicked(actions) {
-            self.actions_modal_ref().close(cx);
-            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Edit);
-        }
-
-        if self.delete_ref().clicked(actions) {
-            self.actions_modal_ref().close(cx);
-            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Delete);
-        }
-
-        if self.save_ref().clicked(actions) {
-            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::Save);
-        }
-
-        if self.save_and_regenerate_ref().clicked(actions) {
-            cx.widget_action(
-                self.widget_uid(),
-                &scope.path,
-                ChatLineAction::SaveAndRegenerate,
-            );
-        }
-
-        if self.cancel_ref().clicked(actions) {
-            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::EditCancel);
-        }
-
-        if self.approve_ref().clicked(actions) {
-            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::ToolApprove);
-        }
-
-        if self.deny_ref().clicked(actions) {
-            cx.widget_action(self.widget_uid(), &scope.path, ChatLineAction::ToolDeny);
-        }
-
-        if self.input_ref().changed(actions).is_some() {
-            cx.widget_action(
-                self.widget_uid(),
-                &scope.path,
-                ChatLineAction::EditorChanged,
-            );
-        }
-
-        if self
-            .view(ids!(error_details_toggle))
-            .finger_up(&actions)
-            .is_some()
-        {
-            cx.widget_action(
-                self.widget_uid(),
-                &scope.path,
-                ChatLineAction::ErrorDetailsToggle,
-            );
-        }
-
         if let Some(pos) = event.hits(cx, self.area()).secondary_pointer_action_pos() {
             self.dismiss_all_hovers(cx);
-            self.actions_modal_ref().open_as_popup(cx, pos);
+            self.actions_modal_ref(cx).open_as_popup(cx, pos);
         }
     }
 }
 
 impl ChatLine {
-    fn copy_ref(&self) -> ButtonRef {
-        self.button(ids!(copy))
+    fn copy_ref(&self, cx: &mut Cx) -> ButtonRef {
+        self.button(cx, ids!(copy))
     }
 
-    fn edit_ref(&self) -> ButtonRef {
-        self.button(ids!(edit))
+    fn edit_ref(&self, cx: &mut Cx) -> ButtonRef {
+        self.button(cx, ids!(edit))
     }
 
-    fn delete_ref(&self) -> ButtonRef {
-        self.button(ids!(delete))
+    fn delete_ref(&self, cx: &mut Cx) -> ButtonRef {
+        self.button(cx, ids!(delete))
     }
 
-    fn approve_ref(&self) -> ButtonRef {
-        self.button(ids!(approve))
+    fn approve_ref(&self, cx: &mut Cx) -> ButtonRef {
+        self.button(cx, ids!(approve))
     }
 
-    fn deny_ref(&self) -> ButtonRef {
-        self.button(ids!(deny))
+    fn deny_ref(&self, cx: &mut Cx) -> ButtonRef {
+        self.button(cx, ids!(deny))
     }
 
-    fn input_ref(&self) -> TextInputRef {
-        self.text_input(ids!(input))
+    fn input_ref(&self, cx: &mut Cx) -> TextInputRef {
+        self.text_input(cx, ids!(input))
     }
 
-    fn save_ref(&self) -> ButtonRef {
-        self.button(ids!(edit_actions.save))
+    fn save_ref(&self, cx: &mut Cx) -> ButtonRef {
+        self.button(cx, ids!(edit_actions.save))
     }
 
-    fn save_and_regenerate_ref(&self) -> ButtonRef {
-        self.button(ids!(edit_actions.save_and_regenerate))
+    fn save_and_regenerate_ref(&self, cx: &mut Cx) -> ButtonRef {
+        self.button(cx, ids!(edit_actions.save_and_regenerate))
     }
 
-    fn cancel_ref(&self) -> ButtonRef {
-        self.button(ids!(edit_actions.cancel))
+    fn cancel_ref(&self, cx: &mut Cx) -> ButtonRef {
+        self.button(cx, ids!(edit_actions.cancel))
     }
 
-    fn actions_modal_ref(&self) -> MolyModalRef {
-        self.moly_modal(ids!(actions_modal))
+    fn actions_modal_ref(&self, cx: &mut Cx) -> MolyModalRef {
+        self.moly_modal(cx, ids!(actions_modal))
     }
 
     fn dismiss_all_hovers(&mut self, cx: &mut Cx) {
         self.animator_cut(cx, ids!(hover.off));
         self.animator_cut(cx, ids!(down.off));
-        self.copy_ref().reset_hover(cx);
-        self.edit_ref().reset_hover(cx);
-        self.delete_ref().reset_hover(cx);
+        self.copy_ref(cx).reset_hover(cx);
+        self.edit_ref(cx).reset_hover(cx);
+        self.delete_ref(cx).reset_hover(cx);
     }
 }

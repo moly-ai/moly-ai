@@ -622,7 +622,7 @@ impl Widget for Realtime {
         self.widget_match_event(cx, event, scope);
 
         if let Some(_value) = self
-            .drop_down(ids!(transcription_model_selector))
+            .drop_down(cx, ids!(transcription_model_selector))
             .changed(event.actions())
         {
             if self.is_connected {
@@ -631,7 +631,7 @@ impl Widget for Realtime {
         }
 
         if let Some(enabled) = self
-            .check_box(ids!(toggle_interruptions))
+            .check_box(cx, ids!(toggle_interruptions))
             .changed(event.actions())
         {
             // // Send interruption configuration to the realtime client
@@ -663,20 +663,20 @@ impl Widget for Realtime {
                         self.mic_permission_status = MicPermissionStatus::Granted;
                         self.setup_audio(cx);
                         self.audio_setup_done = true;
-                        self.view(ids!(start_stop_button)).set_visible(cx, true);
+                        self.view(cx, ids!(start_stop_button)).set_visible(cx, true);
                     }
                     PermissionStatus::DeniedCanRetry => {
-                        self.label(ids!(status_label)).set_text(cx, "⚠️ Moly needs microphone access to have realtime conversations.\nClick on the button below to trigger another request");
-                        self.view(ids!(request_permission_button))
+                        self.label(cx, ids!(status_label)).set_text(cx, "⚠️ Moly needs microphone access to have realtime conversations.\nClick on the button below to trigger another request");
+                        self.view(cx, ids!(request_permission_button))
                             .set_visible(cx, true);
-                        self.view(ids!(start_stop_button)).set_visible(cx, false);
+                        self.view(cx, ids!(start_stop_button)).set_visible(cx, false);
                         self.mic_permission_status = MicPermissionStatus::Denied;
                     }
                     _ => {
-                        self.label(ids!(status_label)).set_text(cx, "⚠️ Moly does not have access to your microphone.\nTo continue, allow Moly to access your microphone\nin your system settings\nand then restart the app.");
-                        self.view(ids!(request_permission_button))
+                        self.label(cx, ids!(status_label)).set_text(cx, "⚠️ Moly does not have access to your microphone.\nTo continue, allow Moly to access your microphone\nin your system settings\nand then restart the app.");
+                        self.view(cx, ids!(request_permission_button))
                             .set_visible(cx, false);
-                        self.view(ids!(start_stop_button)).set_visible(cx, false);
+                        self.view(cx, ids!(start_stop_button)).set_visible(cx, false);
                         self.mic_permission_status = MicPermissionStatus::Denied;
                     }
                 }
@@ -697,7 +697,7 @@ impl Widget for Realtime {
                 // This is the backup mechanism for when toggle is OFF (no interruptions)
                 if self.playback_audio.lock().unwrap().is_empty() {
                     let interruptions_enabled =
-                        self.check_box(ids!(toggle_interruptions)).active(cx);
+                        self.check_box(cx, ids!(toggle_interruptions)).active(cx);
 
                     if !interruptions_enabled {
                         // Only auto-resume recording if interruptions are disabled
@@ -709,7 +709,7 @@ impl Widget for Realtime {
                                     "Auto-resuming recording - playback empty and interruptions disabled"
                                 );
                                 *should_record = true;
-                                self.label(ids!(status_label))
+                                self.label(cx, ids!(status_label))
                                     .set_text(cx, "🎤 Listening...");
                             }
                         }
@@ -755,13 +755,14 @@ impl WidgetMatchEvent for Realtime {
                         default_output_name = desc.name.clone();
                     }
                 }
+                AudioDeviceType::Loopback => {}
             });
 
-        let mic_dropdown = self.drop_down(ids!(mic_selector.device_selector));
+        let mic_dropdown = self.drop_down(cx, ids!(mic_selector.device_selector));
         mic_dropdown.set_labels(cx, input_names.clone());
         mic_dropdown.set_selected_by_label(&default_input_name, cx);
 
-        let speaker_dropdown = self.drop_down(ids!(speaker_selector.device_selector));
+        let speaker_dropdown = self.drop_down(cx, ids!(speaker_selector.device_selector));
         speaker_dropdown.set_labels(cx, output_names.clone());
         speaker_dropdown.set_selected_by_label(&default_output_name, cx);
 
@@ -795,7 +796,7 @@ impl WidgetMatchEvent for Realtime {
 
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
         if self
-            .view(ids!(start_stop_button))
+            .view(cx, ids!(start_stop_button))
             .finger_down(actions)
             .is_some()
         {
@@ -809,7 +810,7 @@ impl WidgetMatchEvent for Realtime {
 
         // Handle tool permission buttons from ToolRequestLine
         for chat_line_action in self
-            .chat_line(ids!(tool_permission_line))
+            .chat_line(cx, ids!(tool_permission_line))
             .filter_actions(actions)
             .map(|wa| wa.cast::<ChatLineAction>())
         {
@@ -824,7 +825,7 @@ impl WidgetMatchEvent for Realtime {
             }
         }
 
-        let speaker_dropdown = self.drop_down(ids!(speaker_selector.device_selector));
+        let speaker_dropdown = self.drop_down(cx, ids!(speaker_selector.device_selector));
         if let Some(_id) = speaker_dropdown.changed(actions) {
             let selected_device = self
                 .audio_devices
@@ -835,7 +836,7 @@ impl WidgetMatchEvent for Realtime {
             }
         }
 
-        let microphone_dropdown = self.drop_down(ids!(mic_selector.device_selector));
+        let microphone_dropdown = self.drop_down(cx, ids!(mic_selector.device_selector));
         if let Some(_id) = microphone_dropdown.changed(actions) {
             let selected_device = self
                 .audio_devices
@@ -847,9 +848,9 @@ impl WidgetMatchEvent for Realtime {
         }
 
         // Mute
-        let mute_button = self.button(ids!(mute_button));
-        let mute_label = self.label(ids!(mute_status));
-        if self.view(ids!(mute_control)).finger_down(actions).is_some()
+        let mute_button = self.button(cx, ids!(mute_button));
+        let mute_label = self.label(cx, ids!(mute_status));
+        if self.view(cx, ids!(mute_control)).finger_down(actions).is_some()
             || mute_button.clicked(actions)
         {
             let mut is_muted = self.is_muted.lock().unwrap();
@@ -867,7 +868,7 @@ impl WidgetMatchEvent for Realtime {
 
         // Mic permissions
         if self
-            .view(ids!(request_permission_button))
+            .view(cx, ids!(request_permission_button))
             .finger_up(actions)
             .is_some()
         {
@@ -875,7 +876,7 @@ impl WidgetMatchEvent for Realtime {
         }
 
         // Modal close
-        if self.button(ids!(close_button)).clicked(actions) {
+        if self.button(cx, ids!(close_button)).clicked(actions) {
             self.reset_state(cx);
             cx.action(RealtimeModalAction::DismissModal);
         }
@@ -926,7 +927,7 @@ impl Realtime {
             // Set flag to request reconnection, Chat widget will handle this
             self.should_request_connection = true;
             self.connection_request_sent = false;
-            self.label(ids!(status_label))
+            self.label(cx, ids!(status_label))
                 .set_text(cx, "Reconnecting...");
             return;
         }
@@ -946,7 +947,7 @@ impl Realtime {
         self.transcript.clear();
 
         self.update_ui(cx);
-        self.label(ids!(status_label)).set_text(cx, "Loading..."); // This will be removed by the greeting message
+        self.label(cx, ids!(status_label)).set_text(cx, "Loading..."); // This will be removed by the greeting message
         self.start_audio_streaming(cx);
         self.create_greeting_response(cx);
     }
@@ -995,17 +996,17 @@ impl Realtime {
             self.connection_request_sent = false;
         }
         self.transcript.clear();
-        self.label(ids!(status_label)).set_text(cx, status_message);
+        self.label(cx, ids!(status_label)).set_text(cx, status_message);
 
         // Hide tool permission UI and clear pending tool call
-        self.chat_line(ids!(tool_permission_line))
+        self.chat_line(cx, ids!(tool_permission_line))
             .set_visible(cx, false);
         self.pending_tool_call = None;
 
         // Show voice selector again
-        self.view(ids!(voice_selector_wrapper))
+        self.view(cx, ids!(voice_selector_wrapper))
             .set_visible(cx, true);
-        self.view(ids!(selected_voice_view)).set_visible(cx, false);
+        self.view(cx, ids!(selected_voice_view)).set_visible(cx, false);
 
         self.update_ui(cx);
     }
@@ -1067,7 +1068,7 @@ impl Realtime {
         for event in events {
             match event {
                 RealtimeEvent::SessionReady => {
-                    self.label(ids!(connection_status))
+                    self.label(cx, ids!(connection_status))
                         .set_text(cx, "✅ Connected to OpenAI");
                     // self.update_session_config(cx);
                 }
@@ -1085,7 +1086,7 @@ impl Realtime {
                     // Update recording state based on interruption settings
                     if self.conversation_active {
                         let interruptions_enabled =
-                            self.check_box(ids!(toggle_interruptions)).active(cx);
+                            self.check_box(cx, ids!(toggle_interruptions)).active(cx);
 
                         if !interruptions_enabled {
                             // Interruptions disabled - mute microphone during AI speech
@@ -1096,7 +1097,7 @@ impl Realtime {
                         }
                     }
 
-                    self.label(ids!(status_label))
+                    self.label(cx, ids!(status_label))
                         .set_text(cx, "🔊 Playing audio...");
                 }
                 RealtimeEvent::AudioTranscript(text) => {
@@ -1131,7 +1132,7 @@ impl Realtime {
                     }
                 }
                 RealtimeEvent::SpeechStarted => {
-                    self.label(ids!(status_label))
+                    self.label(cx, ids!(status_label))
                         .set_text(cx, "🎤 User speech detected");
 
                     self.user_is_interrupting = true;
@@ -1161,7 +1162,7 @@ impl Realtime {
                     }
                 }
                 RealtimeEvent::SpeechStopped => {
-                    self.label(ids!(status_label)).set_text(cx, "Processing...");
+                    self.label(cx, ids!(status_label)).set_text(cx, "Processing...");
 
                     // Temporarily stop recording while waiting for response
                     if self.conversation_active {
@@ -1169,7 +1170,7 @@ impl Realtime {
                     }
                 }
                 RealtimeEvent::ResponseCompleted => {
-                    let status_label = self.label(ids!(status_label));
+                    let status_label = self.label(cx, ids!(status_label));
                     self.user_is_interrupting = false;
                     self.ai_is_responding = false;
                     self.current_assistant_item_id = None;
@@ -1178,7 +1179,7 @@ impl Realtime {
                     if self.conversation_active {
                         // Check if interruptions are enabled via the toggle
                         let interruptions_enabled =
-                            self.check_box(ids!(toggle_interruptions)).active(cx);
+                            self.check_box(cx, ids!(toggle_interruptions)).active(cx);
 
                         if interruptions_enabled {
                             // Allow immediate interruption
@@ -1222,14 +1223,14 @@ impl Realtime {
                     if dangerous_mode_enabled {
                         // Auto-approve function calls in dangerous mode
                         let display_name = display_name_from_namespaced(&name);
-                        self.label(ids!(status_label))
+                        self.label(cx, ids!(status_label))
                             .set_text(cx, &format!("🔧 Auto-executing tool: {}", display_name));
 
                         // Execute the function call directly
                         self.handle_function_call(cx, name, call_id, arguments);
                     } else {
                         // Show permission request as usual
-                        self.label(ids!(status_label))
+                        self.label(cx, ids!(status_label))
                             .set_text(cx, &format!("🔧 Tool permission requested: {}", name));
 
                         self.show_tool_permission_request(cx, name, call_id, arguments);
@@ -1258,7 +1259,7 @@ impl Realtime {
                         );
                     } else {
                         // Other types of errors - just display them
-                        self.label(ids!(status_label))
+                        self.label(cx, ids!(status_label))
                             .set_text(cx, &format!("❌ Error: {}", error));
 
                         // Resume recording on non-connection errors
@@ -1280,19 +1281,19 @@ impl Realtime {
     ) {
         self.pending_tool_call = Some((name.clone(), call_id, arguments));
 
-        let tool_line = self.chat_line(ids!(tool_permission_line));
+        let tool_line = self.chat_line(cx, ids!(tool_permission_line));
         tool_line.set_visible(cx, true);
 
         // Configure the tool line
         let display_name = display_name_from_namespaced(&name);
 
         tool_line
-            .avatar(ids!(message_section.sender.avatar))
+            .avatar(cx, ids!(message_section.sender.avatar))
             .borrow_mut()
             .unwrap()
             .avatar = Some(EntityAvatar::Text("T".into()));
         tool_line
-            .label(ids!(message_section.sender.name))
+            .label(cx, ids!(message_section.sender.name))
             .set_text(cx, "Permission Request");
 
         let content = MessageContent {
@@ -1300,13 +1301,13 @@ impl Realtime {
             ..Default::default()
         };
         tool_line
-            .slot(ids!(message_section.content_section.content))
+            .slot(cx, ids!(message_section.content_section.content))
             .current()
             .as_standard_message_content()
             .set_content(cx, &content);
 
         tool_line
-            .view(ids!(message_section.content_section.tool_actions))
+            .view(cx, ids!(message_section.content_section.tool_actions))
             .set_visible(cx, true);
 
         // Pause recording while waiting for permission
@@ -1406,12 +1407,12 @@ impl Realtime {
     fn approve_tool_call(&mut self, cx: &mut Cx) {
         if let Some((name, call_id, arguments)) = self.pending_tool_call.take() {
             // Hide permission UI
-            self.chat_line(ids!(tool_permission_line))
+            self.chat_line(cx, ids!(tool_permission_line))
                 .set_visible(cx, false);
 
             // Update status
             let display_name = display_name_from_namespaced(&name);
-            self.label(ids!(status_label))
+            self.label(cx, ids!(status_label))
                 .set_text(cx, &format!("🔧 Executing tool: {}", display_name));
 
             // Execute the tool
@@ -1429,7 +1430,7 @@ impl Realtime {
     fn deny_tool_call(&mut self, cx: &mut Cx) {
         if let Some((name, call_id, _arguments)) = self.pending_tool_call.take() {
             // Hide permission UI
-            self.chat_line(ids!(tool_permission_line))
+            self.chat_line(cx, ids!(tool_permission_line))
                 .set_visible(cx, false);
 
             // Send denial response
@@ -1448,7 +1449,7 @@ impl Realtime {
 
             // Update status
             let display_name = display_name_from_namespaced(&name);
-            self.label(ids!(status_label))
+            self.label(cx, ids!(status_label))
                 .set_text(cx, &format!("🚫 Tool '{}' denied", display_name));
 
             // Resume recording if conversation is active
@@ -1623,11 +1624,11 @@ impl Realtime {
     }
 
     fn update_session_config(&mut self, cx: &mut Cx) {
-        self.selected_voice = self.drop_down(ids!(voice_selector)).selected_label();
-        self.view(ids!(voice_selector_wrapper))
+        self.selected_voice = self.drop_down(cx, ids!(voice_selector)).selected_label();
+        self.view(cx, ids!(voice_selector_wrapper))
             .set_visible(cx, false);
-        self.view(ids!(selected_voice_view)).set_visible(cx, true);
-        self.label(ids!(selected_voice)).set_text(
+        self.view(cx, ids!(selected_voice_view)).set_visible(cx, true);
+        self.label(cx, ids!(selected_voice)).set_text(
             cx,
             format!("Selected voice: {}", self.selected_voice).as_str(),
         );
@@ -1639,7 +1640,7 @@ impl Realtime {
                 .unbounded_send(RealtimeCommand::UpdateSessionConfig {
                     voice: self.selected_voice.clone(),
                     transcription_model: self
-                        .drop_down(ids!(transcription_model_selector))
+                        .drop_down(cx, ids!(transcription_model_selector))
                         .selected_label(),
                 });
         }
@@ -1656,10 +1657,10 @@ impl Realtime {
 
     fn update_ui(&self, cx: &mut Cx) {
         if !self.conversation_active {
-            self.label(ids!(stop_start_label))
+            self.label(cx, ids!(stop_start_label))
                 .set_text(cx, "Start conversation");
         } else {
-            self.label(ids!(stop_start_label))
+            self.label(cx, ids!(stop_start_label))
                 .set_text(cx, "Stop conversation");
         }
     }

@@ -6,7 +6,7 @@ use makepad_widgets::*;
 script_mod! {
     use mod.prelude.widgets.*
 
-    mod.widgets.MolyModal = MolyModal {{MolyModal}} {
+    mod.widgets.MolyModal = #(MolyModal::register_widget(vm)) {
         width: Fill
         height: Fill
         flow: Overlay
@@ -29,7 +29,7 @@ script_mod! {
             }
         }
 
-        content: View {
+        content := View {
             flow: Overlay
             width: Fit
             height: Fit
@@ -48,22 +48,15 @@ pub enum MolyModalAction {
 pub struct MolyModal {
     #[source]
     source: ScriptObjectRef,
-    #[live]
-    #[find]
-    content: View,
-    #[live]
-    #[area]
-    bg_view: View,
+
+    #[deref]
+    view: View,
 
     #[rust]
     draw_list: Option<DrawList2d>,
 
     #[live]
     draw_bg: DrawQuad,
-    #[layout]
-    layout: Layout,
-    #[walk]
-    walk: Walk,
 
     #[live(true)]
     dismiss_on_focus_lost: bool,
@@ -105,16 +98,17 @@ impl Widget for MolyModal {
         // because regular View instances won't respond to events if
         // the sweep lock is active.
         cx.sweep_unlock(self.draw_bg.area());
-        self.content.handle_event(cx, event, scope);
+        let content = self.view.widget(cx, ids!(content));
+        content.handle_event(cx, event, scope);
         cx.sweep_lock(self.draw_bg.area());
 
         if self.dismiss_on_focus_lost {
-            let content_rec = self.content.area().rect(cx);
+            let content_rec = content.area().rect(cx);
             if let Hit::FingerUp(fe) =
                 event.hits_with_sweep_area(cx, self.draw_bg.area(), self.draw_bg.area())
             {
                 if !content_rec.contains(fe.abs) {
-                    let widget_uid = self.content.widget_uid();
+                    let widget_uid = content.widget_uid();
                     cx.widget_action(widget_uid, MolyModalAction::Dismissed);
                     self.close(cx);
                 }
@@ -128,14 +122,14 @@ impl Widget for MolyModal {
         let draw_list = self.draw_list.as_mut().unwrap();
         draw_list.begin_overlay_reuse(cx);
 
-        cx.begin_root_turtle_for_pass(self.layout);
-        self.draw_bg.begin(cx, self.walk, self.layout);
+        cx.begin_root_turtle_for_pass(self.view.layout);
+        self.draw_bg.begin(cx, self.view.walk, self.view.layout);
 
         if self.opened {
-            let _ = self
-                .bg_view
-                .draw_walk(cx, scope, walk.with_abs_pos(DVec2 { x: 0., y: 0. }));
-            self.content.draw_all(cx, scope);
+            let bg_view = self.view.widget(cx, ids!(bg_view));
+            let _ = bg_view.draw_walk(cx, scope, walk.with_abs_pos(DVec2 { x: 0., y: 0. }));
+            let content = self.view.widget(cx, ids!(content));
+            content.draw_all(cx, scope);
         }
 
         self.draw_bg.end(cx);
@@ -161,6 +155,7 @@ impl MolyModal {
         cx.sweep_lock(self.draw_bg.area());
     }
 
+    /// Opens the modal as a centered dialog.
     pub fn open_as_dialog(&mut self, cx: &mut Cx) {
         script_apply_eval!(cx, self, {
             align: Align { x: 0.5, y: 0.5 }
@@ -176,6 +171,7 @@ impl MolyModal {
         self.open(cx);
     }
 
+    /// Opens the modal as a popup at the given position.
     pub fn open_as_popup(&mut self, cx: &mut Cx, pos: DVec2) {
         self.desired_popup_position = Some(pos);
         let screen_size = cx.display_context.screen_size;
@@ -197,13 +193,15 @@ impl MolyModal {
         self.open(cx);
     }
 
+    /// Closes the modal.
     pub fn close(&mut self, cx: &mut Cx) {
         self.opened = false;
         self.draw_bg.redraw(cx);
         cx.sweep_unlock(self.draw_bg.area())
     }
 
-    /// Returns whether this modal was dismissed by the given actions.
+    /// Returns whether this modal was dismissed by the given
+    /// actions.
     pub fn dismissed(&self, actions: &Actions) -> bool {
         matches!(
             actions.find_widget_action(self.widget_uid()).cast(),
@@ -217,7 +215,8 @@ impl MolyModal {
     }
 
     fn correct_popup_position(&mut self, cx: &mut Cx, pos: DVec2) {
-        let content_size = self.content.area().rect(cx).size;
+        let content = self.view.widget(cx, ids!(content));
+        let content_size = content.area().rect(cx).size;
         let screen_size = cx.display_context.screen_size;
 
         let pos_x = if pos.x + content_size.x > screen_size.x {
@@ -234,7 +233,10 @@ impl MolyModal {
 
         script_apply_eval!(cx, self, {
             content: {
-                margin: Inset { left: #(pos_x), top: #(pos_y) }
+                margin: Inset {
+                    left: #(pos_x),
+                    top: #(pos_y)
+                }
             }
         });
 
@@ -272,7 +274,8 @@ impl MolyModalRef {
         }
     }
 
-    /// Returns whether this modal was dismissed by the given actions.
+    /// Returns whether this modal was dismissed by the given
+    /// actions.
     pub fn dismissed(&self, actions: &Actions) -> bool {
         if let Some(inner) = self.borrow() {
             inner.dismissed(actions)

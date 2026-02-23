@@ -259,26 +259,26 @@ impl Widget for ChatScreenMobile {
 
 impl WidgetMatchEvent for ChatScreenMobile {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        let stack_navigation = self.stack_navigation(ids!(navigation));
+        let stack_navigation = self.stack_navigation(cx, ids!(navigation));
         stack_navigation.handle_stack_view_actions(cx, actions);
 
         // Menu Toggle
-        if let Some(_evt) = self.view(ids!(menu_toggle)).finger_down(actions) {
+        if let Some(_evt) = self.view(cx, ids!(menu_toggle)).finger_down(actions) {
             stack_navigation.push(cx, id!(history_navigation_view));
         }
 
-        let modal = self.moly_modal(ids!(settings_menu));
+        let mut modal = self.moly_modal(cx, ids!(settings_menu));
 
         // Settings Menu
-        if let Some(_evt) = self.view(ids!(settings_button)).finger_down(actions) {
+        if let Some(_evt) = self.view(cx, ids!(settings_button)).finger_down(actions) {
             let parent_view_width = self
-                .stack_navigation_view(ids!(history_navigation_view))
+                .stack_navigation_view(cx, ids!(history_navigation_view))
                 .area()
                 .rect(cx)
                 .size
                 .x;
 
-            let button_rect = self.view(ids!(settings_button)).area().rect(cx);
+            let button_rect = self.view(cx, ids!(settings_button)).area().rect(cx);
             let coords = dvec2(
                 parent_view_width - 170.0,
                 button_rect.pos.y + button_rect.size.y,
@@ -295,13 +295,13 @@ impl WidgetMatchEvent for ChatScreenMobile {
         }
 
         // Go to Providers
-        if let Some(_evt) = self.view(ids!(go_to_providers)).finger_down(actions) {
+        if let Some(_evt) = self.view(cx, ids!(go_to_providers)).finger_down(actions) {
             modal.close(cx);
             stack_navigation.push(cx, id!(providers_navigation_view));
         }
 
         // Go to MCP Servers
-        if let Some(_evt) = self.view(ids!(go_to_mcp)).finger_down(actions) {
+        if let Some(_evt) = self.view(cx, ids!(go_to_mcp)).finger_down(actions) {
             modal.close(cx);
             stack_navigation.push(cx, id!(mcp_navigation_view));
         }

@@ -299,18 +299,52 @@ script_mod! {
     }
 }
 
-#[derive(Widget, Script, ScriptHook)]
+#[derive(Widget, Script)]
 struct Providers {
     #[deref]
     view: View,
 
-    #[live]
-    provider_icons: Vec<LiveDependency>,
+    #[rust]
+    provider_icon_paths: Vec<String>,
     #[rust]
     selected_provider_id: Option<String>,
 
     #[rust]
     initialized: bool,
+}
+
+impl ScriptHook for Providers {
+    fn on_after_apply(
+        &mut self,
+        vm: &mut ScriptVm,
+        _apply: &Apply,
+        _scope: &mut Scope,
+        value: ScriptValue,
+    ) {
+        if let Some(obj) = value.as_object() {
+            vm.map_mut_with(obj, |vm, map| {
+                let key = id!(provider_icons).into();
+                if let Some(arr_val) = map.get(&key) {
+                if let Some(arr_obj) = arr_val.value.as_object() {
+                        let resources_rc =
+                            vm.cx().script_data.resources.resources.clone();
+                        self.provider_icon_paths = vm.vec_with(arr_obj, |_vm, vec| {
+                            let resources = resources_rc.borrow();
+                            vec.iter()
+                                .filter_map(|kv| {
+                                    let handle = kv.value.as_handle()?;
+                                    resources
+                                        .iter()
+                                        .find(|r| r.handle == handle)
+                                        .map(|r| r.abs_path.clone())
+                                })
+                                .collect()
+                        });
+                    }
+                }
+            });
+        }
+    }
 }
 
 impl Widget for Providers {
@@ -340,7 +374,7 @@ impl Widget for Providers {
 
         let store = scope.data.get_mut::<Store>().unwrap();
         if store.provider_icons.is_empty() {
-            store.provider_icons = self.provider_icons.clone();
+            store.provider_icons = self.provider_icon_paths.clone();
         }
     }
 
@@ -372,14 +406,14 @@ impl Widget for Providers {
                         let item = list.item(cx, item_id, template);
 
                         if item_id == 0 {
-                            item.view(ids!(separator))
+                            item.view(cx, ids!(separator))
                                 .set_visible(cx, false);
                         }
 
                         let provider =
                             all_providers[item_id].clone();
                         let icon =
-                            self.get_provider_icon(&provider);
+                            self.get_provider_icon(cx, &provider);
                         let is_selected =
                             self.selected_provider_id
                                 == Some(provider.id.clone());
@@ -401,15 +435,15 @@ impl Widget for Providers {
 impl Providers {
     fn get_provider_icon(
         &self,
+        _cx: &Cx,
         provider: &Provider,
-    ) -> Option<LiveDependency> {
+    ) -> Option<String> {
         let base_name = normalize_provider_name(&provider.name);
 
-        self.provider_icons
+        self.provider_icon_paths
             .iter()
-            .find(|icon| {
-                icon.as_str()
-                    .to_lowercase()
+            .find(|path| {
+                path.to_lowercase()
                     .contains(&base_name.to_lowercase())
             })
             .cloned()
@@ -424,26 +458,26 @@ impl WidgetMatchEvent for Providers {
         scope: &mut Scope,
     ) {
         if let Some(fu) =
-            self.view(ids!(add_provider_button)).finger_up(actions)
+            self.view(cx, ids!(add_provider_button)).finger_up(actions)
             && fu.was_tap()
         {
-            let modal = self.moly_modal(ids!(add_provider_modal));
+            let modal = self.moly_modal(cx, ids!(add_provider_modal));
             modal.open_as_dialog(cx);
         }
 
         if let Some(fu) =
-            self.view(ids!(open_sync_button)).finger_up(actions)
+            self.view(cx, ids!(open_sync_button)).finger_up(actions)
             && fu.was_tap()
         {
-            let modal = self.moly_modal(ids!(sync_modal));
+            let modal = self.moly_modal(cx, ids!(sync_modal));
             modal.open_as_dialog(cx);
         }
 
         if let Some(fu) =
-            self.view(ids!(utilities_button)).finger_up(actions)
+            self.view(cx, ids!(utilities_button)).finger_up(actions)
             && fu.was_tap()
         {
-            let modal = self.moly_modal(ids!(utilities_modal));
+            let modal = self.moly_modal(cx, ids!(utilities_modal));
             modal.open_as_dialog(cx);
         }
 
@@ -458,27 +492,27 @@ impl WidgetMatchEvent for Providers {
             if let AddProviderModalAction::ModalDismissed =
                 action.cast()
             {
-                self.moly_modal(ids!(add_provider_modal)).close(cx);
+                self.moly_modal(cx, ids!(add_provider_modal)).close(cx);
                 self.redraw(cx);
             }
 
             if let SyncModalAction::ModalDismissed = action.cast() {
-                self.moly_modal(ids!(sync_modal)).close(cx);
+                self.moly_modal(cx, ids!(sync_modal)).close(cx);
                 self.redraw(cx);
             }
 
             if let UtilitiesModalAction::ModalDismissed =
                 action.cast()
             {
-                self.moly_modal(ids!(utilities_modal)).close(cx);
+                self.moly_modal(cx, ids!(utilities_modal)).close(cx);
                 self.redraw(cx);
             }
 
             if self
-                .moly_modal(ids!(sync_modal))
+                .moly_modal(cx, ids!(sync_modal))
                 .dismissed(actions)
             {
-                self.sync_modal(ids!(sync_modal_inner))
+                self.sync_modal(cx, ids!(sync_modal_inner))
                     .reset_state(cx);
             }
 
@@ -529,13 +563,13 @@ impl Widget for ProviderItem {
         scope: &mut Scope,
         walk: Walk,
     ) -> DrawStep {
-        self.label(ids!(provider_name_label))
+        self.label(cx, ids!(provider_name_label))
             .set_text(cx, &self.provider.name);
 
         let connection_status = self.provider.connection_status.clone();
         self.update_connection_status(cx, &connection_status);
 
-        self.view(ids!(status_view)).set_visible(
+        self.view(cx, ids!(status_view)).set_visible(
             cx,
             connection_status
                 == ProviderConnectionStatus::Connected
@@ -554,7 +588,7 @@ impl WidgetMatchEvent for ProviderItem {
         _scope: &mut Scope,
     ) {
         if let Some(finger_up) =
-            self.view(ids!(main_view)).finger_up(actions)
+            self.view(cx, ids!(main_view)).finger_up(actions)
         {
             if finger_up.was_tap() {
                 cx.action(
@@ -573,17 +607,17 @@ impl ProviderItem {
         cx: &mut Cx,
         connection_status: &ProviderConnectionStatus,
     ) {
-        self.view(ids!(connection_status_success)).set_visible(
+        self.view(cx, ids!(connection_status_success)).set_visible(
             cx,
             *connection_status
                 == ProviderConnectionStatus::Connected,
         );
-        self.view(ids!(connection_status_failure)).set_visible(
+        self.view(cx, ids!(connection_status_failure)).set_visible(
             cx,
             *connection_status
                 == ProviderConnectionStatus::Disconnected,
         );
-        self.view(ids!(connection_status_loading)).set_visible(
+        self.view(cx, ids!(connection_status_loading)).set_visible(
             cx,
             *connection_status
                 == ProviderConnectionStatus::Connecting,
@@ -596,7 +630,7 @@ impl ProviderItemRef {
         &mut self,
         cx: &mut Cx,
         provider: Provider,
-        icon_path: Option<LiveDependency>,
+        icon_path: Option<String>,
         is_selected: bool,
     ) {
         let Some(mut inner) = self.borrow_mut() else {
@@ -605,18 +639,18 @@ impl ProviderItemRef {
         inner.provider = provider.clone();
 
         if let Some(icon) = icon_path {
-            inner.view(ids!(image_wrapper)).set_visible(cx, true);
-            let image = inner.image(ids!(provider_icon_image));
+            inner.view(cx, ids!(image_wrapper)).set_visible(cx, true);
+            let image = inner.image(cx, ids!(provider_icon_image));
             let _ =
                 image.load_image_dep_by_path(cx, icon.as_str());
 
             let label_view =
-                inner.view(ids!(provider_icon_label));
+                inner.view(cx, ids!(provider_icon_label));
             label_view.set_visible(cx, false);
         } else {
-            inner.view(ids!(image_wrapper)).set_visible(cx, false);
+            inner.view(cx, ids!(image_wrapper)).set_visible(cx, false);
 
-            let label_view = inner.view(ids!(label_wrapper));
+            let label_view = inner.view(cx, ids!(label_wrapper));
             label_view.set_visible(cx, true);
 
             let first_char = provider
@@ -627,24 +661,18 @@ impl ProviderItemRef {
                 .unwrap_or_default();
 
             label_view
-                .label(ids!(initial_label))
+                .label(cx, ids!(initial_label))
                 .set_text(cx, &first_char);
         }
 
         if is_selected && cx.display_context.is_desktop() {
-            inner.view.apply_over(
-                cx,
-                live! {
-                    draw_bg: { color: #EAECEF }
-                },
-            );
+            script_apply_eval!(cx, inner.view, {
+                draw_bg: { color: #xEAECEF }
+            });
         } else {
-            inner.view.apply_over(
-                cx,
-                live! {
-                    draw_bg: { color: #f9f9f9 }
-                },
-            );
+            script_apply_eval!(cx, inner.view, {
+                draw_bg: { color: #xf9f9f9 }
+            });
         }
     }
 }

@@ -341,10 +341,12 @@ impl WidgetMatchEvent for Stages {
             if let StageViewAction::StageViewClicked(clicked_stage) = action.cast() {
                 match clicked_stage {
                     StageType::Thinking => {
-                        self.stage_view(ids!(content_stage)).set_active(cx, false);
+                        self.stage_view(cx, ids!(content_stage))
+                            .set_active(cx, false);
                     }
                     StageType::Content => {
-                        self.stage_view(ids!(thinking_stage)).set_active(cx, false);
+                        self.stage_view(cx, ids!(thinking_stage))
+                            .set_active(cx, false);
                     }
                     _ => {}
                 }
@@ -365,12 +367,12 @@ impl Stages {
         for stage in stages.iter() {
             match stage.stage_type {
                 StageType::Thinking => {
-                    let mut thinking_stage = self.stage_view(ids!(thinking_stage));
+                    let mut thinking_stage = self.stage_view(cx, ids!(thinking_stage));
                     thinking_stage.set_stage(cx, stage);
                     thinking_stage.set_streaming_state(cx, !has_content_stage);
                 }
                 StageType::Content => {
-                    let mut content_stage = self.stage_view(ids!(content_stage));
+                    let mut content_stage = self.stage_view(cx, ids!(content_stage));
                     content_stage.set_stage(cx, stage);
                     content_stage.set_streaming_state(cx, !has_completion_stage);
                 }
@@ -392,6 +394,9 @@ impl StagesRef {
 
 #[derive(Script, Widget, Animator)]
 pub struct StageView {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     view: View,
 
@@ -404,7 +409,7 @@ pub struct StageView {
     #[rust]
     id: String,
 
-    #[live]
+    #[rust]
     stage_type: StageType,
 
     #[rust]
@@ -449,20 +454,20 @@ impl Widget for StageView {
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         if self.is_active {
-            let toggle = self.view(ids!(stage_toggle));
+            let mut toggle = self.view(cx, ids!(stage_toggle));
             script_apply_eval!(cx, toggle, {
                 draw_bg: { border_size: 1 }
             });
         } else {
-            let toggle = self.view(ids!(stage_toggle));
+            let mut toggle = self.view(cx, ids!(stage_toggle));
             script_apply_eval!(cx, toggle, {
                 draw_bg: { border_size: 0 }
             });
         }
 
-        self.view(ids!(expanded_stage_content))
+        self.view(cx, ids!(expanded_stage_content))
             .set_visible(cx, self.is_active);
-        self.view(ids!(stage_content_preview))
+        self.view(cx, ids!(stage_content_preview))
             .set_visible(cx, !self.is_active);
 
         self.view.draw_walk(cx, scope, walk)
@@ -471,7 +476,7 @@ impl Widget for StageView {
 
 impl WidgetMatchEvent for StageView {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if self.view(ids!(wrapper)).finger_down(actions).is_some() {
+        if self.view(cx, ids!(wrapper)).finger_down(actions).is_some() {
             self.is_active = !self.is_active;
             cx.action(StageViewAction::StageViewClicked(self.stage_type.clone()));
             self.redraw(cx);
@@ -485,16 +490,16 @@ impl StageView {
         self.stage_type = stage.stage_type.clone();
         self.visible = true;
 
-        self.sub_stages(ids!(substages))
+        self.sub_stages(cx, ids!(substages))
             .set_substages(cx, &stage.substages);
 
         if !stage.citations.is_empty() {
-            self.view(ids!(citations_view)).set_visible(cx, true);
-            let citations = self.citation_list(ids!(citations_list));
+            self.view(cx, ids!(citations_view)).set_visible(cx, true);
+            let citations = self.citation_list(cx, ids!(citations_list));
             let mut citations = citations.borrow_mut().unwrap();
             citations.urls = stage.citations.iter().map(|a| a.url.clone()).collect();
         } else {
-            self.view(ids!(citations_view)).set_visible(cx, false);
+            self.view(cx, ids!(citations_view)).set_visible(cx, false);
         }
 
         let stage_preview_text: Option<String> = stage.substages.first().and_then(|substage| {
@@ -519,10 +524,10 @@ impl StageView {
         });
 
         if let Some(stage_preview_text) = stage_preview_text {
-            self.label(ids!(stage_preview_label))
+            self.label(cx, ids!(stage_preview_label))
                 .set_text(cx, &format!("{}...", stage_preview_text));
         } else {
-            self.label(ids!(stage_preview_label))
+            self.label(cx, ids!(stage_preview_label))
                 .set_text(cx, "Loading...");
         }
 
@@ -603,11 +608,14 @@ impl ScriptHook for SubStages {
         value: ScriptValue,
     ) {
         if let Some(obj) = value.as_object() {
-            vm.vec_with(obj, |_vm, vec| {
+            vm.vec_with(obj, |vm, vec| {
                 for kv in vec {
                     if let Some(id) = kv.key.as_id() {
                         if id == id!(substage_template) {
-                            self.substage_template = Some(kv.value);
+                            if let Some(template_obj) = kv.value.as_object() {
+                                self.substage_template =
+                                    Some(vm.bx.heap.new_object_ref(template_obj));
+                            }
                         }
                     }
                 }
@@ -650,20 +658,26 @@ impl SubStages {
                 if let Some(substage_view) = self.substage_views.get_mut(&substage.id) {
                     substage_view
                 } else {
-                    let substage_view = View::new_from_script_object(cx, self.substage_template);
+                    let substage_view = {
+                        let template = self.substage_template.clone();
+                        cx.with_vm(|vm| {
+                            let obj = template.as_object().expect("substage_template not set");
+                            View::script_from_value(vm, obj.into())
+                        })
+                    };
                     self.substage_views
                         .insert(substage.id.clone(), substage_view);
                     self.substage_views.get_mut(&substage.id).unwrap()
                 };
 
             substage_view
-                .label(ids!(content_heading_label))
+                .label(cx, ids!(content_heading_label))
                 .set_text(cx, &get_human_readable_stage_name(&substage.name));
             substage_view
-                .view(ids!(citations_view))
+                .view(cx, ids!(citations_view))
                 .set_visible(cx, false);
             substage_view
-                .markdown(ids!(content_block_markdown))
+                .markdown(cx, ids!(content_block_markdown))
                 .set_text(cx, &substage.text);
         }
     }

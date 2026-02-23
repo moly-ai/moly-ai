@@ -1,4 +1,5 @@
 use crate::{aitk::protocol::*, widgets::attachment_view::AttachmentViewWidgetRefExt};
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use makepad_widgets::*;
 
 script_mod! {
@@ -90,11 +91,11 @@ pub struct AttachmentList {
 
 impl Widget for AttachmentList {
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        self.view(ids!(wrapper))
+        self.view(cx, ids!(wrapper))
             .set_visible(cx, !self.attachments.is_empty());
 
         let attachments_count = self.attachments.len();
-        let list = self.portal_list(ids!(list));
+        let list = self.portal_list(cx, ids!(list));
         while let Some(widget) = self.deref.draw_walk(cx, scope, walk).step() {
             if widget.widget_uid() == list.widget_uid() {
                 let mut list = list.borrow_mut().unwrap();
@@ -107,14 +108,14 @@ impl Widget for AttachmentList {
                     let attachment = &self.attachments[index];
                     let item = list.item(cx, index, id!(File));
 
-                    item.attachment_view(ids!(preview))
+                    item.attachment_view(cx, ids!(preview))
                         .borrow_mut()
                         .unwrap()
                         .set_attachment(cx, attachment.clone());
 
                     let ui = self.ui_runner();
                     item.as_item_view().borrow_mut().unwrap().on_tap = Some(Box::new(move || {
-                        ui.defer_with_redraw(move |me, _, _| {
+                        ui.defer_with_redraw(move |me: &mut AttachmentList, _, _| {
                             if let Some(mut on_tap) = me.on_tap.take() {
                                 on_tap(me, index);
                                 me.on_tap = Some(on_tap);

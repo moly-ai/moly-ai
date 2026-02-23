@@ -1,6 +1,7 @@
 use crate::aitk::utils::asynchronous::spawn;
 use crate::utils::scraping::*;
 use makepad_widgets::*;
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use url::Url;
 
 script_mod! {
@@ -77,7 +78,6 @@ impl Widget for Citation {
                 if let Some(url) = &self.url {
                     cx.widget_action(
                         self.widget_uid(),
-                        &scope.path,
                         CitationAction::Open(url.clone()),
                     );
                 }
@@ -107,8 +107,8 @@ impl Citation {
     }
 
     fn set_initial_info(&mut self, cx: &mut Cx) {
-        let site = self.label(ids!(site));
-        let title = self.label(ids!(title));
+        let site = self.label(cx, ids!(site));
+        let title = self.label(cx, ids!(title));
         let url = self.url.as_deref().unwrap();
 
         site.set_text(cx, url);
@@ -116,8 +116,8 @@ impl Citation {
     }
 
     fn try_refine_info(&mut self, cx: &mut Cx) -> Result<(), ()> {
-        let site = self.label(ids!(site));
-        let title = self.label(ids!(title));
+        let site = self.label(cx, ids!(site));
+        let title = self.label(cx, ids!(title));
         let url = self.url.as_deref().unwrap();
 
         let url = Url::parse(url).map_err(|_| ())?;
@@ -138,8 +138,8 @@ impl Citation {
             };
 
             if let Some(title) = extract_title(&document) {
-                ui.defer_with_redraw(move |me, cx, _| {
-                    me.label(ids!(title)).set_text(cx, &title);
+                ui.defer_with_redraw(move |me: &mut Citation, cx, _| {
+                    me.label(cx, ids!(title)).set_text(cx, &title);
                 });
             }
         });

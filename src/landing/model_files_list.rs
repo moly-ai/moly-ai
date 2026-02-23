@@ -76,20 +76,6 @@ impl WidgetNode for ModelFilesList {
     fn redraw(&mut self, cx: &mut Cx) {
         self.area.redraw(cx)
     }
-
-    fn find_widgets(&self, path: &[LiveId], cached: WidgetCache, results: &mut WidgetSet) {
-        for item in self.items.values() {
-            item.find_widgets(path, cached, results);
-        }
-    }
-
-    fn uid_to_widget(&self, ui: WidgetUid) -> WidgetRef {
-        self.items
-            .values()
-            .map(|item| item.uid_to_widget(ui))
-            .find(|x| !x.is_empty())
-            .unwrap_or(WidgetRef::empty())
-    }
 }
 
 impl ModelFilesList {
@@ -97,9 +83,13 @@ impl ModelFilesList {
         for i in 0..files_info.len() {
             let item_id = LiveId(i as u64).into();
 
-            let item_widget = self
-                .items
-                .get_or_insert(cx, item_id, |cx| WidgetRef::new_from_ptr(cx, self.template));
+            let item_widget = self.items.get_or_insert(cx, item_id, |cx| {
+                let template = self.template.clone();
+                cx.with_vm(|vm| {
+                    let obj = template.as_object().expect("template not set");
+                    WidgetRef::script_from_value(vm, obj.into())
+                })
+            });
 
             item_widget
                 .as_model_files_item()

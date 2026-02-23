@@ -164,7 +164,7 @@ impl Widget for DeleteModelModal {
             "Are you sure you want to delete {}?\nThis action cannot be undone.",
             downloaded_file.file.name
         );
-        self.label(ids!(wrapper.body.delete_prompt))
+        self.label(cx, ids!(wrapper.body.delete_prompt))
             .set_text(cx, &prompt_text);
 
         self.view
@@ -174,12 +174,12 @@ impl Widget for DeleteModelModal {
 
 impl WidgetMatchEvent for DeleteModelModal {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
-        if self.button(ids!(close_button)).clicked(actions) {
+        if self.button(cx, ids!(close_button)).clicked(actions) {
             cx.action(DeleteModelModalAction::ModalDismissed);
         }
 
         if self
-            .button(ids!(wrapper.body.actions.delete_button))
+            .button(cx, ids!(wrapper.body.actions.delete_button))
             .clicked(actions)
         {
             let store = scope.data.get_mut::<Store>().unwrap();
@@ -190,7 +190,7 @@ impl WidgetMatchEvent for DeleteModelModal {
         }
 
         if self
-            .button(ids!(wrapper.body.actions.cancel_button))
+            .button(cx, ids!(wrapper.body.actions.cancel_button))
             .clicked(actions)
         {
             cx.action(DeleteModelModalAction::ModalDismissed);

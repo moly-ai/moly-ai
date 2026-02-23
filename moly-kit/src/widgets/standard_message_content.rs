@@ -67,11 +67,11 @@ impl StandardMessageContent {
         /// String to add as suffix to the message text when its being typed.
         const TYPING_INDICATOR: &str = "●";
 
-        let citation_list = self.citation_list(ids!(citations));
+        let citation_list = self.citation_list(cx, ids!(citations));
         citation_list.borrow_mut().unwrap().urls = content.citations.clone();
         citation_list.borrow_mut().unwrap().visible = !content.citations.is_empty();
 
-        let mut attachments = self.attachment_list(ids!(attachments));
+        let mut attachments = self.attachment_list(cx, ids!(attachments));
         attachments.write().attachments = content.attachments.clone();
 
         let ui = self.ui_runner();
@@ -79,7 +79,7 @@ impl StandardMessageContent {
             if let Some(attachment) = list.attachments.get(index).cloned() {
                 if crate::widgets::attachment_view::can_preview(&attachment) {
                     ui.defer(move |me, cx, _| {
-                        let modal = me.attachment_viewer_modal(ids!(attachment_viewer_modal));
+                        let modal = me.attachment_viewer_modal(cx, ids!(attachment_viewer_modal));
                         modal.borrow_mut().unwrap().open(cx, attachment);
                     });
                 } else {
@@ -88,12 +88,12 @@ impl StandardMessageContent {
             }
         });
 
-        self.message_thinking_block(ids!(thinking_block))
+        self.message_thinking_block(cx, ids!(thinking_block))
             .borrow_mut()
             .unwrap()
             .set_content(cx, content, metadata);
 
-        let markdown = self.label(ids!(markdown));
+        let markdown = self.label(cx, ids!(markdown));
 
         if metadata.is_writing() {
             let text_with_typing = format!("{} {}", content.text, TYPING_INDICATOR);

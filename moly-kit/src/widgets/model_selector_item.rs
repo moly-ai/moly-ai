@@ -80,6 +80,8 @@ pub enum ModelSelectorItemAction {
 
 #[derive(Script, ScriptHook, Widget, Animator)]
 pub struct ModelSelectorItem {
+    #[source]
+    source: ScriptObjectRef,
     #[deref]
     view: View,
 
@@ -129,10 +131,10 @@ impl Widget for ModelSelectorItem {
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         if let Some(bot) = &self.bot {
-            self.label(ids!(label)).set_text(cx, &bot.name);
+            self.label(cx, ids!(label)).set_text(cx, &bot.name);
 
             // Show tick icon if this bot is selected
-            self.view(ids!(icon_tick_view))
+            self.view(cx, ids!(icon_tick_view))
                 .set_visible(cx, self.selected);
         }
 

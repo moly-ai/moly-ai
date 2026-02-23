@@ -236,25 +236,25 @@ impl Widget for DownloadNotificationPopup {
 
 impl WidgetMatchEvent for DownloadNotificationPopup {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if self.button(ids!(close_button)).clicked(actions) {
+        if self.button(cx, ids!(close_button)).clicked(actions) {
             cx.action(DownloadNotificationPopupAction::CloseButtonClicked);
         }
 
         if self
-            .link_label(ids!(view_in_my_models_link))
+            .link_label(cx, ids!(view_in_my_models_link))
             .clicked(actions)
         {
             cx.action(NavigationAction::NavigateToMyModels);
             cx.action(DownloadNotificationPopupAction::ActionLinkClicked);
         }
 
-        if self.link_label(ids!(retry_link)).clicked(actions) {
+        if self.link_label(cx, ids!(retry_link)).clicked(actions) {
             let Some(file_id) = &self.file_id else { return };
             cx.action(DownloadAction::Play(file_id.clone()));
             cx.action(DownloadNotificationPopupAction::ActionLinkClicked);
         }
 
-        if self.link_label(ids!(cancel_link)).clicked(actions) {
+        if self.link_label(cx, ids!(cancel_link)).clicked(actions) {
             let Some(file_id) = &self.file_id else { return };
             cx.action(DownloadAction::Cancel(file_id.clone()));
             cx.action(DownloadNotificationPopupAction::ActionLinkClicked);
@@ -272,30 +272,30 @@ impl DownloadNotificationPopup {
     }
 
     fn show_success_content(&mut self, cx: &mut Cx) {
-        self.view(ids!(success_icon)).set_visible(cx, true);
-        self.view(ids!(failure_icon)).set_visible(cx, false);
+        self.view(cx, ids!(success_icon)).set_visible(cx, true);
+        self.view(cx, ids!(failure_icon)).set_visible(cx, false);
 
-        self.view(ids!(success_actions)).set_visible(cx, true);
-        self.view(ids!(failure_actions)).set_visible(cx, false);
+        self.view(cx, ids!(success_actions)).set_visible(cx, true);
+        self.view(cx, ids!(failure_actions)).set_visible(cx, false);
 
-        self.label(ids!(title))
+        self.label(cx, ids!(title))
             .set_text(cx, "Model Downloaded Successfully");
 
-        self.label(ids!(summary))
+        self.label(cx, ids!(summary))
             .set_text(cx, &format!("{} successfuly downloaded.", &self.filename));
     }
 
     fn show_failure_content(&mut self, cx: &mut Cx) {
-        self.view(ids!(success_icon)).set_visible(cx, false);
-        self.view(ids!(failure_icon)).set_visible(cx, true);
+        self.view(cx, ids!(success_icon)).set_visible(cx, false);
+        self.view(cx, ids!(failure_icon)).set_visible(cx, true);
 
-        self.view(ids!(success_actions)).set_visible(cx, false);
-        self.view(ids!(failure_actions)).set_visible(cx, true);
+        self.view(cx, ids!(success_actions)).set_visible(cx, false);
+        self.view(cx, ids!(failure_actions)).set_visible(cx, true);
 
-        self.label(ids!(title))
+        self.label(cx, ids!(title))
             .set_text(cx, "Errors while downloading models");
 
-        self.label(ids!(summary)).set_text(
+        self.label(cx, ids!(summary)).set_text(
             cx,
             &format!(
                 "{} encountered some errors when downloading.",
@@ -306,14 +306,14 @@ impl DownloadNotificationPopup {
 
     /// Shows retry content with escalating delay messages.
     pub fn show_retry_content(&mut self, cx: &mut Cx) {
-        let content = self.label(ids!(summary));
-        self.view(ids!(success_icon)).set_visible(cx, false);
-        self.view(ids!(failure_icon)).set_visible(cx, true);
+        let content = self.label(cx, ids!(summary));
+        self.view(cx, ids!(success_icon)).set_visible(cx, false);
+        self.view(cx, ids!(failure_icon)).set_visible(cx, true);
 
-        self.view(ids!(success_actions)).set_visible(cx, false);
-        self.view(ids!(failure_actions)).set_visible(cx, false);
+        self.view(cx, ids!(success_actions)).set_visible(cx, false);
+        self.view(cx, ids!(failure_actions)).set_visible(cx, false);
 
-        self.label(ids!(title)).set_text(cx, "Retry");
+        self.label(cx, ids!(title)).set_text(cx, "Retry");
 
         match self.count {
             0 => {

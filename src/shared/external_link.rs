@@ -58,8 +58,8 @@ impl Widget for ExternalLink {
 }
 
 impl WidgetMatchEvent for ExternalLink {
-    fn handle_actions(&mut self, _cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if self.link_label(ids!(link)).clicked(actions) {
+    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
+        if self.link_label(cx, ids!(link)).clicked(actions) {
             self.open_url();
         }
     }

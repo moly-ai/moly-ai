@@ -221,12 +221,12 @@ impl Widget for MolyServerScreen {
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         let store = scope.data.get_mut::<Store>().unwrap();
         if store.is_moly_server_connected() {
-            self.view(ids!(server_not_accessible))
+            self.view(cx, ids!(server_not_accessible))
                 .set_visible(cx, false);
-            self.view(ids!(main_content)).set_visible(cx, true);
+            self.view(cx, ids!(main_content)).set_visible(cx, true);
         } else {
-            self.view(ids!(server_not_accessible)).set_visible(cx, true);
-            self.view(ids!(main_content)).set_visible(cx, false);
+            self.view(cx, ids!(server_not_accessible)).set_visible(cx, true);
+            self.view(cx, ids!(main_content)).set_visible(cx, false);
         }
 
         self.view.draw_walk(cx, scope, walk)
@@ -236,11 +236,11 @@ impl Widget for MolyServerScreen {
 impl WidgetMatchEvent for MolyServerScreen {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
         let selected_index = self
-            .radio_button_set(ids_array!(menu.discover_tab, menu.my_models_tab))
+            .radio_button_set(cx, ids_array!(menu.discover_tab, menu.my_models_tab))
             .selected(cx, actions);
 
-        let discover_frame = self.view(ids!(pages.discover_frame));
-        let my_models_frame = self.view(ids!(pages.my_models_frame));
+        let discover_frame = self.view(cx, ids!(pages.discover_frame));
+        let my_models_frame = self.view(cx, ids!(pages.my_models_frame));
 
         match selected_index {
             Some(0) => {
@@ -256,10 +256,10 @@ impl WidgetMatchEvent for MolyServerScreen {
             _ => (),
         }
 
-        if self.button(ids!(go_to_providers)).clicked(actions) {
+        if self.button(cx, ids!(go_to_providers)).clicked(actions) {
             cx.action(NavigationAction::NavigateToProviders);
         }
-        if self.button(ids!(refresh)).clicked(actions) {
+        if self.button(cx, ids!(refresh)).clicked(actions) {
             let store = scope.data.get_mut::<Store>().unwrap();
             store.sync_with_moly_server();
         }

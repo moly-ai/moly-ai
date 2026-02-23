@@ -5,6 +5,7 @@ use crate::aitk::utils::asynchronous::{
     AbortOnDropHandle, spawn_abort_on_drop,
 };
 use crate::utils::makepad::events::EventExt;
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use makepad_widgets::*;
 use std::sync::{Arc, Mutex};
 
@@ -166,17 +167,17 @@ impl Widget for SttInput {
             {
                 let elapsed =
                     Cx::time_now() - recording_state.start_time;
-                self.label(ids!(status))
+                self.label(cx, ids!(status))
                     .set_text(cx, &time_to_minutes_seconds(elapsed));
                 self.timer = cx.start_timeout(TIMER_PRECISION);
             }
         }
 
-        if self.button(ids!(confirm)).clicked(event.actions()) {
+        if self.button(cx, ids!(confirm)).clicked(event.actions()) {
             self.finish_recording(cx, scope);
         }
 
-        if self.button(ids!(cancel)).clicked(event.actions()) {
+        if self.button(cx, ids!(cancel)).clicked(event.actions()) {
             self.cancel_recording(cx, scope);
         }
     }
@@ -195,12 +196,12 @@ impl SttInput {
 
     /// Begins recording audio from the microphone.
     pub fn start_recording(&mut self, cx: &mut Cx) {
-        self.button(ids!(confirm)).set_visible(cx, true);
+        self.button(cx, ids!(confirm)).set_visible(cx, true);
 
         self.state = SttInputState::Recording(RecordingState {
             start_time: Cx::time_now(),
         });
-        self.label(ids!(status))
+        self.label(cx, ids!(status))
             .set_text(cx, &time_to_minutes_seconds(0.));
         self.timer = cx.start_timeout(TIMER_PRECISION);
 
@@ -242,9 +243,9 @@ impl SttInput {
     ) {
         self.stop_recording(cx);
         self.state = SttInputState::Sending;
-        self.label(ids!(status))
+        self.label(cx, ids!(status))
             .set_text(cx, "Transcribing...");
-        self.button(ids!(confirm)).set_visible(cx, false);
+        self.button(cx, ids!(confirm)).set_visible(cx, false);
 
         if let Some(buffer_arc) = self.audio_buffer.clone() {
             self.process_stt_audio(cx, buffer_arc, scope);
@@ -258,7 +259,7 @@ impl SttInput {
     pub fn cancel_recording(
         &mut self,
         cx: &mut Cx,
-        scope: &mut Scope,
+        _scope: &mut Scope,
     ) {
         self.stop_recording(cx);
         self.state = SttInputState::Idle;
@@ -336,7 +337,7 @@ impl SttInput {
 
                 if let Some(text) = text {
                     ui.defer_with_redraw(
-                        move |me, cx, scope| {
+                        move |me: &mut SttInput, cx, scope| {
                             me.handle_transcription(
                                 cx, text, scope,
                             );
@@ -344,7 +345,7 @@ impl SttInput {
                     );
                 } else {
                     ui.defer_with_redraw(
-                        move |me, cx, scope| {
+                        move |me: &mut SttInput, cx, scope| {
                             me.cancel_recording(cx, scope);
                         },
                     );
@@ -368,19 +369,12 @@ impl SttInput {
     }
 
     /// When the transcription is ready, read it from the actions.
-    pub fn transcribed<'a>(
-        &self,
-        actions: &'a Actions,
-    ) -> Option<&'a str> {
+    pub fn transcribed(&self, actions: &Actions) -> Option<String> {
         actions
             .find_widget_action(self.widget_uid())
-            .and_then(|widget_action| {
-                widget_action.downcast_ref::<SttInputAction>()
-            })
+            .map(|wa| wa.cast::<SttInputAction>())
             .and_then(|action| match action {
-                SttInputAction::Transcribed(text) => {
-                    Some(text.as_str())
-                }
+                SttInputAction::Transcribed(text) => Some(text),
                 _ => None,
             })
     }
@@ -389,9 +383,7 @@ impl SttInput {
     pub fn cancelled(&self, actions: &Actions) -> bool {
         actions
             .find_widget_action(self.widget_uid())
-            .and_then(|widget_action| {
-                widget_action.downcast_ref::<SttInputAction>()
-            })
+            .map(|wa| wa.cast::<SttInputAction>())
             .map_or(false, |action| {
                 matches!(action, SttInputAction::Cancelled)
             })

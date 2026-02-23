@@ -229,7 +229,7 @@ impl Widget for MessageThinkingBlock {
 
 impl WidgetMatchEvent for MessageThinkingBlock {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if let Some(_evt) = self.view(ids!(collapse)).finger_up(&actions) {
+        if let Some(_evt) = self.view(cx, ids!(collapse)).finger_up(&actions) {
             self.toggle_collapse(cx);
         }
     }
@@ -265,7 +265,7 @@ impl MessageThinkingBlock {
 
         self.is_visible = !content_reasoning.is_empty();
 
-        self.markdown(ids!(thinking_text))
+        self.markdown(cx, ids!(thinking_text))
             .set_text(cx, content_reasoning);
 
         let is_reasoning_ongoing =
@@ -274,15 +274,15 @@ impl MessageThinkingBlock {
         if is_reasoning_ongoing {
             if self.timer.is_empty() {
                 self.should_animate = true;
-                self.view(ids!(balls)).set_visible(cx, true);
+                self.view(cx, ids!(balls)).set_visible(cx, true);
                 self.update_animation(cx);
             }
         } else {
             self.should_animate = false;
-            self.view(ids!(balls)).set_visible(cx, false);
+            self.view(cx, ids!(balls)).set_visible(cx, false);
             self.animator_play(cx, ids!(ball1.start));
             self.animator_play(cx, ids!(ball2.start));
-            self.view(ids!(thinking_title)).set_text(
+            self.view(cx, ids!(thinking_title)).set_text(
                 cx,
                 &format!(
                     "Thought for {:0.2} seconds",
@@ -296,20 +296,20 @@ impl MessageThinkingBlock {
         self.is_expanded = !self.is_expanded;
 
         if self.is_expanded {
-            let content = self.view(ids!(content));
+            let mut content = self.view(cx, ids!(content));
             script_apply_eval!(cx, content, { height: Fit });
-            let inner = self.view(ids!(inner));
+            let mut inner = self.view(cx, ids!(inner));
             script_apply_eval!(cx, inner, { width: Fill });
-            let collapse = self.view(ids!(collapse));
+            let mut collapse = self.view(cx, ids!(collapse));
             script_apply_eval!(cx, collapse, {
                 draw_bg +: { color: #xf0f0f0 }
             });
         } else {
-            let content = self.view(ids!(content));
+            let mut content = self.view(cx, ids!(content));
             script_apply_eval!(cx, content, { height: 0.0 });
-            let inner = self.view(ids!(inner));
+            let mut inner = self.view(cx, ids!(inner));
             script_apply_eval!(cx, inner, { width: 200 });
-            let collapse = self.view(ids!(collapse));
+            let mut collapse = self.view(cx, ids!(collapse));
             script_apply_eval!(cx, collapse, {
                 draw_bg +: { color: #xf7f7f7 }
             });

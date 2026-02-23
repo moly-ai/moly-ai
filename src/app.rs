@@ -223,7 +223,7 @@ pub struct App {
 
 impl App {
     fn run(vm: &mut ScriptVm) -> Self {
-        crate::makepad_widgets::script_mod(vm);
+        makepad_widgets::script_mod(vm);
         moly_kit::widgets::script_mod(vm);
 
         crate::shared::script_mod(vm);
@@ -244,7 +244,7 @@ impl AppMain for App {
 
         if let Event::Startup = event {
             // Prevent rendering the ui before the store is initialized.
-            self.ui.view(ids!(body)).set_visible(cx, false);
+            self.ui.view(cx, ids!(body)).set_visible(cx, false);
             register_capture_manager();
 
             #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -273,7 +273,7 @@ impl AppMain for App {
             return;
         };
 
-        self.ui.view(ids!(loading_view)).set_visible(cx, false);
+        self.ui.view(cx, ids!(loading_view)).set_visible(cx, false);
 
         // It triggers when the timer expires.
         if self.timer.is_event(event).is_some() {
@@ -301,26 +301,32 @@ impl MatchEvent for App {
         // Only show the MCP tab in native builds
         #[cfg(not(target_arch = "wasm32"))]
         {
-            radio_button_set = self.ui.radio_button_set(ids_array!(
-                sidebar_menu.chat_tab,
-                sidebar_menu.moly_server_tab,
-                sidebar_menu.mcp_tab,
-                sidebar_menu.providers_tab,
-            ));
+            radio_button_set = self.ui.radio_button_set(
+                cx,
+                ids_array!(
+                    sidebar_menu.chat_tab,
+                    sidebar_menu.moly_server_tab,
+                    sidebar_menu.mcp_tab,
+                    sidebar_menu.providers_tab,
+                ),
+            );
             self.ui
-                .view(ids!(sidebar_menu.mcp_tab_container))
+                .view(cx, ids!(sidebar_menu.mcp_tab_container))
                 .set_visible(cx, true);
         }
 
         #[cfg(target_arch = "wasm32")]
         {
-            radio_button_set = self.ui.radio_button_set(ids_array!(
-                sidebar_menu.chat_tab,
-                sidebar_menu.moly_server_tab,
-                sidebar_menu.providers_tab,
-            ));
+            radio_button_set = self.ui.radio_button_set(
+                cx,
+                ids_array!(
+                    sidebar_menu.chat_tab,
+                    sidebar_menu.moly_server_tab,
+                    sidebar_menu.providers_tab,
+                ),
+            );
             self.ui
-                .view(ids!(sidebar_menu.mcp_tab_container))
+                .view(cx, ids!(sidebar_menu.mcp_tab_container))
                 .set_visible(cx, false);
         }
 
@@ -396,17 +402,17 @@ impl MatchEvent for App {
             }
 
             if let ChatAction::Start(_) = action.cast() {
-                let chat_radio_button = self.ui.radio_button(ids!(chat_tab));
+                let chat_radio_button = self.ui.radio_button(cx, ids!(chat_tab));
                 chat_radio_button.select(cx, &mut Scope::empty());
             }
 
             if let NavigationAction::NavigateToMyModels = action.cast() {
-                let my_models_radio_button = self.ui.radio_button(ids!(my_models_tab));
+                let my_models_radio_button = self.ui.radio_button(cx, ids!(my_models_tab));
                 my_models_radio_button.select(cx, &mut Scope::empty());
             }
 
             if let NavigationAction::NavigateToProviders = action.cast() {
-                let providers_radio_button = self.ui.radio_button(ids!(providers_tab));
+                let providers_radio_button = self.ui.radio_button(cx, ids!(providers_tab));
                 providers_radio_button.select(cx, &mut Scope::empty());
                 navigate_to_providers = true;
             }
@@ -420,16 +426,20 @@ impl MatchEvent for App {
                 DownloadNotificationPopupAction::ActionLinkClicked
                     | DownloadNotificationPopupAction::CloseButtonClicked
             ) {
-                self.ui.popup_notification(ids!(download_popup)).close(cx);
+                self.ui
+                    .popup_notification(cx, ids!(download_popup))
+                    .close(cx);
             }
 
             if let MolyClientAction::ServerUnreachable = action.cast() {
-                self.ui.popup_notification(ids!(moly_server_popup)).open(cx);
+                self.ui
+                    .popup_notification(cx, ids!(moly_server_popup))
+                    .open(cx);
             }
 
             if let MolyServerPopupAction::CloseButtonClicked = action.cast() {
                 self.ui
-                    .popup_notification(ids!(moly_server_popup))
+                    .popup_notification(cx, ids!(moly_server_popup))
                     .close(cx);
             }
         }
@@ -453,7 +463,7 @@ impl App {
         if let Some(notification) = store.downloads.next_download_notification() {
             let mut popup = self
                 .ui
-                .download_notification_popup(ids!(popup_download_notification));
+                .download_notification_popup(cx, ids!(popup_download_notification));
 
             match notification {
                 DownloadPendingNotification::DownloadedFile(file) => {
@@ -466,7 +476,9 @@ impl App {
                 }
             }
 
-            self.ui.popup_notification(ids!(download_popup)).open(cx);
+            self.ui
+                .popup_notification(cx, ids!(download_popup))
+                .open(cx);
         }
     }
 
@@ -506,22 +518,22 @@ impl App {
         let mcp_id = ids!(application_pages.mcp_frame);
 
         if id != providers_id {
-            self.ui.widget(providers_id).set_visible(cx, false);
+            self.ui.widget(cx, providers_id).set_visible(cx, false);
         }
 
         if id != chat_id {
-            self.ui.widget(chat_id).set_visible(cx, false);
+            self.ui.widget(cx, chat_id).set_visible(cx, false);
         }
 
         if id != moly_server_id {
-            self.ui.widget(moly_server_id).set_visible(cx, false);
+            self.ui.widget(cx, moly_server_id).set_visible(cx, false);
         }
 
         if id != mcp_id {
-            self.ui.widget(mcp_id).set_visible(cx, false);
+            self.ui.widget(cx, mcp_id).set_visible(cx, false);
         }
 
-        self.ui.widget(id).set_visible(cx, true);
+        self.ui.widget(cx, id).set_visible(cx, true);
     }
 }
 
