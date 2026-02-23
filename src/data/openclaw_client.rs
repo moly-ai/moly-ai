@@ -293,7 +293,12 @@ fn process_event(
         }
         "agent.error" => {
             let msg = payload
-                .and_then(|p| p["message"].as_str().or(p["error"].as_str()))
+                .and_then(|p| {
+                    p["errorMessage"]
+                        .as_str()
+                        .or_else(|| p["message"].as_str())
+                        .or_else(|| p["error"].as_str())
+                })
                 .unwrap_or("Unknown error");
             ProcessResult::Error(ClientError::new(
                 ClientErrorKind::Response,
@@ -315,7 +320,10 @@ fn process_response(
 ) -> ProcessResult {
     let ok = json["ok"].as_bool().unwrap_or(false);
     if !ok {
-        let msg = json["error"].as_str().unwrap_or("Unknown error");
+        let msg = json["errorMessage"]
+            .as_str()
+            .or_else(|| json["error"].as_str())
+            .unwrap_or("Unknown error");
         return ProcessResult::Error(ClientError::new(
             ClientErrorKind::Response,
             format!("OpenClaw error: {}", msg),
