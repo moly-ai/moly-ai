@@ -5,7 +5,6 @@ live_design! {
     use link::moly_kit_theme::*;
 
     use makepad_code_editor::code_view::CodeView;
-    use math_widget::math::MathView;
 
     MD_LINE_SPACING = 1.5
     MD_FONT_COLOR = #000
