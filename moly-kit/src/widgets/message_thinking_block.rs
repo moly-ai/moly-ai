@@ -167,6 +167,9 @@ const ANIMATION_SPEED_RUST: f64 = 0.33;
 
 #[derive(Script, ScriptHook, Widget, Animator)]
 pub struct MessageThinkingBlock {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     view: View,
 

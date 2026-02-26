@@ -7,6 +7,7 @@ use crate::{
     widgets::image_view::{ImageViewRef, ImageViewWidgetExt},
 };
 use makepad_widgets::*;
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 
 script_mod! {
     use mod.prelude.widgets_internal.*
@@ -205,7 +206,7 @@ impl AttachmentView {
                 return;
             };
 
-            ui.defer_with_redraw(move |me, cx, _| {
+            ui.defer_with_redraw(move |me: &mut AttachmentView, cx, _| {
                 if let Err(e) =
                     me.image_ref().borrow_mut().unwrap().load_with_contet_type(
                         cx,

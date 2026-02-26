@@ -84,6 +84,9 @@ pub enum ModelSelectorItemAction {
 
 #[derive(Script, ScriptHook, Widget, Animator)]
 pub struct ModelSelectorItem {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     view: View,
 

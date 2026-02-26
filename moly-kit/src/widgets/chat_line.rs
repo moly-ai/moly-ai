@@ -438,6 +438,9 @@ pub enum ChatLineAction {
 /// A chat line widget that displays a single message with optional actions.
 #[derive(Script, Widget, ScriptHook, Animator)]
 pub struct ChatLine {
+    #[source]
+    source: ScriptObjectRef,
+
     #[apply_default]
     #[animator]
     animator: Animator,

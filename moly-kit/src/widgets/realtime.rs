@@ -730,6 +730,7 @@ impl WidgetMatchEvent for Realtime {
                         default_output_name = desc.name.clone();
                     }
                 }
+                AudioDeviceType::Loopback => {}
             });
 
         let mic_dropdown = self.drop_down(cx, ids!(mic_selector.device_selector));

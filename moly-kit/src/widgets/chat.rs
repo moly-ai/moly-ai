@@ -1,4 +1,5 @@
 use makepad_widgets::*;
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use std::cell::{Ref, RefMut};
 use std::sync::{Arc, Mutex};
 

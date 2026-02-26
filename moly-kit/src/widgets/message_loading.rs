@@ -99,6 +99,9 @@ script_mod! {
 
 #[derive(Script, ScriptHook, Widget, Animator)]
 pub struct MessageLoading {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     view: View,
 

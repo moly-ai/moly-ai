@@ -266,7 +266,7 @@ impl Widget for PromptInput {
             let ui = self.ui_runner();
             Attachment::pick_multiple(move |result| match result {
                 Ok(attachments) => {
-                    ui.defer_with_redraw(move |me, _, _| {
+                    ui.defer_with_redraw(move |me: &mut PromptInput, _, _| {
                         let mut list = me.attachment_list_ref();
                         list.write().attachments.extend(attachments);
                         list.write().on_tap(move |list, index| {

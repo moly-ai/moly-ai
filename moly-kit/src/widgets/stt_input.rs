@@ -6,6 +6,8 @@ use crate::aitk::utils::asynchronous::{
 };
 use crate::utils::makepad::events::EventExt;
 use makepad_widgets::*;
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
+use makepad_widgets::ActionDefaultRef;
 use std::sync::{Arc, Mutex};
 
 /// Configuration for speech-to-text transcription.
@@ -108,6 +110,12 @@ pub enum SttInputAction {
     Cancelled,
     #[default]
     None,
+}
+
+impl ActionDefaultRef for SttInputAction {
+    fn default_ref() -> &'static Self {
+        &Self::None
+    }
 }
 
 #[derive(PartialEq, Clone, Debug, Default)]
@@ -344,7 +352,7 @@ impl SttInput {
 
                 if let Some(text) = text {
                     ui.defer_with_redraw(
-                        move |me, cx, scope| {
+                        move |me: &mut SttInput, cx, scope| {
                             me.handle_transcription(
                                 cx, text, scope,
                             );
@@ -352,7 +360,7 @@ impl SttInput {
                     );
                 } else {
                     ui.defer_with_redraw(
-                        move |me, cx, scope| {
+                        move |me: &mut SttInput, cx, scope| {
                             me.cancel_recording(cx, scope);
                         },
                     );

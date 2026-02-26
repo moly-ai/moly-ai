@@ -1,6 +1,7 @@
 use crate::aitk::utils::asynchronous::spawn;
 use crate::utils::scraping::*;
 use makepad_widgets::*;
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use url::Url;
 
 script_mod! {
@@ -148,7 +149,7 @@ impl Citation {
             };
 
             if let Some(title) = extract_title(&document) {
-                ui.defer_with_redraw(move |me, cx, _| {
+                ui.defer_with_redraw(move |me: &mut Citation, cx, _| {
                     me.label(cx, ids!(title)).set_text(cx, &title);
                 });
             }

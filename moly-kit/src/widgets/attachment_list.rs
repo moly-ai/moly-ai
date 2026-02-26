@@ -1,4 +1,5 @@
 use crate::{aitk::protocol::*, widgets::attachment_view::AttachmentViewWidgetRefExt};
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use makepad_widgets::*;
 
 script_mod! {
@@ -122,7 +123,7 @@ impl Widget for AttachmentList {
 
                     let ui = self.ui_runner();
                     item.as_item_view().borrow_mut().unwrap().on_tap = Some(Box::new(move || {
-                        ui.defer_with_redraw(move |me, _, _| {
+                        ui.defer_with_redraw(move |me: &mut AttachmentList, _, _| {
                             if let Some(mut on_tap) = me.on_tap.take() {
                                 on_tap(me, index);
                                 me.on_tap = Some(on_tap);

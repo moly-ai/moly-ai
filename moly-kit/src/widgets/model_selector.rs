@@ -341,12 +341,12 @@ impl ModelSelector {
         let modal = self.moly_modal(cx, ids!(modal));
 
         let bg_visible = bg_view_visible;
-        let margin = Inset::new(
-            modal_y as f32,
-            0.0,
-            0.0,
-            modal_x as f32,
-        );
+        let margin = Inset {
+            top: modal_y,
+            right: 0.0,
+            bottom: 0.0,
+            left: modal_x,
+        };
         script_apply_eval!(cx, modal, {
             bg_view: {
                 visible: #(bg_visible)
