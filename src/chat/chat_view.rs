@@ -89,6 +89,10 @@ script_mod! {
         }
     }
 
+    let PaddedMessages = Messages {
+        padding: Inset {left: 10 right: 10}
+    }
+
     let SttInputWithShadow = SttInput {
         margin: Inset {left: 15 right: 15 top: 8 bottom: 8}
         visible: false
@@ -106,7 +110,7 @@ script_mod! {
         deep_inquire_content := DeepInquireContent {}
 
         chat := Chat {
-            messages +: { padding: Inset {left: 10 right: 10} }
+            messages := PaddedMessages {}
             prompt := PromptInputWithShadow {}
             stt_input := SttInputWithShadow {}
         }
