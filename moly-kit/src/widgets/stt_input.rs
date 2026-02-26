@@ -1,80 +1,96 @@
-use crate::aitk::protocol::{Attachment, BotClient, BotId, EntityId, Message, MessageContent};
-use crate::aitk::utils::asynchronous::{AbortOnDropHandle, spawn_abort_on_drop};
+use crate::aitk::protocol::{
+    Attachment, BotClient, BotId, EntityId, Message, MessageContent,
+};
+use crate::aitk::utils::asynchronous::{
+    AbortOnDropHandle, spawn_abort_on_drop,
+};
 use crate::utils::makepad::events::EventExt;
 use makepad_widgets::*;
 use std::sync::{Arc, Mutex};
 
+/// Configuration for speech-to-text transcription.
 #[derive(Clone)]
 pub struct SttUtility {
+    /// The client used to send audio for transcription.
     pub client: Box<dyn BotClient>,
+    /// The bot ID to use for transcription.
     pub bot_id: BotId,
 }
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use crate::shared::widgets::*;
+script_mod! {
+    use mod.prelude.widgets_internal.*
+    use mod.widgets.*
 
-    HorizontalFiller = <View>{width: Fill, height: 0}
+    let HorizontalFiller = View {width: Fill height: 0}
 
-    IconButton = <Button> {
-        width: Fit, height: Fit
-        padding: {top: 6, bottom: 6, left: 8, right: 8}
+    let IconButton = Button {
+        width: Fit height: Fit
+        padding: Inset{top: 6 bottom: 6 left: 8 right: 8}
         draw_text: {
-            text_style: <THEME_FONT_ICONS> {
+            text_style +: theme.font_icons {
                 font_size: 12.
             }
         }
         draw_bg: {
-            border_radius: 8.
+            radius: 8.
             border_size: 0.
         }
     }
 
-    pub SttInput = {{SttInput}} <RoundedView> {
-        flow: Right,
-        height: 50,
-        align: {y: 0.5},
-        spacing: 10,
-        padding: 10,
+    mod.widgets.SttInputBase =
+        #(SttInput::register_widget(vm))
+
+    mod.widgets.SttInput =
+        set_type_default() do mod.widgets.SttInputBase RoundedView {
+        flow: Right
+        height: 50
+        align: Align{y: 0.5}
+        spacing: 10
+        padding: 10
         draw_bg: {
-            color: #fff
-            border_radius: 12,
-            border_color: #8888,
-            border_size: 1.0,
+            color: #xfff
+            radius: 12
+            border_color: #x8888
+            border_size: 1.0
         }
 
-        cancel = <IconButton> {
-            text: "", // fa-xmark, unicode f00d
-            draw_text: {
-                color: #000,
-                color_hover: #000,
-                color_down: #000,
-                color_focus: #000,
+        cancel := IconButton {
+            text: "\u{f00d}"
+            draw_text +: {
+                color: #x000
+                color_hover: #x000
+                color_down: #x000
+                color_focus: #x000
             }
-            draw_bg: {
-                color: #0000
-                color_hover: #0000
-                color_down: #0000
-                color_focus: #0000
+            draw_bg +: {
+                color: #x0000
+                color_hover: #x0000
+                color_down: #x0000
+                color_focus: #x0000
             }
         }
-        <HorizontalFiller> {}
-        status = <Label> { text: "Recording...", draw_text: { color: #000, text_style: {font_size: 11}  } }
-        <HorizontalFiller> {}
-        confirm = <IconButton> {
-            text: "", // fa-check, unicode f00c
+        HorizontalFiller {}
+        status := Label {
+            text: "Recording..."
             draw_text: {
-                color: #fff,
-                color_hover: #fff,
-                color_down: #fff,
-                color_focus: #fff,
+                color: #x000
+                text_style +: {font_size: 11}
             }
-            draw_bg: {
-                color: #000
-                color_hover: #000
-                color_down: #000
-                color_focus: #000
+        }
+        HorizontalFiller {}
+        confirm := IconButton {
+            text: "\u{f00c}"
+            draw_text +: {
+                color: #xfff
+                color_hover: #xfff
+                color_down: #xfff
+                color_focus: #xfff
+            }
+            draw_bg +: {
+                color: #x000
+                color_hover: #x000
+                color_down: #x000
+                color_focus: #x000
             }
         }
     }
@@ -86,10 +102,11 @@ struct AudioData {
     pub sample_rate: Option<f64>,
 }
 
-#[derive(Clone, Debug, DefaultNone)]
+#[derive(Clone, Debug, Default)]
 pub enum SttInputAction {
     Transcribed(String),
     Cancelled,
+    #[default]
     None,
 }
 
@@ -108,7 +125,7 @@ struct RecordingState {
 
 const TIMER_PRECISION: f64 = 0.1;
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, Widget, ScriptHook)]
 pub struct SttInput {
     #[deref]
     deref: View,
@@ -130,28 +147,41 @@ pub struct SttInput {
 }
 
 impl Widget for SttInput {
-    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
+    fn draw_walk(
+        &mut self,
+        cx: &mut Cx2d,
+        scope: &mut Scope,
+        walk: Walk,
+    ) -> DrawStep {
         self.deref.draw_walk(cx, scope, walk)
     }
 
-    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+    fn handle_event(
+        &mut self,
+        cx: &mut Cx,
+        event: &Event,
+        scope: &mut Scope,
+    ) {
         self.ui_runner().handle(cx, event, scope, self);
         self.deref.handle_event(cx, event, scope);
 
         if self.timer.is_event(event).is_some() {
-            if let SttInputState::Recording(recording_state) = &self.state {
-                let elapsed = Cx::time_now() - recording_state.start_time;
-                self.label(ids!(status))
+            if let SttInputState::Recording(recording_state) =
+                &self.state
+            {
+                let elapsed =
+                    Cx::time_now() - recording_state.start_time;
+                self.label(cx, ids!(status))
                     .set_text(cx, &time_to_minutes_seconds(elapsed));
                 self.timer = cx.start_timeout(TIMER_PRECISION);
             }
         }
 
-        if self.button(ids!(confirm)).clicked(event.actions()) {
+        if self.button(cx, ids!(confirm)).clicked(event.actions()) {
             self.finish_recording(cx, scope);
         }
 
-        if self.button(ids!(cancel)).clicked(event.actions()) {
+        if self.button(cx, ids!(cancel)).clicked(event.actions()) {
             self.cancel_recording(cx, scope);
         }
     }
@@ -163,25 +193,25 @@ impl SttInput {
         self.stt_utility = utility;
     }
 
-    /// Getter for the current STT utility.
+    /// Returns a reference to the current STT utility, if any.
     pub fn stt_utility(&self) -> Option<&SttUtility> {
         self.stt_utility.as_ref()
     }
 
     /// Begins recording audio from the microphone.
     pub fn start_recording(&mut self, cx: &mut Cx) {
-        self.button(ids!(confirm)).set_visible(cx, true);
+        self.button(cx, ids!(confirm)).set_visible(cx, true);
 
         self.state = SttInputState::Recording(RecordingState {
             start_time: Cx::time_now(),
         });
-        self.label(ids!(status))
+        self.label(cx, ids!(status))
             .set_text(cx, &time_to_minutes_seconds(0.));
         self.timer = cx.start_timeout(TIMER_PRECISION);
 
-        // Initialize or reset buffer
         if self.audio_buffer.is_none() {
-            self.audio_buffer = Some(Arc::new(Mutex::new(AudioData::default())));
+            self.audio_buffer =
+                Some(Arc::new(Mutex::new(AudioData::default())));
         }
 
         if let Some(arc) = &self.audio_buffer {
@@ -192,11 +222,12 @@ impl SttInput {
 
             let buffer_clone = arc.clone();
             cx.audio_input(0, move |info, input_buffer| {
-                let channel = input_buffer.channel(0); // Mono
+                let channel = input_buffer.channel(0);
 
                 if let Ok(mut recorded) = buffer_clone.try_lock() {
                     if recorded.sample_rate.is_none() {
-                        recorded.sample_rate = Some(info.sample_rate);
+                        recorded.sample_rate =
+                            Some(info.sample_rate);
                     }
                     recorded.data.extend_from_slice(channel);
                 }
@@ -209,11 +240,16 @@ impl SttInput {
     }
 
     /// Completes the recording and starts the transcription process.
-    pub fn finish_recording(&mut self, cx: &mut Cx, scope: &mut Scope) {
+    pub fn finish_recording(
+        &mut self,
+        cx: &mut Cx,
+        scope: &mut Scope,
+    ) {
         self.stop_recording(cx);
         self.state = SttInputState::Sending;
-        self.label(ids!(status)).set_text(cx, "Transcribing...");
-        self.button(ids!(confirm)).set_visible(cx, false);
+        self.label(cx, ids!(status))
+            .set_text(cx, "Transcribing...");
+        self.button(cx, ids!(confirm)).set_visible(cx, false);
 
         if let Some(buffer_arc) = self.audio_buffer.clone() {
             self.process_stt_audio(cx, buffer_arc, scope);
@@ -222,14 +258,19 @@ impl SttInput {
 
     /// Cancels the ongoing recording or transcription.
     ///
-    /// This stops the audio device and aborts the async transcription request.
-    pub fn cancel_recording(&mut self, cx: &mut Cx, scope: &mut Scope) {
+    /// This stops the audio device and aborts the async transcription
+    /// request.
+    pub fn cancel_recording(
+        &mut self,
+        cx: &mut Cx,
+        scope: &mut Scope,
+    ) {
         self.stop_recording(cx);
         self.state = SttInputState::Idle;
         self.abort_handle = None;
 
         let uid = self.widget_uid();
-        cx.widget_action(uid, &scope.path, SttInputAction::Cancelled);
+        cx.widget_action(uid, SttInputAction::Cancelled);
     }
 
     fn process_stt_audio(
@@ -253,11 +294,19 @@ impl SttInput {
                 return;
             }
 
-            let sample_rate = sample_rate.unwrap_or(48000.0) as u32;
-            let wav_bytes = match crate::utils::audio::build_wav(&samples, sample_rate, 1) {
+            let sample_rate =
+                sample_rate.unwrap_or(48000.0) as u32;
+            let wav_bytes = match crate::utils::audio::build_wav(
+                &samples,
+                sample_rate,
+                1,
+            ) {
                 Ok(bytes) => bytes,
                 Err(e) => {
-                    ::log::error!("Error encoding audio: {}", e);
+                    ::log::error!(
+                        "Error encoding audio: {}",
+                        e
+                    );
                     self.cancel_recording(cx, scope);
                     return;
                 }
@@ -280,67 +329,98 @@ impl SttInput {
 
             let future = async move {
                 use futures::{StreamExt, pin_mut};
-                let stream = client.send(&bot_id, &[message], &[]);
+                let stream =
+                    client.send(&bot_id, &[message], &[]);
 
                 let filtered = stream
-                    .filter_map(|r| async move { r.value().map(|c| c.text.clone()) })
-                    .filter(|text| futures::future::ready(!text.is_empty()));
+                    .filter_map(|r| async move {
+                        r.value().map(|c| c.text.clone())
+                    })
+                    .filter(|text| {
+                        futures::future::ready(!text.is_empty())
+                    });
                 pin_mut!(filtered);
                 let text = filtered.next().await;
 
                 if let Some(text) = text {
-                    ui.defer_with_redraw(move |me, cx, scope| {
-                        me.handle_transcription(cx, text, scope);
-                    });
+                    ui.defer_with_redraw(
+                        move |me, cx, scope| {
+                            me.handle_transcription(
+                                cx, text, scope,
+                            );
+                        },
+                    );
                 } else {
-                    ui.defer_with_redraw(move |me, cx, scope| {
-                        me.cancel_recording(cx, scope);
-                    });
+                    ui.defer_with_redraw(
+                        move |me, cx, scope| {
+                            me.cancel_recording(cx, scope);
+                        },
+                    );
                 }
             };
 
-            self.abort_handle = Some(spawn_abort_on_drop(future));
+            self.abort_handle =
+                Some(spawn_abort_on_drop(future));
         }
     }
 
-    fn handle_transcription(&mut self, cx: &mut Cx, text: String, scope: &mut Scope) {
+    fn handle_transcription(
+        &mut self,
+        cx: &mut Cx,
+        text: String,
+        _scope: &mut Scope,
+    ) {
         self.state = SttInputState::Idle;
         self.abort_handle = None;
         let uid = self.widget_uid();
-        cx.widget_action(uid, &scope.path, SttInputAction::Transcribed(text));
+        cx.widget_action(
+            uid,
+            SttInputAction::Transcribed(text),
+        );
     }
 
-    /// When the transcription is ready, read if from the actions.
-    pub fn transcribed<'a>(&self, actions: &'a Actions) -> Option<&'a str> {
+    /// Returns the transcribed text from actions, if available.
+    pub fn transcribed<'a>(
+        &self,
+        actions: &'a Actions,
+    ) -> Option<&'a str> {
         actions
             .find_widget_action(self.widget_uid())
-            .and_then(|widget_action| widget_action.downcast_ref::<SttInputAction>())
+            .and_then(|widget_action| {
+                widget_action.downcast_ref::<SttInputAction>()
+            })
             .and_then(|action| match action {
-                SttInputAction::Transcribed(text) => Some(text.as_str()),
+                SttInputAction::Transcribed(text) => {
+                    Some(text.as_str())
+                }
                 _ => None,
             })
     }
 
-    /// Check if the transcription was cancelled.
+    /// Returns whether the transcription was cancelled.
     pub fn cancelled(&self, actions: &Actions) -> bool {
         actions
             .find_widget_action(self.widget_uid())
-            .and_then(|widget_action| widget_action.downcast_ref::<SttInputAction>())
-            .map_or(false, |action| matches!(action, SttInputAction::Cancelled))
+            .and_then(|widget_action| {
+                widget_action.downcast_ref::<SttInputAction>()
+            })
+            .map_or(false, |action| {
+                matches!(action, SttInputAction::Cancelled)
+            })
     }
 }
 
 impl SttInputRef {
-    /// Immutable access to the underlying [[SttInput]].
+    /// Immutable access to the underlying [`SttInput`].
     ///
-    /// Panics if the widget reference is empty or if it's already borrowed.
+    /// Panics if the widget reference is empty or already borrowed.
     pub fn read(&self) -> std::cell::Ref<'_, SttInput> {
         self.borrow().unwrap()
     }
 
-    /// Mutable access to the underlying [[SttInput]].
+    /// Mutable access to the underlying [`SttInput`].
     ///
-    /// Panics if the widget reference is empty or if it's already borrowed.
+    /// Panics if the widget reference is empty or already borrowed.
     pub fn write(&mut self) -> std::cell::RefMut<'_, SttInput> {
         self.borrow_mut().unwrap()
     }

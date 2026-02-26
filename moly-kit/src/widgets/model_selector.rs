@@ -8,139 +8,142 @@ use crate::{
     },
     utils::makepad::events::EventExt,
     widgets::{
-        model_selector_item::ModelSelectorItemAction, model_selector_list::ModelSelectorList,
+        model_selector_item::ModelSelectorItemAction,
+        model_selector_list::ModelSelectorList,
         moly_modal::MolyModalWidgetExt,
     },
 };
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets_internal.*
+    use mod.widgets.*
 
-    use crate::widgets::model_selector_list::ModelSelectorList;
-    use crate::widgets::moly_modal::MolyModal;
+    let ICON_DROP = crate_resource("self://resources/drop_icon.png")
 
-    ICON_DROP = dep("crate://self/resources/drop_icon.png")
-
-    ModelSelectorButton = <Button> {
-        width: Fit,
-        height: Fit,
-        padding: {left: 8, right: 8, top: 6, bottom: 6}
+    let ModelSelectorButton = Button {
+        width: Fit
+        height: Fit
+        padding: Inset{left: 8 right: 8 top: 6 bottom: 6}
 
         draw_bg: {
-            color_down: #0000
-            border_radius: 7.
+            color_down: #x0000
+            radius: 7.
             border_size: 0.
-            color_hover: #f2
+            color_hover: #xf2
         }
 
         draw_text: {
-            text_style: <THEME_FONT_REGULAR> {
+            text_style +: theme.font_regular {
                 font_size: 11.
             }
-            color: #222,
-            color_hover: #111,
-            color_focus: #111
-            color_down: #000
+            color: #x222
+            color_hover: #x111
+            color_focus: #x111
+            color_down: #x000
         }
     }
 
-    ModelSelectorOptions = <RoundedShadowView> {
-        width: Fill, height: Fit,
-        padding: 8,
-        flow: Down,
-        spacing: 8,
+    let ModelSelectorOptions = RoundedShadowView {
+        width: Fill height: Fit
+        padding: 8
+        flow: Down
+        spacing: 8
 
-        show_bg: true,
+        show_bg: true
         draw_bg: {
-            color: #f9,
-            border_radius: 6.0,
-            uniform shadow_color: #0002
-            shadow_radius: 9.0,
-            shadow_offset: vec2(0.0,-2.0)
+            color: #xf9
+            radius: 6.0
+            shadow_color: uniform(#x0002)
+            shadow_radius: 9.0
+            shadow_offset: vec2(0.0 -2.0)
         }
 
-        search_container = <RoundedView> {
-            width: Fill, height: Fit,
-            show_bg: true,
-            padding: {top: 4, bottom: 4, left: 8, right: 8},
-            spacing: 8,
-            align: {x: 0.0, y: 0.5},
+        search_container := RoundedView {
+            width: Fill height: Fit
+            show_bg: true
+            padding: Inset{top: 4 bottom: 4 left: 8 right: 8}
+            spacing: 8
+            align: Align{x: 0.0 y: 0.5}
             draw_bg: {
-                border_radius: 6.0,
-                border_color: #D0D5DD,
-                border_size: 1.0,
-                color: #fff,
+                radius: 6.0
+                border_color: #xD0D5DD
+                border_size: 1.0
+                color: #xfff
             }
 
-            search_input = <TextInput> {
-                width: Fill, height: Fit,
+            search_input := TextInput {
+                width: Fill height: Fit
                 draw_bg: {
-                    fn pixel(self) -> vec4 {
-                        return vec4(0.);
+                    pixel: fn() {
+                        return vec4(0.)
                     }
                 }
                 draw_text: {
-                    text_style: <THEME_FONT_REGULAR>{font_size: 11}
-                    color: #000
-                    color_hover: #98A2B3
-                    color_focus: #000
-                    color_empty: #98A2B3
-                    color_empty_focus: #98A2B3
-                    color_empty_hover: #98A2B3
+                    text_style +: theme.font_regular {font_size: 11}
+                    color: #x000
+                    color_hover: #x98A2B3
+                    color_focus: #x000
+                    color_empty: #x98A2B3
+                    color_empty_focus: #x98A2B3
+                    color_empty_hover: #x98A2B3
                 }
                 draw_cursor: {
-                    color: #000
+                    color: #x000
                 }
                 empty_text: "Search models"
             }
         }
 
-        list_container = <ScrollYView> {
-            width: Fill,
-            height: 200,
+        list_container := ScrollYView {
+            width: Fill
+            height: 200
             scroll_bars: {
                 scroll_bar_y: {
-                    drag_scrolling: true,
+                    drag_scrolling: true
                     draw_bg: {
-                        color: #D9
-                        color_hover: #888
-                        color_drag: #777
+                        color: #xD9
+                        color_hover: #x888
+                        color_drag: #x777
                     }
                 }
             }
 
-            list = <ModelSelectorList> {}
+            list := ModelSelectorList {}
         }
     }
 
-    pub ModelSelector = {{ModelSelector}} <View> {
-        width: Fit, height: Fit
+    mod.widgets.ModelSelectorBase =
+        #(ModelSelector::register_widget(vm))
+
+    mod.widgets.ModelSelector =
+        set_type_default() do mod.widgets.ModelSelectorBase View {
+        width: Fit height: Fit
         flow: Overlay
 
-        button = <ModelSelectorButton> {
+        button := ModelSelectorButton {
             text: "Loading model..."
         }
 
-        modal = <MolyModal> {
+        modal := MolyModal {
             dismiss_on_focus_lost: true
             bg_view: {
                 visible: false
             }
-            align: {x: 0.0, y: 0.0}
+            align: Align{x: 0.0 y: 0.0}
 
-            content: <View> {
+            content: View {
                 width: 400
                 height: Fit
-                padding: {top: 20, left: 10, right: 10, bottom: 20}
-                options = <ModelSelectorOptions> {}
+                padding: Inset{
+                    top: 20 left: 10 right: 10 bottom: 20
+                }
+                options := ModelSelectorOptions {}
             }
         }
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct ModelSelector {
     #[deref]
     view: View,
@@ -153,12 +156,16 @@ pub struct ModelSelector {
 }
 
 impl Widget for ModelSelector {
-    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+    fn handle_event(
+        &mut self,
+        cx: &mut Cx,
+        event: &Event,
+        scope: &mut Scope,
+    ) {
         self.view.handle_event(cx, event, scope);
         self.widget_match_event(cx, event, scope);
 
-        // Handle button click to open/close modal
-        if self.button(ids!(button)).clicked(event.actions()) {
+        if self.button(cx, ids!(button)).clicked(event.actions()) {
             if !self.open {
                 self.open_modal(cx);
             } else {
@@ -166,59 +173,63 @@ impl Widget for ModelSelector {
             }
         }
 
-        // Handle modal dismissal
-        if self.moly_modal(ids!(modal)).dismissed(event.actions()) {
+        if self.moly_modal(cx, ids!(modal)).dismissed(event.actions()) {
             self.close_modal(cx);
             self.clear_search(cx);
-            self.button(ids!(button)).reset_hover(cx);
+            self.button(cx, ids!(button)).reset_hover(cx);
         }
 
-        // On mobile, handle clicks on background view to dismiss modal
         if self.open && !cx.display_context.is_desktop() {
-            if let Hit::FingerUp(fe) = event.hits(cx, self.view(ids!(modal.bg_view)).area()) {
+            if let Hit::FingerUp(fe) = event
+                .hits(cx, self.view(cx, ids!(modal.bg_view)).area())
+            {
                 if fe.was_tap() {
                     self.close_modal(cx);
                     self.clear_search(cx);
-                    self.button(ids!(button)).reset_hover(cx);
+                    self.button(cx, ids!(button)).reset_hover(cx);
                 }
             }
         }
     }
 
-    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        // Read state from controller
-        let (bots, selected_bot_id) = if let Some(chat_controller) = &self.chat_controller {
-            let state = chat_controller.lock().unwrap().state().clone();
-            (state.bots, state.bot_id)
-        } else {
-            (Vec::new(), None)
-        };
+    fn draw_walk(
+        &mut self,
+        cx: &mut Cx2d,
+        scope: &mut Scope,
+        walk: Walk,
+    ) -> DrawStep {
+        let (bots, selected_bot_id) =
+            if let Some(chat_controller) = &self.chat_controller {
+                let state =
+                    chat_controller.lock().unwrap().state().clone();
+                (state.bots, state.bot_id)
+            } else {
+                (Vec::new(), None)
+            };
 
-        // Handle empty bots case - disable button
         if bots.is_empty() {
-            self.button(ids!(button))
+            self.button(cx, ids!(button))
                 .set_text(cx, "No models available");
-            self.button(ids!(button)).set_enabled(cx, false);
+            self.button(cx, ids!(button)).set_enabled(cx, false);
         } else {
-            self.button(ids!(button)).set_enabled(cx, true);
+            self.button(cx, ids!(button)).set_enabled(cx, true);
 
-            // Update button text based on selected bot
             if let Some(bot_id) = &selected_bot_id {
-                if let Some(bot) = bots.iter().find(|b| &b.id == bot_id) {
-                    self.button(ids!(button)).set_text(cx, &bot.name);
+                if let Some(bot) =
+                    bots.iter().find(|b| &b.id == bot_id)
+                {
+                    self.button(cx, ids!(button))
+                        .set_text(cx, &bot.name);
                 } else {
-                    // Bot not found in list (e.g., disabled) - show default text
-                    self.button(ids!(button))
+                    self.button(cx, ids!(button))
                         .set_text(cx, "Choose an AI assistant");
                 }
             } else {
-                // No bot selected, show default text
-                self.button(ids!(button))
+                self.button(cx, ids!(button))
                     .set_text(cx, "Choose an AI assistant");
             }
         }
 
-        // Set the chat controller on the list before drawing
         if let Some(controller) = &self.chat_controller
             && let Some(mut list) = self
                 .widget(ids!(options.list_container.list))
@@ -230,9 +241,7 @@ impl Widget for ModelSelector {
                     .map(Arc::as_ptr)
                     .unwrap_or(std::ptr::null())
         {
-            {
-                list.chat_controller = Some(controller.clone());
-            }
+            list.chat_controller = Some(controller.clone());
         }
 
         self.view.draw_walk(cx, scope, walk)
@@ -240,10 +249,14 @@ impl Widget for ModelSelector {
 }
 
 impl WidgetMatchEvent for ModelSelector {
-    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        // Handle search input changes
+    fn handle_actions(
+        &mut self,
+        cx: &mut Cx,
+        actions: &Actions,
+        _scope: &mut Scope,
+    ) {
         if let Some(text) = self
-            .text_input(ids!(options.search_container.search_input))
+            .text_input(cx, ids!(options.search_container.search_input))
             .changed(actions)
         {
             if let Some(mut list) = self
@@ -256,30 +269,33 @@ impl WidgetMatchEvent for ModelSelector {
             }
         }
 
-        // Handle bot selection from list items
-        // Only process actions from our own list widget to avoid handling global actions
-        let list_widget = self.widget(ids!(options.list_container.list));
+        let list_widget =
+            self.widget(ids!(options.list_container.list));
         for action in actions {
-            // Filter to only handle widget actions from our own list
             let Some(action) = action.as_widget_action() else {
                 continue;
             };
 
             if action.widget_uid != list_widget.widget_uid() {
-                continue; // Skip actions from other ModelSelector instances
+                continue;
             }
 
             match action.cast() {
                 ModelSelectorItemAction::BotSelected(bot_id) => {
-                    // Dispatch mutation to controller
-                    if let Some(controller) = &self.chat_controller {
+                    if let Some(controller) =
+                        &self.chat_controller
+                    {
                         controller
                             .lock()
                             .unwrap()
-                            .dispatch_mutation(ChatStateMutation::SetBotId(Some(bot_id)));
+                            .dispatch_mutation(
+                                ChatStateMutation::SetBotId(
+                                    Some(bot_id),
+                                ),
+                            );
                     }
 
-                    self.button(ids!(button)).reset_hover(cx);
+                    self.button(cx, ids!(button)).reset_hover(cx);
                     self.close_modal(cx);
                     self.clear_search(cx);
                     self.redraw(cx);
@@ -294,63 +310,69 @@ impl ModelSelector {
     fn open_modal(&mut self, cx: &mut Cx) {
         self.open = true;
 
-        // Get button position and size for positioning the modal
-        let button_rect = self.button(ids!(button)).area().rect(cx);
+        let button_rect =
+            self.button(cx, ids!(button)).area().rect(cx);
 
         const LIST_HEIGHT: f64 = 200.0;
         const SEARCH_HEIGHT: f64 = 40.0;
         const PADDING_HEIGHT: f64 = 68.0;
-
-        const MODAL_CONTENT_HEIGHT: f64 = LIST_HEIGHT + SEARCH_HEIGHT + PADDING_HEIGHT;
+        const MODAL_CONTENT_HEIGHT: f64 =
+            LIST_HEIGHT + SEARCH_HEIGHT + PADDING_HEIGHT;
         const GAP: f64 = 25.0;
 
         let modal_x;
         let modal_y;
         let mut bg_view_visible = false;
 
-        // On desktop, align left edge with button, position above with gap
         if cx.display_context.is_desktop() {
             modal_x = button_rect.pos.x - GAP;
-            modal_y = button_rect.pos.y - MODAL_CONTENT_HEIGHT - GAP - 5.0 // gap;
+            modal_y = button_rect.pos.y
+                - MODAL_CONTENT_HEIGHT
+                - GAP
+                - 5.0;
         } else {
-            // On mobile, position the modal in the horizontal center, vertical bottom of the screen
             modal_x = 0.0;
-            modal_y = cx.display_context.screen_size.y - MODAL_CONTENT_HEIGHT - 5.0;
+            modal_y = cx.display_context.screen_size.y
+                - MODAL_CONTENT_HEIGHT
+                - 5.0;
             bg_view_visible = true;
         }
 
-        let modal = self.moly_modal(ids!(modal));
-        modal.apply_over(
-            cx,
-            live! {
-                bg_view: {
-                    visible: (bg_view_visible)
-                }
-                content: {
-                    margin: { left: (modal_x), top: (modal_y) }
-                }
-            },
+        let modal = self.moly_modal(cx, ids!(modal));
+
+        let bg_visible = bg_view_visible;
+        let margin = Inset::new(
+            modal_y as f32,
+            0.0,
+            0.0,
+            modal_x as f32,
         );
+        script_apply_eval!(cx, modal, {
+            bg_view: {
+                visible: #(bg_visible)
+            }
+            content: {
+                margin: #(margin)
+            }
+        });
 
         if !cx.display_context.is_desktop() {
-            modal.apply_over(
-                cx,
-                live! {
-                    dismiss_on_focus_lost: false
-                    content: {
-                        width: Fill
-                        padding: 0
-                    }
-                },
-            );
+            script_apply_eval!(cx, modal, {
+                dismiss_on_focus_lost: false
+                content: {
+                    width: Fill
+                    padding: 0
+                }
+            });
         } else {
-            modal.apply_over(
-                cx,
-                live! {
-                    content: { width: 400 }
-                    padding: {top: 20, left: 10, right: 10, bottom: 20}
-                },
-            );
+            script_apply_eval!(cx, modal, {
+                content: {
+                    width: 400
+                    padding: Inset{
+                        top: 20 left: 10 right: 10 bottom: 20
+                    }
+                }
+            });
         }
 
         modal.open(cx);
@@ -358,7 +380,7 @@ impl ModelSelector {
 
     fn close_modal(&mut self, cx: &mut Cx) {
         self.open = false;
-        self.moly_modal(ids!(modal)).close(cx);
+        self.moly_modal(cx, ids!(modal)).close(cx);
     }
 
     fn clear_search(&mut self, cx: &mut Cx) {
@@ -370,29 +392,28 @@ impl ModelSelector {
             list.items.clear();
             list.total_height = None;
         }
-        self.text_input(ids!(options.search_container.search_input))
+        self.text_input(cx, ids!(options.search_container.search_input))
             .set_text(cx, "");
         self.redraw(cx);
     }
 }
 
 impl ModelSelectorRef {
-    pub fn set_chat_controller(&mut self, controller: Option<Arc<Mutex<ChatController>>>) {
+    /// Sets the chat controller for populating the bot list.
+    pub fn set_chat_controller(
+        &mut self,
+        controller: Option<Arc<Mutex<ChatController>>>,
+    ) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.chat_controller = controller;
         }
     }
 
-    /// Set a custom grouping function for organizing bots in the list
+    /// Sets a custom grouping function for organizing bots in the list.
     ///
-    /// By default, bots are grouped by their provider (extracted from BotId).
-    /// Applications can provide a custom grouping function to add
+    /// By default, bots are grouped by their provider (extracted from
+    /// BotId). Applications can provide a custom grouping function to add
     /// provider icons, custom display names, or different grouping logic.
-    ///
-    /// The grouping function receives a bot and returns a tuple of:
-    /// - `group_id`: Unique identifier for the group (used for deduplication and sorting)
-    /// - `group_label`: Display name for the group header
-    /// - `group_icon`: Optional icon to display next to the group label
     pub fn set_grouping<F>(&mut self, grouping: F)
     where
         F: Fn(&Bot) -> BotGroup + 'static,

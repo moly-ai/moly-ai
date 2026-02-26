@@ -1,107 +1,108 @@
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
-    use link::shaders::*;
+script_mod! {
+    use mod.prelude.widgets_internal.*
+    use mod.widgets.*
 
-    ANIMATION_SPEED = 0.33
+    let ANIMATION_SPEED = 0.33
 
-    VerticalFiller = <View> {
-        width: Fill,
-        height: 1,
+    let VerticalFiller = View {
+        width: Fill
+        height: 1
     }
 
-    Bar = <View> {
-        width: Fill,
-        height: 17,
-        show_bg: true,
-        draw_bg: {
-            instance dither: 0.1
+    let Bar = View {
+        width: Fill
+        height: 17
+        show_bg: true
+        draw_bg +: {
+            dither: instance(0.1)
 
-            fn get_color(self) -> vec4 {
+            get_color: fn() {
                 return mix(
-                    #9CADBC,
-                    #B0CBC6,
+                    #x9CADBC
+                    #xB0CBC6
                     self.pos.x + self.dither
                 )
             }
 
-            fn pixel(self) -> vec4 {
-                return Pal::premul(self.get_color())
+            pixel: fn() {
+                return Pal.premul(self.get_color())
             }
         }
     }
 
-    pub MessageLoading = {{MessageLoading}} {
-        width: Fill,
-        height: Fit,
+    mod.widgets.MessageLoadingBase = #(MessageLoading::register_widget(vm))
 
-        flow: Down,
-        spacing: 4,
+    mod.widgets.MessageLoading =
+        set_type_default() do mod.widgets.MessageLoadingBase {
+        width: Fill
+        height: Fit
 
-        line1 = <Bar> {}
-        line2 = <Bar> {}
-        <View> {
-            width: Fill,
-            height: 16,
-            line3 = <Bar> {}
-            <VerticalFiller> {}
+        flow: Down
+        spacing: 4
+
+        line1 := Bar {}
+        line2 := Bar {}
+        View {
+            width: Fill
+            height: 16
+            line3 := Bar {}
+            VerticalFiller {}
         }
 
-        animator: {
-            line1 = {
-                default: start,
-                start = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {line1 = { draw_bg: {dither: 0.1} }}
+        animator: Animator {
+            line1: {
+                default: @start
+                start: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {line1: {draw_bg: {dither: 0.1}}}
                 }
-                run = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {line1 = { draw_bg: {dither: 0.9} }}
-                }
-            }
-
-            line2 = {
-                default: start,
-                start = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {line2 = { draw_bg: {dither: 0.1} }}
-                }
-                run = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {line2 = { draw_bg: {dither: 0.9} }}
+                run: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {line1: {draw_bg: {dither: 0.9}}}
                 }
             }
 
-            line3 = {
-                default: start,
-                start = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {line3 = { draw_bg: {dither: 0.1} }}
+            line2: {
+                default: @start
+                start: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {line2: {draw_bg: {dither: 0.1}}}
                 }
-                run = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {line3 = { draw_bg: {dither: 0.9} }}
+                run: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {line2: {draw_bg: {dither: 0.9}}}
+                }
+            }
+
+            line3: {
+                default: @start
+                start: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {line3: {draw_bg: {dither: 0.1}}}
+                }
+                run: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {line3: {draw_bg: {dither: 0.9}}}
                 }
             }
         }
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget, Animator)]
 pub struct MessageLoading {
     #[deref]
     view: View,
 
-    #[animator]
+    #[apply_default]
     animator: Animator,
 
     #[rust]

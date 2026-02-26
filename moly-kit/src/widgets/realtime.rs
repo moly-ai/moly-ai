@@ -12,163 +12,149 @@ use makepad_widgets::permission::PermissionStatus;
 use makepad_widgets::{makepad_platform::AudioDeviceType, *};
 use std::sync::{Arc, Mutex};
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets_internal.*
+    use mod.widgets.*
 
-    use crate::widgets::chat_line::*;
-    use crate::widgets::standard_message_content::*;
+    use crate.widgets.chat_line.*
+    use crate.widgets.standard_message_content.*
 
-    AIAnimation = <RoundedView> {
-        width: 200, height: 200
+    let AIAnimation = RoundedView {
+        width: 200 height: 200
         show_bg: true
-        // Shader based on "Branded AI assistant" by Vickone (https://www.shadertoy.com/view/tfcGD8)
-        // Licensed under CC BY-NC-SA 3.0
-        draw_bg: {
-            // Simple hash function
+        draw_bg +: DrawQuad {
             fn hash21(self, p: vec2) -> float {
-                let mut p = fract(p * vec2(234.34, 435.345));
-                p += dot(p, p + 34.23);
-                return fract(p.x * p.y);
+                let mut p = fract(p * vec2(234.34, 435.345))
+                p += dot(p, p + 34.23)
+                return fract(p.x * p.y)
             }
 
-            // Simple noise function
             fn noise(self, p: vec2) -> float {
-                let i = floor(p);
-                let f = fract(p);
-                let f_smooth = f * f * (3.0 - 2.0 * f);
-                let a = self.hash21(i);
-                let b = self.hash21(i + vec2(1.0, 0.0));
-                let c = self.hash21(i + vec2(0.0, 1.0));
-                let d = self.hash21(i + vec2(1.0, 1.0));
-                return mix(mix(a, b, f_smooth.x), mix(c, d, f_smooth.x), f_smooth.y);
+                let i = floor(p)
+                let f = fract(p)
+                let f_smooth = f * f * (3.0 - 2.0 * f)
+                let a = self.hash21(i)
+                let b = self.hash21(i + vec2(1.0, 0.0))
+                let c = self.hash21(i + vec2(0.0, 1.0))
+                let d = self.hash21(i + vec2(1.0, 1.0))
+                return mix(mix(a, b, f_smooth.x), mix(c, d, f_smooth.x), f_smooth.y)
             }
 
-            // Simplified FBM (fractal brownian motion)
             fn fbm(self, p: vec2) -> float {
-                let mut sum = 0.0;
-                let mut amp = 0.5;
-                let mut freq = 1.0;
+                let mut sum = 0.0
+                let mut amp = 0.5
+                let mut freq = 1.0
 
-                // Unroll the loop for compatibility
-                sum += self.noise(p * freq) * amp;
-                amp *= 0.5;
-                freq *= 2.0;
+                sum += self.noise(p * freq) * amp
+                amp *= 0.5
+                freq *= 2.0
 
-                sum += self.noise(p * freq) * amp;
-                amp *= 0.5;
-                freq *= 2.0;
+                sum += self.noise(p * freq) * amp
+                amp *= 0.5
+                freq *= 2.0
 
-                sum += self.noise(p * freq) * amp;
-                amp *= 0.5;
-                freq *= 2.0;
+                sum += self.noise(p * freq) * amp
+                amp *= 0.5
+                freq *= 2.0
 
-                sum += self.noise(p * freq) * amp;
-                amp *= 0.5;
-                freq *= 2.0;
+                sum += self.noise(p * freq) * amp
+                amp *= 0.5
+                freq *= 2.0
 
-                return sum;
+                return sum
             }
 
-            fn pixel(self) -> vec4 {
-                // Center and aspect-correct UV coordinates
-                let uv = (self.pos - 0.5) * 2.0;
+            pixel: fn() {
+                let uv = (self.pos - 0.5) * 2.0
 
-                let mut col = vec3(0.1, 0.1, 0.1);
-                // let mut col = vec3(0.0, 0.0, 0.0);
+                let mut col = vec3(0.1, 0.1, 0.1)
 
-                let radius = 0.3 + sin(self.time * 0.5) * 0.02;
-                let d = length(uv);
+                let radius = 0.3 + sin(self.time * 0.5) * 0.02
+                let d = length(uv)
 
-                let angle = atan(uv.y, uv.x);
-                let wave = sin(angle * 3.0 + self.time) * 0.1;
-                let wave2 = cos(angle * 5.0 - self.time * 1.3) * 0.08;
+                let angle = atan(uv.y, uv.x)
+                let wave = sin(angle * 3.0 + self.time) * 0.1
+                let wave2 = cos(angle * 5.0 - self.time * 1.3) * 0.08
 
-                let noise1 = self.fbm(uv * 3.0 + self.time * 0.1);
-                let noise2 = self.fbm(uv * 5.0 - self.time * 0.2);
+                let noise1 = self.fbm(uv * 3.0 + self.time * 0.1)
+                let noise2 = self.fbm(uv * 5.0 - self.time * 0.2)
 
-                let orb_color = vec3(0.2, 0.6, 1.0);
-                let orb = smoothstep(radius + wave + wave2, radius - 0.1 + wave + wave2, d);
+                let orb_color = vec3(0.2, 0.6, 1.0)
+                let orb = smoothstep(
+                    radius + wave + wave2,
+                    radius - 0.1 + wave + wave2, d
+                )
 
-                let gradient1 = vec3(0.8, 0.2, 0.5) * sin(angle + self.time);
-                let gradient2 = vec3(0.2, 0.5, 1.0) * cos(angle - self.time * 0.7);
+                let gradient1 = vec3(0.8, 0.2, 0.5) * sin(angle + self.time)
+                let gradient2 = vec3(0.2, 0.5, 1.0) * cos(angle - self.time * 0.7)
 
-                // Simplified particles (unrolled loop)
-                let mut particles = 0.0;
+                let mut particles = 0.0
 
-                // Particle 1
                 let particle_pos1 = vec2(
                     sin(self.time * 0.5) * 0.5,
                     cos(self.time * 0.3) * 0.5
-                );
-                particles += smoothstep(0.05, 0.0, length(uv - particle_pos1));
+                )
+                particles += smoothstep(0.05, 0.0, length(uv - particle_pos1))
 
-                // Particle 2
                 let particle_pos2 = vec2(
                     sin(self.time * 0.7) * 0.5,
                     cos(self.time * 0.5) * 0.5
-                );
-                particles += smoothstep(0.05, 0.0, length(uv - particle_pos2));
+                )
+                particles += smoothstep(0.05, 0.0, length(uv - particle_pos2))
 
-                // Particle 3
                 let particle_pos3 = vec2(
                     sin(self.time * 0.9) * 0.5,
                     cos(self.time * 0.7) * 0.5
-                );
-                particles += smoothstep(0.05, 0.0, length(uv - particle_pos3));
+                )
+                particles += smoothstep(0.05, 0.0, length(uv - particle_pos3))
 
-                // Combine all effects
-                col += orb * mix(orb_color, gradient1, noise1);
-                col += orb * mix(gradient2, orb_color, noise2) * 0.5;
-                col += particles * vec3(0.5, 0.8, 1.0);
-                col += exp(-d * 4.0) * vec3(0.2, 0.4, 0.8) * 0.5;
+                col += orb * mix(orb_color, gradient1, noise1)
+                col += orb * mix(gradient2, orb_color, noise2) * 0.5
+                col += particles * vec3(0.5, 0.8, 1.0)
+                col += exp(-d * 4.0) * vec3(0.2, 0.4, 0.8) * 0.5
 
-                // return vec4(col, 1.0);
-
-                // Clip the final output to a circle
-                let sdf = Sdf2d::viewport(self.pos * self.rect_size);
-                let radius = min(self.rect_size.x, self.rect_size.y) * 0.5;
+                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
+                let radius = min(self.rect_size.x, self.rect_size.y) * 0.5
                 sdf.circle(
                     self.rect_size.x * 0.5,
                     self.rect_size.y * 0.5,
                     radius
-                );
+                )
 
-                sdf.fill_keep(vec4(col, 1.0));
+                sdf.fill_keep(vec4(col, 1.0))
 
-                return sdf.result;
+                return sdf.result
             }
         }
     }
 
-    SimpleDropDown = <DropDown> {
-        draw_text: {
-            text_style: {font_size: 12}
+    let SimpleDropDown = DropDown {
+        draw_text: DrawText {
+            text_style: TextStyle { font_size: 12 }
             fn get_color(self) -> vec4 {
                 return mix(
-                    #2,
+                    #x2,
                     #x0,
                     self.down
                 )
             }
         }
 
-        popup_menu: {
-            width: 300, height: Fit,
-            flow: Down,
-            padding: <THEME_MSPACE_1> {}
+        popup_menu: PopupMenu {
+            width: 300 height: Fit
+            flow: Down
+            padding: theme.mspace_1
 
-            menu_item: <PopupMenuItem> {
-                width: Fill, height: Fit,
-                align: { y: 0.5 }
-                padding: {left: 15, right: 15, top: 10, bottom: 10}
+            menu_item: PopupMenuItem {
+                width: Fill height: Fit
+                align: Align { y: 0.5 }
+                padding: Inset { left: 15 right: 15 top: 10 bottom: 10 }
 
-                draw_text: {
+                draw_text: DrawText {
                     fn get_color(self) -> vec4 {
                         return mix(
                             mix(
-                                #3,
+                                #x3,
                                 #x0,
                                 self.active
                             ),
@@ -178,335 +164,337 @@ live_design! {
                     }
                 }
 
-                draw_bg: {
-                    instance color: #f //(THEME_COLOR_FLOATING_BG)
-                    instance color_active: #e9 //(THEME_COLOR_CTRL_HOVER)
+                draw_bg +: DrawQuad {
+                    color: instance(#xf)
+                    color_active: instance(#xe9)
                 }
             }
 
-            draw_bg: {
-                instance color: #f9 //(THEME_COLOR_FLOATING_BG)
+            draw_bg +: DrawQuad {
+                color: instance(#xf9)
                 border_size: 1.0
             }
         }
     }
 
-    TranscriptionModelSelector = <View> {
+    let TranscriptionModelSelector = View {
         height: Fit
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0 y: 0.5 }
         spacing: 10
 
-        <Label> {
+        Label {
             text: "Transcription model:"
-            draw_text: {
-                color: #222
-                text_style: {font_size: 11}
+            draw_text: DrawText {
+                color: #x222
+                text_style: TextStyle { font_size: 11 }
             }
         }
 
-        transcription_model_selector = <SimpleDropDown> {
+        transcription_model_selector := SimpleDropDown {
             margin: 5
             labels: ["whisper-1", "whisper", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
             values: [whisper_1, whisper, gpt_4o_transcribe, gpt_4o_mini_transcribe]
 
-            draw_text: {
-                color: #222
-                text_style: {font_size: 11}
+            draw_text: DrawText {
+                color: #x222
+                text_style: TextStyle { font_size: 11 }
             }
 
-            popup_menu = {
-                draw_text: {
-                    color: #222
-                    text_style: {font_size: 11}
+            popup_menu +: PopupMenu {
+                draw_text: DrawText {
+                    color: #x222
+                    text_style: TextStyle { font_size: 11 }
                 }
             }
         }
     }
 
-    VoiceSelector = <View> {
+    let VoiceSelector = View {
         height: Fit
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0 y: 0.5 }
         spacing: 10
 
-        <Label> {
+        Label {
             text: "Voice:"
-            draw_text: {
-                color: #222
-                text_style: {font_size: 11}
+            draw_text: DrawText {
+                color: #x222
+                text_style: TextStyle { font_size: 11 }
             }
         }
 
-        voice_selector = <SimpleDropDown> {
+        voice_selector := SimpleDropDown {
             margin: 5
             labels: ["marin", "cedar", "alloy", "shimmer", "ash", "ballad", "coral", "echo", "sage", "verse"]
             values: [marin, cedar, alloy, shimmer, ash, ballad, coral, echo, sage, verse]
 
-            draw_text: {
-                color: #222
-                text_style: {font_size: 11}
+            draw_text: DrawText {
+                color: #x222
+                text_style: TextStyle { font_size: 11 }
             }
 
-            popup_menu = {
-                draw_text: {
-                    color: #222
-                    text_style: {font_size: 11}
+            popup_menu +: PopupMenu {
+                draw_text: DrawText {
+                    color: #x222
+                    text_style: TextStyle { font_size: 11 }
                 }
             }
         }
     }
 
-    IconButton = <Button> {
-        width: Fit, height: Fit
-        draw_text: {
-            text_style: <THEME_FONT_ICONS> {
+    let IconButton = Button {
+        width: Fit height: Fit
+        draw_text: DrawText {
+            text_style: theme.font_icons {
                 font_size: 14.
             }
-            color: #5,
-            color_hover: #2,
-            color_focus: #2
-            color_down: #5
+            color: #x5
+            color_hover: #x2
+            color_focus: #x2
+            color_down: #x5
         }
-        draw_bg: {
-            color_down: #0000
-            border_radius: 7.
+        draw_bg +: DrawQuad {
+            color_down: #x0000
+            radius: 7.
             border_size: 0.
         }
     }
 
-    DeviceSelector = <View> {
+    let DeviceSelector = View {
         height: Fit
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0 y: 0.5 }
         spacing: 5
 
-        label = <Label> {
-            draw_text: {
-                color: #222
-                text_style: {font_size: 11}
+        label := Label {
+            draw_text: DrawText {
+                color: #x222
+                text_style: TextStyle { font_size: 11 }
             }
         }
 
-        device_selector = <SimpleDropDown> {
+        device_selector := SimpleDropDown {
             margin: 5
             labels: ["default"]
             values: [default]
 
-            draw_text: {
-                color: #222
-                text_style: {font_size: 11}
+            draw_text: DrawText {
+                color: #x222
+                text_style: TextStyle { font_size: 11 }
             }
 
-            popup_menu = {
-                draw_text: {
-                    color: #222
-                    text_style: {font_size: 11}
+            popup_menu +: PopupMenu {
+                draw_text: DrawText {
+                    color: #x222
+                    text_style: TextStyle { font_size: 11 }
                 }
             }
         }
     }
 
-    MuteControl = <View> {
-        width: Fit, height: Fit
-        align: {x: 0.5, y: 0.5}
-        cursor: Hand
-        mute_button = <IconButton> {
-            text: ""
+    let MuteControl = View {
+        width: Fit height: Fit
+        align: Align { x: 0.5 y: 0.5 }
+        cursor: MouseCursor.Hand
+        mute_button := IconButton {
+            text: ""
         }
-        mute_status = <Label> {
+        mute_status := Label {
             padding: 0
             text: "Mute"
-            draw_text: {
-                color: #222
-                text_style: {font_size: 11}
+            draw_text: DrawText {
+                color: #x222
+                text_style: TextStyle { font_size: 11 }
             }
         }
     }
 
-    DevicesSelector = <View> {
-        height: Fit, width: Fill
-        flow: Down, spacing: 5
-        <View> {
+    let DevicesSelector = View {
+        height: Fit width: Fill
+        flow: Down spacing: 5
+        View {
             height: Fit
-            mic_selector = <DeviceSelector> {
+            mic_selector := DeviceSelector {
                 width: Fit
-                label = { text: "Mic:"}
+                label := Label { text: "Mic:" }
             }
-            mute_control = <MuteControl> {}
+            mute_control := MuteControl {}
         }
-        speaker_selector = <DeviceSelector> {
-            label = { text: "Speaker:"}
+        speaker_selector := DeviceSelector {
+            label := Label { text: "Speaker:" }
         }
     }
 
-    Controls = <View> {
-        width: Fill, height: Fit
+    let Controls = View {
+        width: Fill height: Fit
         flow: Down
         spacing: 10
-        align: {x: 0.0, y: 0.5}
+        align: Align { x: 0.0 y: 0.5 }
         padding: 20
 
-        devices_selector = <DevicesSelector> {}
-        selected_devices_view = <View> {
+        devices_selector := DevicesSelector {}
+        selected_devices_view := View {
             visible: false
             height: Fit
-            align: {x: 0.0, y: 0.5}
-            selected_devices = <Label> {
-                draw_text: {
-                    text_style: {font_size: 11}
-                    color: #222
+            align: Align { x: 0.0 y: 0.5 }
+            selected_devices := Label {
+                draw_text: DrawText {
+                    text_style: TextStyle { font_size: 11 }
+                    color: #x222
                 }
             }
         }
 
-        voice_selector_wrapper = <VoiceSelector> {}
-        selected_voice_view = <View> {
+        voice_selector_wrapper := VoiceSelector {}
+        selected_voice_view := View {
             visible: false
             height: Fit
-            align: {x: 0.0, y: 0.5}
-            selected_voice = <Label> {
-                draw_text: {
-                    text_style: {font_size: 11}
-                    color: #222
+            align: Align { x: 0.0 y: 0.5 }
+            selected_voice := Label {
+                draw_text: DrawText {
+                    text_style: TextStyle { font_size: 11 }
+                    color: #x222
                 }
             }
         }
 
-        <TranscriptionModelSelector> {}
+        TranscriptionModelSelector {}
 
-        toggle_interruptions = <Toggle> {
+        toggle_interruptions := Toggle {
             text: "Allow interruptions\n(requires headphones, no AEC yet)"
             width: Fit
             height: Fit
-            draw_text: {
+            draw_text: DrawText {
                 fn get_color(self) -> vec4 {
-                    return #222;
+                    return #x222
                 }
-                text_style: {font_size: 10}
+                text_style: TextStyle { font_size: 10 }
             }
 
-            label_walk: {
-                margin: {left: 50}
+            label_walk: Walk {
+                margin: Inset { left: 50 }
             }
-            draw_bg: {
+            draw_bg +: DrawQuad {
                 size: 25.
             }
 
-            padding: {left: 5, right: 5, top: 5, bottom: 5}
+            padding: Inset { left: 5 right: 5 top: 5 bottom: 5 }
         }
 
-        status_label = <Label> {
+        status_label := Label {
             text: "Ready to start"
             width: Fill
-            draw_text: {
-                color: #222
+            draw_text: DrawText {
+                color: #x222
                 wrap: Word
-                text_style: {font_size: 11}
+                text_style: TextStyle { font_size: 11 }
             }
         }
 
-        request_permission_button = <RoundedShadowView> {
+        request_permission_button := RoundedShadowView {
             visible: false
-            cursor: Hand
-            margin: {left: 10, right: 10, bottom: 0, top: 10}
-            width: Fill, height: Fit
-            align: {x: 0.5, y: 0.5}
-            padding: {left: 20, right: 20, bottom: 10, top: 10}
-            draw_bg: {
-                color: #f9f9f9
-                border_radius: 4.5,
-                uniform shadow_color: #0002
-                shadow_radius: 8.0,
-                shadow_offset: vec2(0.0,-1.5)
+            cursor: MouseCursor.Hand
+            margin: Inset { left: 10 right: 10 bottom: 0 top: 10 }
+            width: Fill height: Fit
+            align: Align { x: 0.5 y: 0.5 }
+            padding: Inset { left: 20 right: 20 bottom: 10 top: 10 }
+            draw_bg +: DrawQuad {
+                color: #xf9f9f9
+                radius: 4.5
+                shadow_color: uniform(#x0002)
+                shadow_radius: 8.0
+                shadow_offset: vec2(0.0, -1.5)
             }
-            <Label> {
+            Label {
                 text: "Request microphone permission"
-                draw_text: {
-                    text_style: {font_size: 11}
-                    color: #000
+                draw_text: DrawText {
+                    text_style: TextStyle { font_size: 11 }
+                    color: #x000
                 }
             }
         }
 
-        tool_permission_line = <ToolRequestLine> {
+        tool_permission_line := ToolRequestLine {
             visible: false
-            margin: {left: 10, right: 10, top: 10}
+            margin: Inset { left: 10 right: 10 top: 10 }
         }
 
-        start_stop_button = <RoundedShadowView> {
-            cursor: Hand
-            margin: {left: 10, right: 10, bottom: 0, top: 10}
-            width: Fill, height: Fit
-            align: {x: 0.5, y: 0.5}
-            padding: {left: 20, right: 20, bottom: 10, top: 10}
-            draw_bg: {
-                color: #f9f9f9
-                border_radius: 4.5,
-                uniform shadow_color: #0002
-                shadow_radius: 8.0,
-                shadow_offset: vec2(0.0,-1.5)
+        start_stop_button := RoundedShadowView {
+            cursor: MouseCursor.Hand
+            margin: Inset { left: 10 right: 10 bottom: 0 top: 10 }
+            width: Fill height: Fit
+            align: Align { x: 0.5 y: 0.5 }
+            padding: Inset { left: 20 right: 20 bottom: 10 top: 10 }
+            draw_bg +: DrawQuad {
+                color: #xf9f9f9
+                radius: 4.5
+                shadow_color: uniform(#x0002)
+                shadow_radius: 8.0
+                shadow_offset: vec2(0.0, -1.5)
             }
-            stop_start_label = <Label> {
+            stop_start_label := Label {
                 text: "Start"
-                draw_text: {
-                    text_style: {font_size: 11}
-                    color: #000
+                draw_text: DrawText {
+                    text_style: TextStyle { font_size: 11 }
+                    color: #x000
                 }
             }
         }
     }
 
-    pub Realtime = {{Realtime}} <RoundedView> {
+    mod.widgets.RealtimeBase = #(Realtime::register_widget(vm))
+    mod.widgets.Realtime = set_type_default() do mod.widgets.RealtimeBase {
         show_bg: true
-        draw_bg: {
-            color: #f9f9f9
-            border_radius: 10.0
+        draw_bg +: DrawQuad {
+            color: #xf9f9f9
+            radius: 10.0
         }
         flow: Down
         spacing: 20
-        width: Fill, height: Fit
-        align: {x: 0.5, y: 0.0}
+        width: Fill height: Fit
+        align: Align { x: 0.5 y: 0.0 }
         padding: 10
 
-        header = <View> {
+        header := View {
             height: Fit
             flow: Overlay
 
-            align: {x: 1.0, y: 0.5}
-            close_button = <IconButton> {
-                text: "" // fa-xmark
+            align: Align { x: 1.0 y: 0.5 }
+            close_button := IconButton {
+                text: ""
             }
         }
 
-        <AIAnimation> {}
-        <Controls> {}
+        AIAnimation {}
+        Controls {}
     }
 
-    pub RealtimeContent = <RoundedView> {
-        align: {x: 0.5, y: 0.5}
+    mod.widgets.RealtimeContent = RoundedView {
+        align: Align { x: 0.5 y: 0.5 }
 
-        <AdaptiveView> {
-            Desktop = {
-                width: 450, height: Fit
-                align: {x: 0.5, y: 0.5}
+        AdaptiveView {
+            Desktop: View {
+                width: 450 height: Fit
+                align: Align { x: 0.5 y: 0.5 }
 
-                <CachedWidget> {
-                    realtime = <Realtime>{}
+                CachedWidget {
+                    realtime := mod.widgets.Realtime {}
                 }
             }
 
-            Mobile = {
-                width: Fill, height: Fill
-                align: {x: 0.5, y: 0.5}
+            Mobile: View {
+                width: Fill height: Fill
+                align: Align { x: 0.5 y: 0.5 }
 
-                <CachedWidget> {
-                    realtime = <Realtime>{}
+                CachedWidget {
+                    realtime := mod.widgets.Realtime {}
                 }
             }
         }
     }
 }
 
-#[derive(Clone, Debug, DefaultNone)]
+#[derive(Clone, Debug, Default)]
 pub enum RealtimeModalAction {
+    #[default]
     None,
     DismissModal,
 }
@@ -520,7 +508,7 @@ enum MicPermissionStatus {
     Denied,
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct Realtime {
     #[deref]
     view: View,
@@ -609,7 +597,7 @@ impl Widget for Realtime {
         self.widget_match_event(cx, event, scope);
 
         if let Some(_value) = self
-            .drop_down(ids!(transcription_model_selector))
+            .drop_down(cx, ids!(transcription_model_selector))
             .changed(event.actions())
         {
             if self.is_connected {
@@ -618,7 +606,7 @@ impl Widget for Realtime {
         }
 
         if let Some(enabled) = self
-            .check_box(ids!(toggle_interruptions))
+            .check_box(cx, ids!(toggle_interruptions))
             .changed(event.actions())
         {
             // // Send interruption configuration to the realtime client
@@ -650,20 +638,20 @@ impl Widget for Realtime {
                         self.mic_permission_status = MicPermissionStatus::Granted;
                         self.setup_audio(cx);
                         self.audio_setup_done = true;
-                        self.view(ids!(start_stop_button)).set_visible(cx, true);
+                        self.view(cx, ids!(start_stop_button)).set_visible(cx, true);
                     }
                     PermissionStatus::DeniedCanRetry => {
-                        self.label(ids!(status_label)).set_text(cx, "⚠️ Moly needs microphone access to have realtime conversations.\nClick on the button below to trigger another request");
-                        self.view(ids!(request_permission_button))
+                        self.label(cx, ids!(status_label)).set_text(cx, "⚠️ Moly needs microphone access to have realtime conversations.\nClick on the button below to trigger another request");
+                        self.view(cx, ids!(request_permission_button))
                             .set_visible(cx, true);
-                        self.view(ids!(start_stop_button)).set_visible(cx, false);
+                        self.view(cx, ids!(start_stop_button)).set_visible(cx, false);
                         self.mic_permission_status = MicPermissionStatus::Denied;
                     }
                     _ => {
-                        self.label(ids!(status_label)).set_text(cx, "⚠️ Moly does not have access to your microphone.\nTo continue, allow Moly to access your microphone\nin your system settings\nand then restart the app.");
-                        self.view(ids!(request_permission_button))
+                        self.label(cx, ids!(status_label)).set_text(cx, "⚠️ Moly does not have access to your microphone.\nTo continue, allow Moly to access your microphone\nin your system settings\nand then restart the app.");
+                        self.view(cx, ids!(request_permission_button))
                             .set_visible(cx, false);
-                        self.view(ids!(start_stop_button)).set_visible(cx, false);
+                        self.view(cx, ids!(start_stop_button)).set_visible(cx, false);
                         self.mic_permission_status = MicPermissionStatus::Denied;
                     }
                 }
@@ -684,7 +672,7 @@ impl Widget for Realtime {
                 // This is the backup mechanism for when toggle is OFF (no interruptions)
                 if self.playback_audio.lock().unwrap().is_empty() {
                     let interruptions_enabled =
-                        self.check_box(ids!(toggle_interruptions)).active(cx);
+                        self.check_box(cx, ids!(toggle_interruptions)).active(cx);
 
                     if !interruptions_enabled {
                         // Only auto-resume recording if interruptions are disabled
@@ -696,7 +684,7 @@ impl Widget for Realtime {
                                     "Auto-resuming recording - playback empty and interruptions disabled"
                                 );
                                 *should_record = true;
-                                self.label(ids!(status_label))
+                                self.label(cx, ids!(status_label))
                                     .set_text(cx, "🎤 Listening...");
                             }
                         }
@@ -744,11 +732,11 @@ impl WidgetMatchEvent for Realtime {
                 }
             });
 
-        let mic_dropdown = self.drop_down(ids!(mic_selector.device_selector));
+        let mic_dropdown = self.drop_down(cx, ids!(mic_selector.device_selector));
         mic_dropdown.set_labels(cx, input_names.clone());
         mic_dropdown.set_selected_by_label(&default_input_name, cx);
 
-        let speaker_dropdown = self.drop_down(ids!(speaker_selector.device_selector));
+        let speaker_dropdown = self.drop_down(cx, ids!(speaker_selector.device_selector));
         speaker_dropdown.set_labels(cx, output_names.clone());
         speaker_dropdown.set_selected_by_label(&default_output_name, cx);
 
@@ -782,7 +770,7 @@ impl WidgetMatchEvent for Realtime {
 
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
         if self
-            .view(ids!(start_stop_button))
+            .view(cx, ids!(start_stop_button))
             .finger_down(actions)
             .is_some()
         {
@@ -796,7 +784,7 @@ impl WidgetMatchEvent for Realtime {
 
         // Handle tool permission buttons from ToolRequestLine
         for chat_line_action in self
-            .chat_line(ids!(tool_permission_line))
+            .chat_line(cx, ids!(tool_permission_line))
             .filter_actions(actions)
             .map(|wa| wa.cast::<ChatLineAction>())
         {
@@ -811,7 +799,7 @@ impl WidgetMatchEvent for Realtime {
             }
         }
 
-        let speaker_dropdown = self.drop_down(ids!(speaker_selector.device_selector));
+        let speaker_dropdown = self.drop_down(cx, ids!(speaker_selector.device_selector));
         if let Some(_id) = speaker_dropdown.changed(actions) {
             let selected_device = self
                 .audio_devices
@@ -822,7 +810,7 @@ impl WidgetMatchEvent for Realtime {
             }
         }
 
-        let microphone_dropdown = self.drop_down(ids!(mic_selector.device_selector));
+        let microphone_dropdown = self.drop_down(cx, ids!(mic_selector.device_selector));
         if let Some(_id) = microphone_dropdown.changed(actions) {
             let selected_device = self
                 .audio_devices
@@ -834,9 +822,9 @@ impl WidgetMatchEvent for Realtime {
         }
 
         // Mute
-        let mute_button = self.button(ids!(mute_button));
-        let mute_label = self.label(ids!(mute_status));
-        if self.view(ids!(mute_control)).finger_down(actions).is_some()
+        let mute_button = self.button(cx, ids!(mute_button));
+        let mute_label = self.label(cx, ids!(mute_status));
+        if self.view(cx, ids!(mute_control)).finger_down(actions).is_some()
             || mute_button.clicked(actions)
         {
             let mut is_muted = self.is_muted.lock().unwrap();
@@ -854,7 +842,7 @@ impl WidgetMatchEvent for Realtime {
 
         // Mic permissions
         if self
-            .view(ids!(request_permission_button))
+            .view(cx, ids!(request_permission_button))
             .finger_up(actions)
             .is_some()
         {
@@ -862,7 +850,7 @@ impl WidgetMatchEvent for Realtime {
         }
 
         // Modal close
-        if self.button(ids!(close_button)).clicked(actions) {
+        if self.button(cx, ids!(close_button)).clicked(actions) {
             self.reset_state(cx);
             cx.action(RealtimeModalAction::DismissModal);
         }
@@ -913,7 +901,7 @@ impl Realtime {
             // Set flag to request reconnection, Chat widget will handle this
             self.should_request_connection = true;
             self.connection_request_sent = false;
-            self.label(ids!(status_label))
+            self.label(cx, ids!(status_label))
                 .set_text(cx, "Reconnecting...");
             return;
         }
@@ -933,7 +921,7 @@ impl Realtime {
         self.transcript.clear();
 
         self.update_ui(cx);
-        self.label(ids!(status_label)).set_text(cx, "Loading..."); // This will be removed by the greeting message
+        self.label(cx, ids!(status_label)).set_text(cx, "Loading..."); // This will be removed by the greeting message
         self.start_audio_streaming(cx);
         self.create_greeting_response(cx);
     }
@@ -982,17 +970,17 @@ impl Realtime {
             self.connection_request_sent = false;
         }
         self.transcript.clear();
-        self.label(ids!(status_label)).set_text(cx, status_message);
+        self.label(cx, ids!(status_label)).set_text(cx, status_message);
 
         // Hide tool permission UI and clear pending tool call
-        self.chat_line(ids!(tool_permission_line))
+        self.chat_line(cx, ids!(tool_permission_line))
             .set_visible(cx, false);
         self.pending_tool_call = None;
 
         // Show voice selector again
-        self.view(ids!(voice_selector_wrapper))
+        self.view(cx, ids!(voice_selector_wrapper))
             .set_visible(cx, true);
-        self.view(ids!(selected_voice_view)).set_visible(cx, false);
+        self.view(cx, ids!(selected_voice_view)).set_visible(cx, false);
 
         self.update_ui(cx);
     }
@@ -1054,7 +1042,7 @@ impl Realtime {
         for event in events {
             match event {
                 RealtimeEvent::SessionReady => {
-                    self.label(ids!(connection_status))
+                    self.label(cx, ids!(connection_status))
                         .set_text(cx, "✅ Connected to OpenAI");
                     // self.update_session_config(cx);
                 }
@@ -1072,7 +1060,7 @@ impl Realtime {
                     // Update recording state based on interruption settings
                     if self.conversation_active {
                         let interruptions_enabled =
-                            self.check_box(ids!(toggle_interruptions)).active(cx);
+                            self.check_box(cx, ids!(toggle_interruptions)).active(cx);
 
                         if !interruptions_enabled {
                             // Interruptions disabled - mute microphone during AI speech
@@ -1083,7 +1071,7 @@ impl Realtime {
                         }
                     }
 
-                    self.label(ids!(status_label))
+                    self.label(cx, ids!(status_label))
                         .set_text(cx, "🔊 Playing audio...");
                 }
                 RealtimeEvent::AudioTranscript(text) => {
@@ -1118,7 +1106,7 @@ impl Realtime {
                     }
                 }
                 RealtimeEvent::SpeechStarted => {
-                    self.label(ids!(status_label))
+                    self.label(cx, ids!(status_label))
                         .set_text(cx, "🎤 User speech detected");
 
                     self.user_is_interrupting = true;
@@ -1148,7 +1136,7 @@ impl Realtime {
                     }
                 }
                 RealtimeEvent::SpeechStopped => {
-                    self.label(ids!(status_label)).set_text(cx, "Processing...");
+                    self.label(cx, ids!(status_label)).set_text(cx, "Processing...");
 
                     // Temporarily stop recording while waiting for response
                     if self.conversation_active {
@@ -1156,7 +1144,7 @@ impl Realtime {
                     }
                 }
                 RealtimeEvent::ResponseCompleted => {
-                    let status_label = self.label(ids!(status_label));
+                    let status_label = self.label(cx, ids!(status_label));
                     self.user_is_interrupting = false;
                     self.ai_is_responding = false;
                     self.current_assistant_item_id = None;
@@ -1165,7 +1153,7 @@ impl Realtime {
                     if self.conversation_active {
                         // Check if interruptions are enabled via the toggle
                         let interruptions_enabled =
-                            self.check_box(ids!(toggle_interruptions)).active(cx);
+                            self.check_box(cx, ids!(toggle_interruptions)).active(cx);
 
                         if interruptions_enabled {
                             // Allow immediate interruption
@@ -1209,14 +1197,14 @@ impl Realtime {
                     if dangerous_mode_enabled {
                         // Auto-approve function calls in dangerous mode
                         let display_name = display_name_from_namespaced(&name);
-                        self.label(ids!(status_label))
+                        self.label(cx, ids!(status_label))
                             .set_text(cx, &format!("🔧 Auto-executing tool: {}", display_name));
 
                         // Execute the function call directly
                         self.handle_function_call(cx, name, call_id, arguments);
                     } else {
                         // Show permission request as usual
-                        self.label(ids!(status_label))
+                        self.label(cx, ids!(status_label))
                             .set_text(cx, &format!("🔧 Tool permission requested: {}", name));
 
                         self.show_tool_permission_request(cx, name, call_id, arguments);
@@ -1245,7 +1233,7 @@ impl Realtime {
                         );
                     } else {
                         // Other types of errors - just display them
-                        self.label(ids!(status_label))
+                        self.label(cx, ids!(status_label))
                             .set_text(cx, &format!("❌ Error: {}", error));
 
                         // Resume recording on non-connection errors
@@ -1267,19 +1255,19 @@ impl Realtime {
     ) {
         self.pending_tool_call = Some((name.clone(), call_id, arguments));
 
-        let tool_line = self.chat_line(ids!(tool_permission_line));
+        let tool_line = self.chat_line(cx, ids!(tool_permission_line));
         tool_line.set_visible(cx, true);
 
         // Configure the tool line
         let display_name = display_name_from_namespaced(&name);
 
         tool_line
-            .avatar(ids!(message_section.sender.avatar))
+            .avatar(cx, ids!(message_section.sender.avatar))
             .borrow_mut()
             .unwrap()
             .avatar = Some(EntityAvatar::Text("T".into()));
         tool_line
-            .label(ids!(message_section.sender.name))
+            .label(cx, ids!(message_section.sender.name))
             .set_text(cx, "Permission Request");
 
         let content = MessageContent {
@@ -1287,13 +1275,13 @@ impl Realtime {
             ..Default::default()
         };
         tool_line
-            .slot(ids!(message_section.content_section.content))
+            .slot(cx, ids!(message_section.content_section.content))
             .current()
             .as_standard_message_content()
             .set_content(cx, &content);
 
         tool_line
-            .view(ids!(message_section.content_section.tool_actions))
+            .view(cx, ids!(message_section.content_section.tool_actions))
             .set_visible(cx, true);
 
         // Pause recording while waiting for permission
@@ -1393,12 +1381,12 @@ impl Realtime {
     fn approve_tool_call(&mut self, cx: &mut Cx) {
         if let Some((name, call_id, arguments)) = self.pending_tool_call.take() {
             // Hide permission UI
-            self.chat_line(ids!(tool_permission_line))
+            self.chat_line(cx, ids!(tool_permission_line))
                 .set_visible(cx, false);
 
             // Update status
             let display_name = display_name_from_namespaced(&name);
-            self.label(ids!(status_label))
+            self.label(cx, ids!(status_label))
                 .set_text(cx, &format!("🔧 Executing tool: {}", display_name));
 
             // Execute the tool
@@ -1416,7 +1404,7 @@ impl Realtime {
     fn deny_tool_call(&mut self, cx: &mut Cx) {
         if let Some((name, call_id, _arguments)) = self.pending_tool_call.take() {
             // Hide permission UI
-            self.chat_line(ids!(tool_permission_line))
+            self.chat_line(cx, ids!(tool_permission_line))
                 .set_visible(cx, false);
 
             // Send denial response
@@ -1435,7 +1423,7 @@ impl Realtime {
 
             // Update status
             let display_name = display_name_from_namespaced(&name);
-            self.label(ids!(status_label))
+            self.label(cx, ids!(status_label))
                 .set_text(cx, &format!("🚫 Tool '{}' denied", display_name));
 
             // Resume recording if conversation is active
@@ -1610,11 +1598,11 @@ impl Realtime {
     }
 
     fn update_session_config(&mut self, cx: &mut Cx) {
-        self.selected_voice = self.drop_down(ids!(voice_selector)).selected_label();
-        self.view(ids!(voice_selector_wrapper))
+        self.selected_voice = self.drop_down(cx, ids!(voice_selector)).selected_label();
+        self.view(cx, ids!(voice_selector_wrapper))
             .set_visible(cx, false);
-        self.view(ids!(selected_voice_view)).set_visible(cx, true);
-        self.label(ids!(selected_voice)).set_text(
+        self.view(cx, ids!(selected_voice_view)).set_visible(cx, true);
+        self.label(cx, ids!(selected_voice)).set_text(
             cx,
             format!("Selected voice: {}", self.selected_voice).as_str(),
         );
@@ -1626,7 +1614,7 @@ impl Realtime {
                 .unbounded_send(RealtimeCommand::UpdateSessionConfig {
                     voice: self.selected_voice.clone(),
                     transcription_model: self
-                        .drop_down(ids!(transcription_model_selector))
+                        .drop_down(cx, ids!(transcription_model_selector))
                         .selected_label(),
                 });
         }
@@ -1643,10 +1631,10 @@ impl Realtime {
 
     fn update_ui(&self, cx: &mut Cx) {
         if !self.conversation_active {
-            self.label(ids!(stop_start_label))
+            self.label(cx, ids!(stop_start_label))
                 .set_text(cx, "Start conversation");
         } else {
-            self.label(ids!(stop_start_label))
+            self.label(cx, ids!(stop_start_label))
                 .set_text(cx, "Stop conversation");
         }
     }

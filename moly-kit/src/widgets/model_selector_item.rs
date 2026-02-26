@@ -1,84 +1,88 @@
 use crate::aitk::protocol::*;
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets_internal.*
+    use mod.widgets.*
 
-    pub ModelSelectorItem = {{ModelSelectorItem}} {
-        width: Fill,
-        height: Fit,
-        padding: {left: 24, right: 16, top: 8, bottom: 8}
+    mod.widgets.ModelSelectorItemBase =
+        #(ModelSelectorItem::register_widget(vm))
+
+    mod.widgets.ModelSelectorItem =
+        set_type_default() do mod.widgets.ModelSelectorItemBase {
+        width: Fill
+        height: Fit
+        padding: Inset{left: 24 right: 16 top: 8 bottom: 8}
         spacing: 10
-        align: {x: 0.0, y: 0.5}
+        align: Align{x: 0.0 y: 0.5}
 
-        show_bg: true,
+        show_bg: true
         draw_bg: {
-            color: #F9
-            instance hover: 0.0,
-            instance selected: 0.0,
-            instance color_hover: #E9,
+            color: #xF9
+            hover: instance(0.0)
+            selected: instance(0.0)
+            color_hover: uniform(#xE9)
 
-            fn pixel(self) -> vec4 {
-                return mix(self.color, self.color_hover, self.hover);
+            pixel: fn() {
+                return mix(self.color, self.color_hover, self.hover)
             }
         }
 
-        cursor: Hand,
+        cursor: MouseCursor.Hand
 
-        animator: {
-            hover = {
-                default: off
-                off = {
+        animator: Animator {
+            hover: {
+                default: @off
+                off: AnimatorState {
                     from: {all: Forward {duration: 0.2}}
                     apply: {
                         draw_bg: {hover: 0.0}
                     }
                 }
 
-                on = {
+                on: AnimatorState {
                     from: {all: Snap}
                     apply: {
                         draw_bg: {hover: 1.0}
-                    },
+                    }
                 }
             }
         }
 
-        label = <Label> {
+        label := Label {
             width: Fill
-            draw_text:{
-                text_style: <THEME_FONT_REGULAR>{font_size: 11},
-                color: #000
+            draw_text: {
+                text_style +: theme.font_regular {font_size: 11}
+                color: #x000
             }
         }
 
-        icon_tick_view = <View> {
-            width: Fit, height: Fit
+        icon_tick_view := View {
+            width: Fit height: Fit
             visible: false
-            icon_tick = <Label> {
-                width: Fit, height: Fit
-                align: {x: 1.0, y: 0.5}
-                text: "" // fa-check
+            icon_tick := Label {
+                width: Fit height: Fit
+                align: Align{x: 1.0 y: 0.5}
+                text: "\u{f00c}"
                 draw_text: {
-                    text_style: <THEME_FONT_ICONS> {
+                    text_style +: theme.font_icons {
                         font_size: 12.
                     }
-                    color: #000
+                    color: #x000
                 }
             }
         }
     }
 }
 
-#[derive(Clone, DefaultNone, Debug)]
+#[derive(Clone, Default, Debug)]
 pub enum ModelSelectorItemAction {
     BotSelected(BotId),
+    #[default]
     None,
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget, Animator)]
 pub struct ModelSelectorItem {
     #[deref]
     view: View,
@@ -89,7 +93,7 @@ pub struct ModelSelectorItem {
     #[rust]
     selected: bool,
 
-    #[animator]
+    #[apply_default]
     animator: Animator,
 }
 
@@ -101,7 +105,6 @@ impl Widget for ModelSelectorItem {
             self.redraw(cx);
         }
 
-        // Handle tap on the entire item
         match event.hits_with_capture_overload(cx, self.view.area(), true) {
             Hit::FingerDown(_) => {
                 self.animator_play(cx, ids!(hover.on));
@@ -112,7 +115,6 @@ impl Widget for ModelSelectorItem {
                     if let Some(bot) = &self.bot {
                         cx.widget_action(
                             self.widget_uid(),
-                            &scope.path,
                             ModelSelectorItemAction::BotSelected(bot.id.clone()),
                         );
                     }
@@ -130,10 +132,9 @@ impl Widget for ModelSelectorItem {
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         if let Some(bot) = &self.bot {
-            self.label(ids!(label)).set_text(cx, &bot.name);
+            self.label(cx, ids!(label)).set_text(cx, &bot.name);
 
-            // Show tick icon if this bot is selected
-            self.view(ids!(icon_tick_view))
+            self.view(cx, ids!(icon_tick_view))
                 .set_visible(cx, self.selected);
         }
 
@@ -142,12 +143,14 @@ impl Widget for ModelSelectorItem {
 }
 
 impl ModelSelectorItemRef {
+    /// Sets the bot displayed by this item.
     pub fn set_bot(&mut self, bot: Bot) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.bot = Some(bot);
         }
     }
 
+    /// Sets whether this item appears selected.
     pub fn set_selected(&mut self, selected: bool) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.selected = selected;

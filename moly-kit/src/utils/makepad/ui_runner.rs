@@ -4,7 +4,8 @@
 //! `futures` crate there, and idk if the async channels implemented there would work
 //! propertly for this.
 
-use makepad_widgets::{Cx, DeferWithRedraw, Scope, UiRunner, Widget};
+use makepad_widgets::{Cx, Scope, UiRunner, Widget};
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 
 pub trait DeferRedraw<W>
 where

@@ -8,194 +8,191 @@ use crate::{
     widgets::attachment_list::{AttachmentListRef, AttachmentListWidgetExt},
 };
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
-    use link::shaders::*;
+script_mod! {
+    use mod.prelude.widgets_internal.*
+    use mod.widgets.*
 
-    use crate::widgets::attachment_list::*;
-    use crate::widgets::model_selector::*;
-
-    SubmitButton = <Button> {
-        width: 28,
-        height: 28,
-        padding: {right: 2},
-        margin: {bottom: 2},
+    let SubmitButton = Button {
+        width: 28
+        height: 28
+        padding: Inset{right: 2}
+        margin: Inset{bottom: 2}
 
         draw_icon: {
-            color: #fff
+            color: #xfff
         }
 
         draw_bg: {
             fn get_color(self) -> vec4 {
                 if self.enabled == 0.0 {
-                    return #D0D5DD;
+                    return #xD0D5DD
                 }
-                return #000;
+                return #x000
             }
 
-            fn pixel(self) -> vec4 {
-                let sdf = Sdf2d::viewport(self.pos * self.rect_size);
-                let center = self.rect_size * 0.5;
-                let radius = min(self.rect_size.x, self.rect_size.y) * 0.5;
+            pixel: fn() {
+                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
+                let center = self.rect_size * 0.5
+                let radius = min(self.rect_size.x, self.rect_size.y) * 0.5
 
-                sdf.circle(center.x, center.y, radius);
-                sdf.fill_keep(self.get_color());
+                sdf.circle(center.x, center.y, radius)
+                sdf.fill_keep(self.get_color())
 
                 return sdf.result
             }
         }
         icon_walk: {
-            width: 12,
+            width: 12
             height: 12
-            margin: {top: 0, left: 2},
+            margin: Inset{top: 0 left: 2}
         }
     }
 
-    AttachButton = <Button> {
+    let AttachButton = Button {
         visible: false
-        text: "",
-        width: Fit,
-        height: Fit,
-        padding: {left: 8, right: 8, top: 6, bottom: 6}
+        text: "\u{f0c6}"
+        width: Fit
+        height: Fit
+        padding: Inset{left: 8 right: 8 top: 6 bottom: 6}
         draw_text: {
-            text_style: <THEME_FONT_ICONS> {
+            text_style +: theme.font_icons {
                 font_size: 13.
             }
-            color: #333,
-            color_hover: #111,
-            color_focus: #111
-            color_down: #000
+            color: #x333
+            color_hover: #x111
+            color_focus: #x111
+            color_down: #x000
         }
         draw_bg: {
-            color_down: #0000
-            border_radius: 7.
+            color_down: #x0000
+            radius: 7.
             border_size: 0.
-            color_hover: #f2
+            color_hover: #xf2
         }
     }
 
-
-    AudioButton = <Button> {
+    let AudioButton = Button {
         visible: false
-        width: 28, height: 28
-        text: ""
+        width: 28 height: 28
+        text: "\u{f095}"
         draw_text: {
-            text_style: <THEME_FONT_ICONS> {
+            text_style +: theme.font_icons {
                 font_size: 13.
             }
-            color: #333,
-            color_hover: #111,
-            color_focus: #111
-            color_down: #000
+            color: #x333
+            color_hover: #x111
+            color_focus: #x111
+            color_down: #x000
         }
         draw_bg: {
-            color_down: #0000
-            border_radius: 7.
-            border_size: 0.
-        }
-    }
-
-    SttButton = <Button> {
-        visible: false
-        width: 28, height: 28
-        text: ""
-        draw_text: {
-            text_style: <THEME_FONT_ICONS> {
-                font_size: 13.
-            }
-            color: #333,
-            color_hover: #111,
-            color_focus: #111
-            color_down: #000
-        }
-        draw_bg: {
-            color_down: #0000
-            border_radius: 7.
+            color_down: #x0000
+            radius: 7.
             border_size: 0.
         }
     }
 
-    SendControls = <View> {
-        width: Fit, height: Fit
-        align: {x: 0.5, y: 0.5}
+    let SttButton = Button {
+        visible: false
+        width: 28 height: 28
+        text: "\u{f130}"
+        draw_text: {
+            text_style +: theme.font_icons {
+                font_size: 13.
+            }
+            color: #x333
+            color_hover: #x111
+            color_focus: #x111
+            color_down: #x000
+        }
+        draw_bg: {
+            color_down: #x0000
+            radius: 7.
+            border_size: 0.
+        }
+    }
+
+    let SendControls = View {
+        width: Fit height: Fit
+        align: Align{x: 0.5 y: 0.5}
         spacing: 10
-        stt = <SttButton> {}
-        audio = <AudioButton> {}
-        submit = <SubmitButton> {}
+        stt := SttButton {}
+        audio := AudioButton {}
+        submit := SubmitButton {}
     }
 
-    pub PromptInput = {{PromptInput}} <CommandTextInput> {
-        send_icon: dep("crate://self/resources/send.svg"),
-        stop_icon: dep("crate://self/resources/stop.svg"),
-        height: Fit { max: 350 }
-        persistent = {
+    mod.widgets.PromptInputBase =
+        #(PromptInput::register_widget(vm))
+
+    mod.widgets.PromptInput =
+        set_type_default() do mod.widgets.PromptInputBase
+            CommandTextInput {
+        send_icon: crate_resource("self://resources/send.svg")
+        stop_icon: crate_resource("self://resources/stop.svg")
+        height: Fit
+        persistent: {
             height: Fit
-            padding: {top: 10, bottom: 10, left: 10, right: 10}
+            padding: Inset{top: 10 bottom: 10 left: 10 right: 10}
             draw_bg: {
-                color: #fff,
-                border_radius: 10.0,
-                border_color: #D0D5DD,
-                border_size: 1.0,
+                color: #xfff
+                radius: 10.0
+                border_color: #xD0D5DD
+                border_size: 1.0
             }
-            top = {
+            top: {
                 height: Fit
-                attachments = <DenseAttachmentList> {
-                    wrapper = {}
+                attachments := DenseAttachmentList {
+                    wrapper: {}
                 }
             }
-            center = {
+            center: {
                 height: Fit
-                text_input = {
-                    height: Fit {
-                        min: 35
-                        max: 180
-                    }
+                text_input: {
+                    height: Fit
                     width: Fill
-                    empty_text: "Start typing...",
+                    empty_text: "Start typing..."
                     draw_bg: {
-                        fn pixel(self) -> vec4 {
-                            return vec4(0.);
+                        pixel: fn() {
+                            return vec4(0.)
                         }
                     }
                     draw_text: {
-                        color: #000
-                        color_hover: #000
-                        color_focus: #000
-                        color_empty: #98A2B3
-                        color_empty_focus: #98A2B3
-                        text_style: {font_size: 11}
+                        color: #x000
+                        color_hover: #x000
+                        color_focus: #x000
+                        color_empty: #x98A2B3
+                        color_empty_focus: #x98A2B3
+                        text_style +: {font_size: 11}
                     }
                     draw_selection: {
-                        color: #d9e7e9
-                        color_hover: #d9e7e9
-                        color_focus: #d9e7e9
+                        color: #xd9e7e9
+                        color_hover: #xd9e7e9
+                        color_focus: #xd9e7e9
                     }
                     draw_cursor: {
-                        color: #000
+                        color: #x000
                     }
                 }
-                right = {
-                    // In mobile, show the send controsl here, right to the input
+                right: {
+                    // In mobile, show the send controls here
                 }
             }
-            bottom = {
+            bottom: {
                 height: Fit
-                left = <View> {
-                    width: Fit, height: Fit
-                    align: {x: 0.0, y: 0.5}
-                    attach = <AttachButton> {}
-                    model_selector = <ModelSelector> {}
+                left := View {
+                    width: Fit height: Fit
+                    align: Align{x: 0.0 y: 0.5}
+                    attach := AttachButton {}
+                    model_selector := ModelSelector {}
                 }
-                width: Fill, height: Fit
-                separator = <View> { width: Fill, height: 1}
-                <SendControls> {}
+                width: Fill height: Fit
+                separator := View {width: Fill height: 1}
+                SendControls {}
             }
         }
     }
 }
 
+/// Whether the submit button should send a message or stop streaming.
 #[derive(Default, Copy, Clone, PartialEq)]
 pub enum Task {
     #[default]
@@ -203,6 +200,7 @@ pub enum Task {
     Stop,
 }
 
+/// Whether the prompt input accepts user interaction.
 #[derive(Default, Copy, Clone, PartialEq)]
 pub enum Interactivity {
     #[default]
@@ -212,37 +210,40 @@ pub enum Interactivity {
 
 /// A prepared text input for conversation with bots.
 ///
-/// This is mostly a dummy widget. Prefer using and adapting [crate::widgets::chat::Chat] instead.
-#[derive(Live, Widget)]
+/// This is mostly a dummy widget. Prefer using and adapting
+/// [`crate::widgets::chat::Chat`] instead.
+#[derive(Script, Widget)]
 pub struct PromptInput {
     #[deref]
     deref: CommandTextInput,
 
-    /// Icon used by this widget when the task is set to [Task::Send].
-    #[live]
+    /// Icon used when the task is set to [`Task::Send`].
+    #[script]
     pub send_icon: LiveValue,
 
-    /// Icon used by this widget when the task is set to [Task::Stop].
-    #[live]
+    /// Icon used when the task is set to [`Task::Stop`].
+    #[script]
     pub stop_icon: LiveValue,
 
-    /// If this widget should provoke sending a message or stopping the current response.
+    /// Whether this widget should send a message or stop streaming.
     #[rust]
     pub task: Task,
 
-    /// If this widget should be interactive or not.
+    /// Whether this widget should be interactive.
     #[rust]
     pub interactivity: Interactivity,
 
-    /// Capabilities of the currently selected bot
+    /// Capabilities of the currently selected bot.
     #[rust]
     pub bot_capabilities: Option<BotCapabilities>,
 }
 
-impl LiveHook for PromptInput {
+impl ScriptHook for PromptInput {
     #[allow(unused)]
-    fn after_new_from_doc(&mut self, cx: &mut Cx) {
-        self.update_button_visibility(cx);
+    fn on_after_new(&mut self, vm: &mut ScriptVm) {
+        // We can't call update_button_visibility here because we don't
+        // have Cx. The visibility will be updated on the first draw or
+        // when capabilities are set.
     }
 }
 
@@ -259,7 +260,7 @@ impl Widget for PromptInput {
         self.deref.handle_event(cx, event, scope);
         self.ui_runner().handle(cx, event, scope, self);
 
-        if self.button(ids!(attach)).clicked(event.actions()) {
+        if self.button(cx, ids!(attach)).clicked(event.actions()) {
             let ui = self.ui_runner();
             Attachment::pick_multiple(move |result| match result {
                 Ok(attachments) => {
@@ -277,52 +278,42 @@ impl Widget for PromptInput {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        let button = self.button(ids!(submit));
+        let button = self.button(cx, ids!(submit));
 
         match self.task {
             Task::Send => {
-                button.apply_over(
-                    cx,
-                    live! {
-                        draw_icon: {
-                            svg_file: (self.send_icon),
-                        }
-                    },
-                );
+                let icon = self.send_icon.clone();
+                script_apply_eval!(cx, button, {
+                    draw_icon: {
+                        svg_file: #(icon)
+                    }
+                });
             }
             Task::Stop => {
-                button.apply_over(
-                    cx,
-                    live! {
-                        draw_icon: {
-                            svg_file: (self.stop_icon),
-                        }
-                    },
-                );
+                let icon = self.stop_icon.clone();
+                script_apply_eval!(cx, button, {
+                    draw_icon: {
+                        svg_file: #(icon)
+                    }
+                });
             }
         }
 
         match self.interactivity {
             Interactivity::Enabled => {
-                button.apply_over(
-                    cx,
-                    live! {
-                        draw_bg: {
-                            enabled: 1.0
-                        }
-                    },
-                );
+                script_apply_eval!(cx, button, {
+                    draw_bg: {
+                        enabled: 1.0
+                    }
+                });
                 button.set_enabled(cx, true);
             }
             Interactivity::Disabled => {
-                button.apply_over(
-                    cx,
-                    live! {
-                        draw_bg: {
-                            enabled: 0.0
-                        }
-                    },
-                );
+                script_apply_eval!(cx, button, {
+                    draw_bg: {
+                        enabled: 0.0
+                    }
+                });
                 button.set_enabled(cx, false);
             }
         }
@@ -332,7 +323,7 @@ impl Widget for PromptInput {
 }
 
 impl PromptInput {
-    /// Reset this prompt input erasing text, removing attachments, etc.
+    /// Resets this prompt input, erasing text and removing attachments.
     ///
     /// Shadows the [`CommandTextInput::reset`] method.
     pub fn reset(&mut self, cx: &mut Cx) {
@@ -340,31 +331,32 @@ impl PromptInput {
         self.attachment_list_ref().write().attachments.clear();
     }
 
-    /// Check if the submit button or the return key was pressed.
+    /// Returns whether the submit button or the return key was pressed.
     ///
-    /// Note: To know what the button submission means, check [Self::task] or
-    /// the utility methods.
+    /// To know what the submission means, check [`Self::task`].
     pub fn submitted(&self, actions: &Actions) -> bool {
-        let submit = self.button(ids!(submit));
+        let submit = self.button(cx, ids!(submit));
         let input = self.text_input_ref();
         (submit.clicked(actions) || input.returned(actions).is_some())
             && self.interactivity == Interactivity::Enabled
     }
 
+    /// Returns whether the call/audio button was pressed.
     pub fn call_pressed(&self, actions: &Actions) -> bool {
-        self.button(ids!(audio)).clicked(actions)
+        self.button(cx, ids!(audio)).clicked(actions)
     }
 
+    /// Returns whether the STT button was pressed.
     pub fn stt_pressed(&self, actions: &Actions) -> bool {
-        self.button(ids!(stt)).clicked(actions)
+        self.button(cx, ids!(stt)).clicked(actions)
     }
 
-    /// Shorthand to check if [Self::task] is set to [Task::Send].
+    /// Returns whether [`Self::task`] is [`Task::Send`].
     pub fn has_send_task(&self) -> bool {
         self.task == Task::Send
     }
 
-    /// Shorthand to check if [Self::task] is set to [Task::Stop].
+    /// Returns whether [`Self::task`] is [`Task::Stop`].
     pub fn has_stop_task(&self) -> bool {
         self.task == Task::Stop
     }
@@ -379,21 +371,21 @@ impl PromptInput {
         self.interactivity = Interactivity::Disabled;
     }
 
-    /// Shorthand to set [Self::task] to [Task::Send].
+    /// Sets the task to [`Task::Send`].
     pub fn set_send(&mut self) {
         self.task = Task::Send;
     }
 
-    /// Shorthand to set [Self::task] to [Task::Stop].
+    /// Sets the task to [`Task::Stop`].
     pub fn set_stop(&mut self) {
         self.task = Task::Stop;
     }
 
     pub(crate) fn attachment_list_ref(&self) -> AttachmentListRef {
-        self.attachment_list(ids!(attachments))
+        self.attachment_list(cx, ids!(attachments))
     }
 
-    /// Set the chat controller for the model selector
+    /// Sets the chat controller for the model selector.
     pub fn set_chat_controller(
         &mut self,
         controller: Option<
@@ -408,17 +400,17 @@ impl PromptInput {
         }
     }
 
-    /// Set the capabilities of the currently selected bot
+    /// Sets the capabilities of the currently selected bot.
     pub fn set_bot_capabilities(&mut self, cx: &mut Cx, capabilities: Option<BotCapabilities>) {
         self.bot_capabilities = capabilities;
         self.update_button_visibility(cx);
     }
 
+    /// Sets visibility of the STT button.
     pub fn set_stt_visible(&mut self, cx: &mut Cx, visible: bool) {
-        self.button(ids!(stt)).set_visible(cx, visible);
+        self.button(cx, ids!(stt)).set_visible(cx, visible);
     }
 
-    /// Update button visibility based on bot capabilities
     fn update_button_visibility(&mut self, cx: &mut Cx) {
         let supports_attachments = self
             .bot_capabilities
@@ -432,14 +424,13 @@ impl PromptInput {
             .map(|caps| caps.has_capability(&BotCapability::AudioCall))
             .unwrap_or(false);
 
-        // Show attach button only if bot supports attachments AND we're on a supported platform
         #[cfg(any(
             target_os = "windows",
             target_os = "macos",
             target_os = "linux",
             target_arch = "wasm32"
         ))]
-        self.button(ids!(attach))
+        self.button(cx, ids!(attach))
             .set_visible(cx, supports_attachments);
 
         #[cfg(not(any(
@@ -448,15 +439,12 @@ impl PromptInput {
             target_os = "linux",
             target_arch = "wasm32"
         )))]
-        self.button(ids!(attach)).set_visible(cx, false);
+        self.button(cx, ids!(attach)).set_visible(cx, false);
 
-        // Show audio/call button only if bot supports realtime, we're on a supported platform
-        // and realtime feature is enabled
         #[cfg(not(target_arch = "wasm32"))]
-        self.button(ids!(audio)).set_visible(cx, supports_realtime);
+        self.button(cx, ids!(audio)).set_visible(cx, supports_realtime);
 
-        // Hide send button for realtime models since audio button serves same purpose
-        self.button(ids!(submit))
+        self.button(cx, ids!(submit))
             .set_visible(cx, !supports_realtime);
 
         if supports_realtime {
@@ -477,30 +465,30 @@ impl PromptInput {
 }
 
 impl PromptInputRef {
-    /// Immutable access to the underlying [[PromptInput]].
+    /// Immutable access to the underlying [`PromptInput`].
     ///
-    /// Panics if the widget reference is empty or if it's already borrowed.
+    /// Panics if the widget reference is empty or already borrowed.
     pub fn read(&self) -> Ref<'_, PromptInput> {
         self.borrow().unwrap()
     }
 
-    /// Mutable access to the underlying [[PromptInput]].
+    /// Mutable access to the underlying [`PromptInput`].
     ///
-    /// Panics if the widget reference is empty or if it's already borrowed.
+    /// Panics if the widget reference is empty or already borrowed.
     pub fn write(&mut self) -> RefMut<'_, PromptInput> {
         self.borrow_mut().unwrap()
     }
 
-    /// Immutable reader to the underlying [[PromptInput]].
+    /// Immutable reader to the underlying [`PromptInput`].
     ///
-    /// Panics if the widget reference is empty or if it's already borrowed.
+    /// Panics if the widget reference is empty or already borrowed.
     pub fn read_with<R>(&self, f: impl FnOnce(&PromptInput) -> R) -> R {
         f(&*self.read())
     }
 
-    /// Mutable writer to the underlying [[PromptInput]].
+    /// Mutable writer to the underlying [`PromptInput`].
     ///
-    /// Panics if the widget reference is empty or if it's already borrowed.
+    /// Panics if the widget reference is empty or already borrowed.
     pub fn write_with<R>(&mut self, f: impl FnOnce(&mut PromptInput) -> R) -> R {
         f(&mut *self.write())
     }

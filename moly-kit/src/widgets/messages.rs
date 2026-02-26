@@ -20,57 +20,57 @@ use super::{
     standard_message_content::StandardMessageContentWidgetRefExt,
 };
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
-    use link::shaders::*;
+script_mod! {
+    use mod.prelude.widgets_internal.*
+    use mod.widgets.*
+    use mod.moly_kit_theme.*
 
-    use crate::widgets::chat_line::*;
-    use crate::clients::deep_inquire::widgets::deep_inquire_content::*;
+    use crate.widgets.chat_line.*
+    use crate.clients.deep_inquire.widgets.deep_inquire_content.*
 
-    pub Messages = {{Messages}} {
-        flow: Overlay,
+    mod.widgets.MessagesBase = #(Messages::register_widget(vm))
+    mod.widgets.Messages = set_type_default() do mod.widgets.MessagesBase {
+        flow: Overlay
 
-        list = <PortalList> {
+        list := PortalList {
             grab_key_focus: true
-            scroll_bar: {
-                bar_size: 0.0,
+            scroll_bar: ScrollBar {
+                bar_size: 0.0
             }
-            UserLine = <UserLine> {}
-            BotLine = <BotLine> {}
-            LoadingLine = <LoadingLine> {}
-            AppLine = <AppLine> {}
-            ErrorLine = <ErrorLine> {}
-            SystemLine = <SystemLine> {}
-            ToolRequestLine = <ToolRequestLine> {}
-            ToolResultLine = <ToolResultLine> {}
-            Empty = <View> { height: 0 }
+            UserLine: UserLine {}
+            BotLine: BotLine {}
+            LoadingLine: LoadingLine {}
+            AppLine: AppLine {}
+            ErrorLine: ErrorLine {}
+            SystemLine: SystemLine {}
+            ToolRequestLine: ToolRequestLine {}
+            ToolResultLine: ToolResultLine {}
+            Empty: View { height: 0 }
         }
-        <View> {
-            align: {x: 1.0, y: 1.0},
-            jump_to_bottom = <Button> {
-                width: 36,
-                height: 36,
-                margin: {left: 2, right: 2, top: 2, bottom: 10},
-                icon_walk: {
-                    width: 16, height: 16
-                    margin: {left: 4.5, top: 6.5},
+        View {
+            align: Align { x: 1.0 y: 1.0 }
+            jump_to_bottom := Button {
+                width: 36
+                height: 36
+                margin: Inset { left: 2 right: 2 top: 2 bottom: 10 }
+                icon_walk: Walk {
+                    width: 16 height: 16
+                    margin: Inset { left: 4.5 top: 6.5 }
                 }
-                draw_icon: {
-                    svg_file: dep("crate://self/resources/jump_to_bottom.svg")
-                    color: #1C1B1F,
+                draw_icon: DrawIcon {
+                    svg_file: crate_resource("self://resources/jump_to_bottom.svg")
+                    color: #x1C1B1F
                     color_hover: #x0
                 }
-                draw_bg: {
-                    fn pixel(self) -> vec4 {
-                        let sdf = Sdf2d::viewport(self.pos * self.rect_size);
-                        let center = self.rect_size * 0.5;
-                        let radius = min(self.rect_size.x, self.rect_size.y) * 0.5;
+                draw_bg +: DrawQuad {
+                    pixel: fn() {
+                        let sdf = Sdf2d.viewport(self.pos * self.rect_size)
+                        let center = self.rect_size * 0.5
+                        let radius = min(self.rect_size.x, self.rect_size.y) * 0.5
 
-                        sdf.circle(center.x, center.y, radius - 1.0);
-                        sdf.fill_keep(#fff);
-                        sdf.stroke(#EAECF0, 1.5);
+                        sdf.circle(center.x, center.y, radius - 1.0)
+                        sdf.fill_keep(#xfff)
+                        sdf.stroke(#xEAECF0, 1.5)
 
                         return sdf.result
                     }
@@ -83,7 +83,7 @@ live_design! {
 /// Relevant actions that should be handled by a parent.
 ///
 /// If includes an index, it refers to the index of the message in the list.
-#[derive(Debug, PartialEq, Copy, Clone, DefaultNone)]
+#[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub enum MessagesAction {
     /// The message at the given index should be copied.
     Copy(usize),
@@ -104,6 +104,7 @@ pub enum MessagesAction {
     /// The tool request at the given index should be denied.
     ToolDeny(usize),
 
+    #[default]
     None,
 }
 
@@ -126,7 +127,7 @@ pub trait CustomContent {
 /// View over a conversation with messages.
 ///
 /// This is mostly a dummy widget. Prefer using and adapting [crate::widgets::chat::Chat] instead.
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, Widget, ScriptHook)]
 pub struct Messages {
     #[deref]
     deref: View,
@@ -168,7 +169,7 @@ impl Widget for Messages {
         self.deref.handle_event(cx, event, scope);
         self.handle_list(cx, event, scope);
 
-        let jump_to_bottom = self.button(ids!(jump_to_bottom));
+        let jump_to_bottom = self.button(cx, ids!(jump_to_bottom));
 
         if jump_to_bottom.clicked(event.actions()) {
             self.animated_scroll_to_bottom(cx);
@@ -183,7 +184,7 @@ impl Widget for Messages {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        let list = self.portal_list(ids!(list));
+        let list = self.portal_list(cx, ids!(list));
         let list_uid = list.widget_uid();
 
         while let Some(widget) = self.deref.draw_walk(cx, scope, walk).step() {
@@ -286,19 +287,19 @@ impl Messages {
                     let item = if message.metadata.is_writing() {
                         // Show loading animation for system messages that are being written
                         let item = list.item(cx, index, live_id!(LoadingLine));
-                        item.message_loading(ids!(content_section.loading))
+                        item.message_loading(cx, ids!(content_section.loading))
                             .animate(cx);
                         item
                     } else {
                         list.item(cx, index, live_id!(SystemLine))
                     };
 
-                    item.avatar(ids!(avatar)).borrow_mut().unwrap().avatar =
+                    item.avatar(cx, ids!(avatar)).borrow_mut().unwrap().avatar =
                         Some(EntityAvatar::Text("S".into()));
-                    item.label(ids!(name)).set_text(cx, "System");
+                    item.label(cx, ids!(name)).set_text(cx, "System");
 
                     if !message.metadata.is_writing() {
-                        item.slot(ids!(content))
+                        item.slot(cx, ids!(content))
                             .current()
                             .as_standard_message_content()
                             .set_content(cx, &message.content);
@@ -312,19 +313,19 @@ impl Messages {
                     let item = if message.metadata.is_writing() {
                         // Show loading animation for tool execution
                         let item = list.item(cx, index, live_id!(LoadingLine));
-                        item.message_loading(ids!(content_section.loading))
+                        item.message_loading(cx, ids!(content_section.loading))
                             .animate(cx);
                         item
                     } else {
                         list.item(cx, index, live_id!(ToolResultLine))
                     };
 
-                    item.avatar(ids!(avatar)).borrow_mut().unwrap().avatar =
+                    item.avatar(cx, ids!(avatar)).borrow_mut().unwrap().avatar =
                         Some(EntityAvatar::Text("T".into()));
-                    item.label(ids!(name)).set_text(cx, "Tool");
+                    item.label(cx, ids!(name)).set_text(cx, "Tool");
 
                     if !message.metadata.is_writing() {
-                        item.slot(ids!(content))
+                        item.slot(cx, ids!(content))
                             .current()
                             .as_standard_message_content()
                             .set_content(cx, &message.content);
@@ -342,7 +343,7 @@ impl Messages {
                         // - To jump to bottom with proper precision.
 
                         let item = list.item(cx, index, live_id!(Empty));
-                        item.apply_over(cx, live! { height: 0.1 });
+                        script_apply_eval!(cx, item, { height: 0.1 });
                         item.draw_all(cx, &mut Scope::empty());
                         self.is_list_end_drawn = true;
                         item
@@ -372,7 +373,7 @@ impl Messages {
                             - SECOND_LAST_MESSAGE_DRAW_GUARANTEE)
                             .clamp(0.0, f64::INFINITY);
 
-                        item.apply_over(cx, live! { height: (height) });
+                        script_apply_eval!(cx, item, { height: #(height) });
                         item
                     } else if let Some((left, right)) = message.content.text.split_once(':')
                         && let Some("error") = left
@@ -384,15 +385,15 @@ impl Messages {
                         // Handle error messages
 
                         let item = list.item(cx, index, live_id!(ErrorLine));
-                        item.avatar(ids!(avatar)).borrow_mut().unwrap().avatar =
+                        item.avatar(cx, ids!(avatar)).borrow_mut().unwrap().avatar =
                             Some(EntityAvatar::Text("X".into()));
-                        item.label(ids!(name)).set_text(cx, left);
+                        item.label(cx, ids!(name)).set_text(cx, left);
 
                         let error_content = MessageContent {
                             text: right.to_string(),
                             ..Default::default()
                         };
-                        item.slot(ids!(content))
+                        item.slot(cx, ids!(content))
                             .current()
                             .as_standard_message_content()
                             .set_content(cx, &error_content);
@@ -402,7 +403,7 @@ impl Messages {
                         let has_note = !note.is_empty();
 
                         if has_note {
-                            item.label(ids!(error_note)).set_text(cx, note);
+                            item.label(cx, ids!(error_note)).set_text(cx, note);
                         }
 
                         let has_details = message
@@ -411,23 +412,23 @@ impl Messages {
                             .as_ref()
                             .is_some_and(|d| !d.trim().is_empty());
                         let show_section = has_note || has_details;
-                        item.view(ids!(error_details_section))
+                        item.view(cx, ids!(error_details_section))
                             .set_visible(cx, show_section);
-                        item.view(ids!(error_note)).set_visible(cx, has_note);
-                        item.view(ids!(error_details_toggle))
+                        item.view(cx, ids!(error_note)).set_visible(cx, has_note);
+                        item.view(cx, ids!(error_details_toggle))
                             .set_visible(cx, has_details);
 
                         let is_expanded = self.expanded_error_details.contains(&index);
-                        item.view(ids!(error_details)).set_visible(cx, is_expanded);
+                        item.view(cx, ids!(error_details)).set_visible(cx, is_expanded);
                         let toggle_text = if is_expanded {
                             "Hide details"
                         } else {
                             "Show details"
                         };
-                        item.label(ids!(toggle_label)).set_text(cx, toggle_text);
+                        item.label(cx, ids!(toggle_label)).set_text(cx, toggle_text);
 
                         if has_details && is_expanded {
-                            item.label(ids!(details_text))
+                            item.label(cx, ids!(details_text))
                                 .set_text(cx, message.content.data.as_deref().unwrap_or(""));
                         }
 
@@ -436,10 +437,10 @@ impl Messages {
                     } else {
                         // Handle regular app messages
                         let item = list.item(cx, index, live_id!(AppLine));
-                        item.avatar(ids!(avatar)).borrow_mut().unwrap().avatar =
+                        item.avatar(cx, ids!(avatar)).borrow_mut().unwrap().avatar =
                             Some(EntityAvatar::Text("A".into()));
 
-                        item.slot(ids!(content))
+                        item.slot(cx, ids!(content))
                             .current()
                             .as_standard_message_content()
                             .set_content(cx, &message.content);
@@ -451,11 +452,11 @@ impl Messages {
                 EntityId::User => {
                     let item = list.item(cx, index, live_id!(UserLine));
 
-                    item.avatar(ids!(avatar)).borrow_mut().unwrap().avatar =
+                    item.avatar(cx, ids!(avatar)).borrow_mut().unwrap().avatar =
                         Some(EntityAvatar::Text("Y".into()));
-                    item.label(ids!(name)).set_text(cx, "You");
+                    item.label(cx, ids!(name)).set_text(cx, "You");
 
-                    item.slot(ids!(content))
+                    item.slot(cx, ids!(content))
                         .current()
                         .as_standard_message_content()
                         .set_content(cx, &message.content);
@@ -480,7 +481,7 @@ impl Messages {
                     let item =
                         if message.metadata.is_writing() && message.content.is_empty() {
                             let item = list.item(cx, index, live_id!(LoadingLine));
-                            item.message_loading(ids!(content_section.loading))
+                            item.message_loading(cx, ids!(content_section.loading))
                                 .animate(cx);
                             item
                         } else if !message.content.tool_calls.is_empty() {
@@ -496,14 +497,14 @@ impl Messages {
                                 });
 
                             // Show/hide tool actions based on status
-                            item.view(ids!(tool_actions)).set_visible(cx, has_pending);
+                            item.view(cx, ids!(tool_actions)).set_visible(cx, has_pending);
 
                             // Set status text, only show if denied
                             if has_denied {
-                                item.view(ids!(status_view)).set_visible(cx, true);
-                                item.label(ids!(approved_status)).set_text(cx, "Denied");
+                                item.view(cx, ids!(status_view)).set_visible(cx, true);
+                                item.label(cx, ids!(approved_status)).set_text(cx, "Denied");
                             } else {
-                                item.view(ids!(status_view)).set_visible(cx, false);
+                                item.view(cx, ids!(status_view)).set_visible(cx, false);
                             }
 
                             item
@@ -511,10 +512,10 @@ impl Messages {
                             list.item(cx, index, live_id!(BotLine))
                         };
 
-                    item.avatar(ids!(avatar)).borrow_mut().unwrap().avatar = Some(avatar);
-                    item.label(ids!(name)).set_text(cx, name.as_str());
+                    item.avatar(cx, ids!(avatar)).borrow_mut().unwrap().avatar = Some(avatar);
+                    item.label(cx, ids!(name)).set_text(cx, name.as_str());
 
-                    let mut slot = item.slot(ids!(content));
+                    let mut slot = item.slot(cx, ids!(content));
                     if let Some(custom_content) = self
                         .custom_contents
                         .iter_mut()
@@ -569,7 +570,7 @@ impl Messages {
             assert!(message.content.text.starts_with("FIL"));
         }
 
-        self.button(ids!(jump_to_bottom))
+        self.button(cx, ids!(jump_to_bottom))
             .set_visible(cx, !self.is_at_bottom());
     }
 
@@ -586,7 +587,7 @@ impl Messages {
             .expect("no chat controller set");
 
         if chat_controller.lock().unwrap().state().messages.len() > 0 {
-            let list = self.portal_list(ids!(list));
+            let list = self.portal_list(cx, ids!(list));
 
             // Use immediate scroll instead of smooth scroll to prevent continuous scroll actions
             list.set_first_id_and_scroll(
@@ -622,7 +623,7 @@ impl Messages {
             .expect("no chat controller set");
 
         if chat_controller.lock().unwrap().state().messages.len() > 0 {
-            let list = self.portal_list(ids!(list));
+            let list = self.portal_list(cx, ids!(list));
             list.smooth_scroll_to_end(cx, 100.0, None);
         }
     }
@@ -658,8 +659,8 @@ impl Messages {
     pub fn current_editor_text(&self) -> Option<String> {
         self.current_editor
             .as_ref()
-            .and_then(|editor| self.portal_list(ids!(list)).get_item(editor.index))
-            .map(|(_id, widget)| widget.text_input(ids!(input)).text())
+            .and_then(|editor| self.portal_list(cx, ids!(list)).get_item(editor.index))
+            .map(|(_id, widget)| widget.text_input(cx, ids!(input)).text())
     }
 
     /// If currently editing a message, this will return the index of the message.
@@ -672,7 +673,7 @@ impl Messages {
             return;
         };
 
-        let list = self.portal_list(ids!(list));
+        let list = self.portal_list(cx, ids!(list));
         let range = range.0..=range.1;
 
         // Handle item actions
@@ -682,14 +683,12 @@ impl Messages {
                     ChatLineAction::Copy => {
                         cx.widget_action(
                             self.widget_uid(),
-                            &scope.path,
                             MessagesAction::Copy(index),
                         );
                     }
                     ChatLineAction::Delete => {
                         cx.widget_action(
                             self.widget_uid(),
-                            &scope.path,
                             MessagesAction::Delete(index),
                         );
                     }
@@ -704,33 +703,29 @@ impl Messages {
                     ChatLineAction::Save => {
                         cx.widget_action(
                             self.widget_uid(),
-                            &scope.path,
                             MessagesAction::EditSave(index),
                         );
                     }
                     ChatLineAction::SaveAndRegenerate => {
                         cx.widget_action(
                             self.widget_uid(),
-                            &scope.path,
                             MessagesAction::EditRegenerate(index),
                         );
                     }
                     ChatLineAction::ToolApprove => {
                         cx.widget_action(
                             self.widget_uid(),
-                            &scope.path,
                             MessagesAction::ToolApprove(index),
                         );
                     }
                     ChatLineAction::ToolDeny => {
                         cx.widget_action(
                             self.widget_uid(),
-                            &scope.path,
                             MessagesAction::ToolDeny(index),
                         );
                     }
                     ChatLineAction::EditorChanged => {
-                        let text = item.text_input(ids!(input)).text();
+                        let text = item.text_input(cx, ids!(input)).text();
                         self.current_editor.as_mut().unwrap().buffer = text;
                     }
                     ChatLineAction::ErrorDetailsToggle => {
@@ -757,9 +752,9 @@ impl Messages {
     }
 
     fn apply_editor_visibility(&mut self, cx: &mut Cx, widget: &WidgetRef, index: usize) {
-        let editor = widget.view(ids!(editor));
-        let edit_actions = widget.view(ids!(edit_actions));
-        let content_section = widget.view(ids!(content_section));
+        let editor = widget.view(cx, ids!(editor));
+        let edit_actions = widget.view(cx, ids!(edit_actions));
+        let content_section = widget.view(cx, ids!(content_section));
 
         let is_current_editor = self.current_editor.as_ref().map(|e| e.index) == Some(index);
 
@@ -769,7 +764,7 @@ impl Messages {
 
         if is_current_editor {
             editor
-                .text_input(ids!(input))
+                .text_input(cx, ids!(input))
                 .set_text(cx, &self.current_editor.as_ref().unwrap().buffer);
         }
     }

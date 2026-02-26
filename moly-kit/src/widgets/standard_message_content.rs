@@ -12,30 +12,27 @@ use super::{
     citation_list::CitationListWidgetExt, message_thinking_block::MessageThinkingBlockWidgetExt,
 };
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
+script_mod! {
+    use mod.prelude.widgets_internal.*
+    use mod.widgets.*
 
-    use crate::widgets::message_thinking_block::*;
-    use crate::widgets::message_markdown::*;
-    use crate::widgets::citation_list::*;
-    use crate::widgets::attachment_list::*;
-    use crate::widgets::attachment_viewer_modal::*;
+    mod.widgets.StandardMessageContentBase =
+        #(StandardMessageContent::register_widget(vm))
 
-    pub StandardMessageContent = {{StandardMessageContent}} {
+    mod.widgets.StandardMessageContent =
+        set_type_default() do mod.widgets.StandardMessageContentBase {
         flow: Down
-        height: Fit,
+        height: Fit
         spacing: 5
-        thinking_block = <MessageThinkingBlock> {}
-        markdown = <MessageMarkdown> {}
-        citations = <CitationList> { visible: false }
-        attachments = <AttachmentList> {}
-        attachment_viewer_modal = <AttachmentViewerModal> {}
+        thinking_block := MessageThinkingBlock {}
+        markdown := MessageMarkdown {}
+        citations := CitationList {visible: false}
+        attachments := AttachmentList {}
+        attachment_viewer_modal := AttachmentViewerModal {}
     }
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, Widget, ScriptHook)]
 pub struct StandardMessageContent {
     #[deref]
     deref: View,
@@ -53,8 +50,8 @@ impl Widget for StandardMessageContent {
 }
 
 /// Converts LaTeX bracket math delimiters to dollar-sign delimiters.
-/// - `\(...\)` → `$...$` (inline math)
-/// - `\[...\]` → `$$...$$` (display math)
+/// - `\(...\)` -> `$...$` (inline math)
+/// - `\[...\]` -> `$$...$$` (display math)
 fn convert_math_delimiters(text: &str) -> String {
     text.replace(r"\(", "$")
         .replace(r"\)", "$")
@@ -69,14 +66,13 @@ impl StandardMessageContent {
         content: &MessageContent,
         metadata: &MessageMetadata,
     ) {
-        /// String to add as suffix to the message text when its being typed.
         const TYPING_INDICATOR: &str = "●";
 
-        let citation_list = self.citation_list(ids!(citations));
+        let citation_list = self.citation_list(cx, ids!(citations));
         citation_list.borrow_mut().unwrap().urls = content.citations.clone();
         citation_list.borrow_mut().unwrap().visible = !content.citations.is_empty();
 
-        let mut attachments = self.attachment_list(ids!(attachments));
+        let mut attachments = self.attachment_list(cx, ids!(attachments));
         attachments.write().attachments = content.attachments.clone();
 
         let ui = self.ui_runner();
@@ -84,7 +80,7 @@ impl StandardMessageContent {
             if let Some(attachment) = list.attachments.get(index).cloned() {
                 if crate::widgets::attachment_view::can_preview(&attachment) {
                     ui.defer(move |me, cx, _| {
-                        let modal = me.attachment_viewer_modal(ids!(attachment_viewer_modal));
+                        let modal = me.attachment_viewer_modal(cx, ids!(attachment_viewer_modal));
                         modal.borrow_mut().unwrap().open(cx, attachment);
                     });
                 } else {
@@ -93,12 +89,12 @@ impl StandardMessageContent {
             }
         });
 
-        self.message_thinking_block(ids!(thinking_block))
+        self.message_thinking_block(cx, ids!(thinking_block))
             .borrow_mut()
             .unwrap()
             .set_content(cx, content, metadata);
 
-        let markdown = self.label(ids!(markdown));
+        let markdown = self.label(cx, ids!(markdown));
 
         if metadata.is_writing() {
             let text_with_typing = format!("{} {}", content.text, TYPING_INDICATOR);
@@ -112,7 +108,6 @@ impl StandardMessageContent {
     }
 
     fn generate_tool_calls_text(content: &MessageContent) -> String {
-        // Create enhanced text that includes tool calls
         if !content.tool_calls.is_empty() {
             let mut text = content.text.clone();
 
@@ -168,8 +163,8 @@ impl StandardMessageContent {
         self.set_content_impl(cx, content, &MessageMetadata::new());
     }
 
-    /// Same as [`set_content`], but also passes down metadata which is required
-    /// by certain features.
+    /// Same as [`set_content`], but also passes down metadata which is
+    /// required by certain features.
     pub fn set_content_with_metadata(
         &mut self,
         cx: &mut Cx,

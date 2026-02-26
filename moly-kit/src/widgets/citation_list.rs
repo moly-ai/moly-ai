@@ -2,30 +2,26 @@ use makepad_widgets::*;
 
 use super::citation::CitationWidgetRefExt;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
+script_mod! {
+    use mod.prelude.widgets_internal.*
+    use mod.widgets.*
 
-    use crate::widgets::citation::*;
+    mod.widgets.CitationListBase = #(CitationList::register_widget(vm))
 
-    pub CitationList = {{CitationList}} {
-        width: Fill,
-        height: Fit,
-        list = <PortalList> {
-            flow: Right,
-            width: Fill,
+    mod.widgets.CitationList = set_type_default() do mod.widgets.CitationListBase {
+        width: Fill
+        height: Fit
+        list := PortalList {
+            flow: Right
+            width: Fill
             // Fit doesn't work here.
-            height: 50,
-            Citation = <Citation> {
-                // spacing on parent doesn't work
-                margin: {right: 8},
-            }
+            height: 50
+            Citation := Citation {}
         }
     }
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, Widget, ScriptHook)]
 pub struct CitationList {
     #[deref]
     deref: View,
@@ -36,7 +32,7 @@ pub struct CitationList {
 
 impl Widget for CitationList {
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        let list_uid = self.portal_list(ids!(list)).widget_uid();
+        let list_uid = self.portal_list(cx, ids!(list)).widget_uid();
         while let Some(widget) = self.deref.draw_walk(cx, scope, walk).step() {
             if widget.widget_uid() == list_uid {
                 self.draw_list(cx, &mut *widget.as_portal_list().borrow_mut().unwrap());
@@ -59,7 +55,7 @@ impl CitationList {
                 continue;
             }
 
-            let item = list.item(cx, index, live_id!(Citation));
+            let item = list.item(cx, index, id!(Citation));
             item.as_citation()
                 .borrow_mut()
                 .unwrap()

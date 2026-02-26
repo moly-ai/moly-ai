@@ -1,15 +1,16 @@
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
+script_mod! {
+    use mod.prelude.widgets_internal.*
+    use mod.widgets.*
 
-    pub Slot = {{Slot}} {}
+    mod.widgets.SlotBase = #(Slot::register_widget(vm))
+
+    mod.widgets.Slot = set_type_default() do mod.widgets.SlotBase {}
 }
 
 /// A wrapper widget whose content can be replaced from Rust.
-#[derive(Live, Widget)]
+#[derive(Script, Widget)]
 pub struct Slot {
     #[wrap]
     wrap: WidgetRef,
@@ -31,8 +32,8 @@ impl Widget for Slot {
     }
 }
 
-impl LiveHook for Slot {
-    fn after_new_from_doc(&mut self, _cx: &mut Cx) {
+impl ScriptHook for Slot {
+    fn on_after_new(&mut self, _vm: &mut ScriptVm) {
         self.wrap = self.default.clone();
     }
 }

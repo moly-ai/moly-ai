@@ -1,56 +1,61 @@
 use crate::{aitk::protocol::*, widgets::attachment_view::AttachmentViewWidgetRefExt};
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
+script_mod! {
+    use mod.prelude.widgets_internal.*
+    use mod.widgets.*
 
-    use crate::widgets::attachment_view::*;
+    let ITEM_HEIGHT = 200.0
+    let ITEM_WIDTH = 200.0
+    let ITEM_RADIUS = 8.0
 
-    ITEM_HEIGHT = 200.0;
-    ITEM_WIDTH = (ITEM_HEIGHT);
-    ITEM_RADIUS = 8.0;
+    let DENSE_ITEM_HEIGHT = 100.0
+    let DENSE_ITEM_WIDTH = 100.0
+    let DENSE_ITEM_RADIUS = 6.0
 
-    DENSE_ITEM_HEIGHT = (ITEM_HEIGHT * 0.5);
-    DENSE_ITEM_WIDTH = (ITEM_WIDTH * 0.5);
-    DENSE_ITEM_RADIUS = (ITEM_RADIUS * 0.75);
+    mod.widgets.ItemViewBase =
+        #(ItemView::register_widget(vm))
 
-
-    ItemView = {{ItemView}} <RoundedView> {
-        height: (ITEM_HEIGHT),
-        width: (ITEM_WIDTH),
-        margin: {right: 4},
-        cursor: Hand,
+    mod.widgets.ItemView =
+        set_type_default() do mod.widgets.ItemViewBase RoundedView {
+        height: 200.0
+        width: 200.0
+        margin: Inset{right: 4}
+        cursor: MouseCursor.Hand
         draw_bg: {
-            border_radius: (ITEM_RADIUS),
-            border_color: #D0D5DD,
-            border_size: 1.0,
+            radius: 8.0
+            border_color: #xD0D5DD
+            border_size: 1.0
         }
     }
 
-    pub AttachmentList = {{AttachmentList}} {
-        height: Fit,
-        // The wrapper is just to control visibility. If we put this in the main widget,
-        // `draw_walk` will not run at all, making visibility binding harder.
-        wrapper = <View> {
-            visible: false,
-            height: Fit,
-            list = <PortalList> {
-                flow: Right,
-                height: (ITEM_HEIGHT),
+    mod.widgets.AttachmentListBase =
+        #(AttachmentList::register_widget(vm))
+
+    mod.widgets.AttachmentList =
+        set_type_default() do mod.widgets.AttachmentListBase {
+        height: Fit
+        // The wrapper is just to control visibility. If we put this in the
+        // main widget, `draw_walk` will not run at all, making visibility
+        // binding harder.
+        wrapper := View {
+            visible: false
+            height: Fit
+            list := PortalList {
+                flow: Right
+                height: 200.0
                 scroll_bar: {bar_size: 0.0}
 
-                File = <ItemView> {
-                    preview_wrapper = <CachedRoundedView> {
+                File: ItemView {
+                    preview_wrapper := CachedRoundedView {
                         draw_bg: {
-                            border_radius: (ITEM_RADIUS),
+                            radius: 8.0
                         }
-                        preview = <AttachmentView> {
-                            image_wrapper = {
-                                image = {contain: false}
+                        preview := AttachmentView {
+                            image_wrapper: {
+                                image: {contain: false}
                             }
-                            tag_wrapper = {visible: true}
+                            tag_wrapper: {visible: true}
                         }
                     }
                 }
@@ -58,19 +63,19 @@ live_design! {
         }
     }
 
-    pub DenseAttachmentList = <AttachmentList> {
-        wrapper = {
-            list = {
-                height: (DENSE_ITEM_HEIGHT),
-                File = {
-                    height: (DENSE_ITEM_HEIGHT),
-                    width: (DENSE_ITEM_WIDTH),
+    mod.widgets.DenseAttachmentList = AttachmentList {
+        wrapper: {
+            list: {
+                height: 100.0
+                File: {
+                    height: 100.0
+                    width: 100.0
                     draw_bg: {
-                        border_radius: (DENSE_ITEM_RADIUS),
+                        radius: 6.0
                     }
-                    preview_wrapper = {
+                    preview_wrapper: {
                         draw_bg: {
-                            border_radius: (DENSE_ITEM_RADIUS),
+                            radius: 6.0
                         }
                     }
                 }
@@ -79,13 +84,11 @@ live_design! {
     }
 }
 
-// Note: Makepad widget macro doesn't let me use `pub(crate)` on the widget struct.
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, Widget, ScriptHook)]
 pub struct AttachmentList {
     #[deref]
     deref: View,
 
-    // Note: The macro is not letting me use `pub(crate)`.
     #[rust]
     pub attachments: Vec<Attachment>,
 
@@ -95,11 +98,11 @@ pub struct AttachmentList {
 
 impl Widget for AttachmentList {
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        self.view(ids!(wrapper))
+        self.view(cx, ids!(wrapper))
             .set_visible(cx, !self.attachments.is_empty());
 
         let attachments_count = self.attachments.len();
-        let list = self.portal_list(ids!(list));
+        let list = self.portal_list(cx, ids!(list));
         while let Some(widget) = self.deref.draw_walk(cx, scope, walk).step() {
             if widget.widget_uid() == list.widget_uid() {
                 let mut list = list.borrow_mut().unwrap();
@@ -112,12 +115,11 @@ impl Widget for AttachmentList {
                     let attachment = &self.attachments[index];
                     let item = list.item(cx, index, live_id!(File));
 
-                    item.attachment_view(ids!(preview))
+                    item.attachment_view(cx, ids!(preview))
                         .borrow_mut()
                         .unwrap()
                         .set_attachment(cx, attachment.clone());
 
-                    // Tired of fighthing an event bubbling issue for an internal widget...
                     let ui = self.ui_runner();
                     item.as_item_view().borrow_mut().unwrap().on_tap = Some(Box::new(move || {
                         ui.defer_with_redraw(move |me, _, _| {
@@ -143,6 +145,7 @@ impl Widget for AttachmentList {
 }
 
 impl AttachmentList {
+    /// Sets a callback invoked when an attachment item is tapped.
     pub fn on_tap<F>(&mut self, f: F)
     where
         F: FnMut(&mut AttachmentList, usize) + 'static,
@@ -152,14 +155,14 @@ impl AttachmentList {
 }
 
 impl AttachmentListRef {
-    /// Immutable access to the underlying [[AttachmentList]].
+    /// Immutable access to the underlying [`AttachmentList`].
     ///
     /// Panics if the widget reference is empty or if it's already borrowed.
     pub fn read(&self) -> std::cell::Ref<'_, AttachmentList> {
         self.borrow().unwrap()
     }
 
-    /// Mutable access to the underlying [[AttachmentList]].
+    /// Mutable access to the underlying [`AttachmentList`].
     ///
     /// Panics if the widget reference is empty or if it's already borrowed.
     pub fn write(&mut self) -> std::cell::RefMut<'_, AttachmentList> {
@@ -167,7 +170,7 @@ impl AttachmentListRef {
     }
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, Widget, ScriptHook)]
 struct ItemView {
     #[deref]
     deref: View,

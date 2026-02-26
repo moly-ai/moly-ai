@@ -12,24 +12,22 @@ const OPEN_AI_REALTIME_KEY: Option<&str> = option_env!("OPEN_AI_REALTIME_KEY");
 const OPEN_ROUTER_KEY: Option<&str> = option_env!("OPEN_ROUTER_KEY");
 const SILICON_FLOW_KEY: Option<&str> = option_env!("SILICON_FLOW_KEY");
 
-live_design!(
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    use moly_kit::widgets::chat::Chat;
-    use crate::bot_selector::*;
+    use moly_kit.widgets.chat.Chat
 
-    pub DemoChat = {{DemoChat}} {
-        flow: Down,
-        padding: 12,
-        spacing: 12,
+    mod.widgets.DemoChatBase = #(DemoChat::register_widget(vm))
+    mod.widgets.DemoChat = set_type_default() do mod.widgets.DemoChatBase {
+        flow: Down
+        padding: 12
+        spacing: 12
 
-        chat = <Chat> { }
+        chat := Chat {}
     }
-);
+}
 
-#[derive(Live, Widget)]
+#[derive(Script, Widget)]
 pub struct DemoChat {
     #[deref]
     deref: View,
@@ -53,9 +51,9 @@ impl Widget for DemoChat {
     }
 }
 
-impl LiveHook for DemoChat {
-    fn after_new_from_doc(&mut self, cx: &mut Cx) {
-        // Setup some hooks as an example of how to use them.
+impl ScriptHook for DemoChat {
+    fn on_after_new(&mut self, vm: &mut ScriptVm) {
+        let cx = vm.cx_mut();
         self.setup_chat_hooks();
         self.setup_chat_controller(cx);
     }

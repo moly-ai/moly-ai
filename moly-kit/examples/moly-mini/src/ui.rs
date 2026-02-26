@@ -2,45 +2,24 @@ use crate::demo_chat::DemoChatWidgetExt;
 use makepad_widgets::*;
 use moly_kit::prelude::*;
 
-live_design!(
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    use crate::demo_chat::*;
+    use crate.demo_chat.*
 
-    pub Ui = {{Ui}} <Window> {
-        align: {x: 0.5, y: 0.5}
-        pass: { clear_color: #fff }
+    mod.widgets.UiBase = #(Ui::register_widget(vm))
+    mod.widgets.Ui = set_type_default() do mod.widgets.UiBase {
+        align: Align { x: 0.5 y: 0.5 }
+        pass: Pass { clear_color: #xfff }
 
-        // caption_bar = {
-        //     caption_label = {
-        //         // remove the default label
-        //         label = <Label> {}
-        //         <View> {
-        //             width: Fill,
-        //             align: {x: 0.5, y: 0.5},
-        //             <Label> {
-        //                 text: "moly-mini"
-        //                 draw_text: {
-        //                     color: #000
-        //                 }
-        //             }
-        //         }
-        //     }
-
-        //     visible: true,
-        // }
-
-        body = <View> {
-            padding: {top: 40}
-            // chat_1 = <DemoChat> {}
-            chat_2 = <DemoChat> {}
+        body := View {
+            padding: Inset { top: 40 }
+            chat_2 := mod.widgets.DemoChat {}
         }
     }
-);
+}
 
-#[derive(Live, Widget)]
+#[derive(Script, Widget)]
 pub struct Ui {
     #[deref]
     deref: Window,
@@ -99,17 +78,8 @@ impl Widget for Ui {
             .take(1)
             .flatten()
             .collect::<Vec<_>>();
-
-            // self.demo_chat(ids!(chat_2))
-            //     .chat(ids!(chat))
-            //     .borrow()
-            //     .unwrap()
-            //     .messages_ref()
-            //     .borrow_mut()
-            //     .unwrap()
-            //     .messages = messages;
         }
     }
 }
 
-impl LiveHook for Ui {}
+impl ScriptHook for Ui {}
