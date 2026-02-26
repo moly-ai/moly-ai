@@ -342,7 +342,7 @@ impl Messages {
                         // - Knowing if the end of the list has been reached.
                         // - To jump to bottom with proper precision.
 
-                        let item = list.item(cx, index, live_id!(Empty));
+                        let mut item = list.item(cx, index, live_id!(Empty));
                         script_apply_eval!(cx, item, { height: 0.1 });
                         item.draw_all(cx, &mut Scope::empty());
                         self.is_list_end_drawn = true;
@@ -352,7 +352,7 @@ impl Messages {
 
                         did_filler_draw = true;
 
-                        let item = list.item(cx, index, live_id!(Empty));
+                        let mut item = list.item(cx, index, live_id!(Empty));
 
                         const MAX_SECOND_LAST_MESSAGE_VISIBILITY: f64 = 100.0;
                         const SECOND_LAST_MESSAGE_DRAW_GUARANTEE: f64 = 1.0;
@@ -656,7 +656,7 @@ impl Messages {
     }
 
     /// If currently editing a message, this will return the text in it's editor.
-    pub fn current_editor_text(&self) -> Option<String> {
+    pub fn current_editor_text(&self, cx: &Cx) -> Option<String> {
         self.current_editor
             .as_ref()
             .and_then(|editor| self.portal_list(cx, ids!(list)).get_item(editor.index))
@@ -739,16 +739,10 @@ impl Messages {
             }
         }
 
-        // Handle code copy
-        // Since the Markdown widget could have multiple code blocks, we need the widget that triggered the action
-        if let Some(wa) = event.actions().widget_action(ids!(copy_code_button)) {
-            if wa.widget().as_button().pressed(event.actions()) {
-                // nth(2) refers to the code view in the MessageMarkdown widget
-                let code_view = wa.widget_nth(2).widget(ids!(code_view));
-                let text_to_copy = code_view.as_code_view().text();
-                cx.copy_to_clipboard(&text_to_copy);
-            }
-        }
+        // TODO: Re-implement code block copy button.
+        // The old widget_action(ids!(...)) API is gone. The new Markdown
+        // widget supports text selection + Cmd/Ctrl+C but doesn't yet
+        // provide a per-block copy button action.
     }
 
     fn apply_editor_visibility(&mut self, cx: &mut Cx, widget: &WidgetRef, index: usize) {

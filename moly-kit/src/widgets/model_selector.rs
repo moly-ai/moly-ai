@@ -232,7 +232,7 @@ impl Widget for ModelSelector {
 
         if let Some(controller) = &self.chat_controller
             && let Some(mut list) = self
-                .widget(ids!(options.list_container.list))
+                .widget(cx, ids!(options.list_container.list))
                 .borrow_mut::<ModelSelectorList>()
             && Arc::as_ptr(controller)
                 != list
@@ -260,7 +260,7 @@ impl WidgetMatchEvent for ModelSelector {
             .changed(actions)
         {
             if let Some(mut list) = self
-                .widget(ids!(options.list_container.list))
+                .widget(cx, ids!(options.list_container.list))
                 .borrow_mut::<ModelSelectorList>()
             {
                 list.search_filter = text;
@@ -270,7 +270,7 @@ impl WidgetMatchEvent for ModelSelector {
         }
 
         let list_widget =
-            self.widget(ids!(options.list_container.list));
+            self.widget(cx, ids!(options.list_container.list));
         for action in actions {
             let Some(action) = action.as_widget_action() else {
                 continue;
@@ -338,7 +338,7 @@ impl ModelSelector {
             bg_view_visible = true;
         }
 
-        let modal = self.moly_modal(cx, ids!(modal));
+        let mut modal = self.moly_modal(cx, ids!(modal));
 
         let bg_visible = bg_view_visible;
         let margin = Inset {
@@ -385,7 +385,7 @@ impl ModelSelector {
 
     fn clear_search(&mut self, cx: &mut Cx) {
         if let Some(mut list) = self
-            .widget(ids!(options.list_container.list))
+            .widget(cx, ids!(options.list_container.list))
             .borrow_mut::<ModelSelectorList>()
         {
             list.search_filter.clear();
@@ -414,13 +414,13 @@ impl ModelSelectorRef {
     /// By default, bots are grouped by their provider (extracted from
     /// BotId). Applications can provide a custom grouping function to add
     /// provider icons, custom display names, or different grouping logic.
-    pub fn set_grouping<F>(&mut self, grouping: F)
+    pub fn set_grouping<F>(&mut self, cx: &Cx, grouping: F)
     where
         F: Fn(&Bot) -> BotGroup + 'static,
     {
         if let Some(inner) = self.borrow_mut() {
             if let Some(mut list) = inner
-                .widget(ids!(options.list_container.list))
+                .widget(cx, ids!(options.list_container.list))
                 .borrow_mut::<ModelSelectorList>()
             {
                 list.grouping = Box::new(grouping);

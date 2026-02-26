@@ -272,7 +272,7 @@ impl Drop for ChatView {
 
 impl Widget for ChatView {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
-        self.bind_bot_context(scope);
+        self.bind_bot_context(cx, scope);
         self.configure_stt(scope, cx);
 
         self.ui_runner().handle(cx, event, scope, self);
@@ -283,7 +283,7 @@ impl Widget for ChatView {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        self.bind_bot_context(scope);
+        self.bind_bot_context(cx, scope);
 
         // Sync bot_id from Store to Controller on first draw
         if !self.initial_bot_synced {
@@ -510,7 +510,7 @@ impl ChatView {
         }
     }
 
-    pub fn bind_bot_context(&mut self, scope: &mut Scope) {
+    pub fn bind_bot_context(&mut self, cx: &Cx, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
 
         let store_bot_context_id = store.bot_context.as_ref().map(|bc| bc.id());
@@ -555,10 +555,10 @@ impl ChatView {
             // Set grouping on the ModelSelector inside PromptInput
             let chat = self.chat(ids!(chat));
             chat.read()
-                .prompt_input_ref()
-                .widget(ids!(model_selector))
+                .prompt_input_ref(cx)
+                .widget(cx, ids!(model_selector))
                 .as_model_selector()
-                .set_grouping(move |bot: &moly_kit::aitk::protocol::Bot| {
+                .set_grouping(cx, move |bot: &moly_kit::aitk::protocol::Bot| {
                     bot_groups
                         .get(&bot.id)
                         .cloned()
@@ -569,7 +569,7 @@ impl ChatView {
             let chat = self.chat(ids!(chat));
             if let Some(mut list) = chat
                 .read()
-                .prompt_input_ref()
+                .prompt_input_ref(cx)
                 .widget(ids!(model_selector.options.list_container.list))
                 .borrow_mut::<moly_kit::widgets::model_selector_list::ModelSelectorList>()
             {
@@ -592,7 +592,7 @@ impl ChatView {
         if let Some(stt_config) = self.stt_config.pull(store.preferences.stt_config()) {
             if !stt_config.enabled || stt_config.url.is_empty() || stt_config.model_name.is_empty()
             {
-                self.chat(ids!(chat)).write().set_stt_utility(None);
+                self.chat(ids!(chat)).write().set_stt_utility(cx, None);
                 self.redraw(cx);
                 return;
             }
@@ -610,7 +610,7 @@ impl ChatView {
 
             self.chat(ids!(chat))
                 .write()
-                .set_stt_utility(Some(stt_utility));
+                .set_stt_utility(cx, Some(stt_utility));
 
             self.redraw(cx);
         }

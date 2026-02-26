@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use makepad_widgets::*;
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 
 use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
@@ -200,13 +201,13 @@ impl DemoChat {
         controller.lock().unwrap().dispatch_task(ChatTask::Load);
 
         self.controller = Some(controller.clone());
-        let mut chat = self.chat(ids!(chat));
+        let mut chat = self.chat(cx, ids!(chat));
         chat.write().set_chat_controller(cx, Some(controller));
 
         if let Some(key) = OPEN_AI_STT_KEY {
             let mut client = OpenAiSttClient::new("https://api.openai.com/v1".to_string());
             let _ = client.set_key(key);
-            chat.write().set_stt_utility(Some(SttUtility {
+            chat.write().set_stt_utility(cx, Some(SttUtility {
                 client: Box::new(client),
                 bot_id: BotId::new("gpt-4o-transcribe"),
             }));
@@ -233,7 +234,7 @@ impl Plugin {
 
         if !state.bots.is_empty() {
             let bots = state.bots.clone();
-            self.ui.defer_with_redraw(move |widget, cx, _scope| {
+            self.ui.defer_with_redraw(move |widget: &mut DemoChat, cx, _scope| {
                 widget.fill_selector(cx, bots);
             });
 

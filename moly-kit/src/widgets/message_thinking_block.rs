@@ -283,9 +283,9 @@ impl MessageThinkingBlock {
     fn toggle_collapse(&mut self, cx: &mut Cx) {
         self.is_expanded = !self.is_expanded;
 
-        let content_ref = self.view(cx, ids!(content));
-        let inner_ref = self.view(cx, ids!(inner));
-        let collapse_ref = self.view(cx, ids!(collapse));
+        let mut content_ref = self.view(cx, ids!(content));
+        let mut inner_ref = self.view(cx, ids!(inner));
+        let mut collapse_ref = self.view(cx, ids!(collapse));
 
         if self.is_expanded {
             script_apply_eval!(cx, content_ref, {

@@ -85,8 +85,8 @@ impl Widget for Chat {
         walk: Walk,
     ) -> DrawStep {
         let has_stt =
-            self.stt_input_ref().read().stt_utility().is_some();
-        self.prompt_input_ref()
+            self.stt_input_ref(cx).read().stt_utility().is_some();
+        self.prompt_input_ref(cx)
             .write()
             .set_stt_visible(cx, has_stt);
 
@@ -96,31 +96,32 @@ impl Widget for Chat {
 
 impl Chat {
     /// Returns the underlying [`PromptInputRef`].
-    pub fn prompt_input_ref(&self) -> PromptInputRef {
+    pub fn prompt_input_ref(&self, cx: &Cx) -> PromptInputRef {
         self.prompt_input(cx, ids!(prompt))
     }
 
     /// Returns the underlying [`MessagesRef`].
-    pub fn messages_ref(&self) -> MessagesRef {
+    pub fn messages_ref(&self, cx: &Cx) -> MessagesRef {
         self.messages(cx, ids!(messages))
     }
 
     /// Returns the underlying [`SttInputRef`].
-    pub fn stt_input_ref(&self) -> SttInputRef {
+    pub fn stt_input_ref(&self, cx: &Cx) -> SttInputRef {
         self.stt_input(cx, ids!(stt_input))
     }
 
     /// Configures the STT utility for speech-to-text.
     pub fn set_stt_utility(
         &mut self,
+        cx: &Cx,
         utility: Option<SttUtility>,
     ) {
-        self.stt_input_ref().write().set_stt_utility(utility);
+        self.stt_input_ref(cx).write().set_stt_utility(utility);
     }
 
     /// Returns a clone of the current STT utility, if any.
-    pub fn stt_utility(&self) -> Option<SttUtility> {
-        self.stt_input_ref().read().stt_utility().cloned()
+    pub fn stt_utility(&self, cx: &Cx) -> Option<SttUtility> {
+        self.stt_input_ref(cx).read().stt_utility().cloned()
     }
 
     fn handle_prompt_input(
@@ -129,29 +130,29 @@ impl Chat {
         event: &Event,
     ) {
         let submitted = self
-            .prompt_input_ref()
+            .prompt_input_ref(cx)
             .read()
-            .submitted(event.actions());
+            .submitted(cx, event.actions());
         if submitted {
             self.handle_submit(cx);
         }
 
         let call_pressed = self
-            .prompt_input_ref()
+            .prompt_input_ref(cx)
             .read()
-            .call_pressed(event.actions());
+            .call_pressed(cx, event.actions());
         if call_pressed {
             self.handle_call(cx);
         }
 
         let stt_pressed = self
-            .prompt_input_ref()
+            .prompt_input_ref(cx)
             .read()
-            .stt_pressed(event.actions());
+            .stt_pressed(cx, event.actions());
         if stt_pressed {
-            self.prompt_input_ref().set_visible(cx, false);
-            self.stt_input_ref().set_visible(cx, true);
-            self.stt_input_ref().write().start_recording(cx);
+            self.prompt_input_ref(cx).set_visible(cx, false);
+            self.stt_input_ref(cx).set_visible(cx, true);
+            self.stt_input_ref(cx).write().start_recording(cx);
             self.redraw(cx);
         }
     }
@@ -162,37 +163,37 @@ impl Chat {
         event: &Event,
     ) {
         let transcription = self
-            .stt_input_ref()
+            .stt_input_ref(cx)
             .read()
             .transcribed(event.actions())
             .map(|s| s.to_string());
 
         if let Some(transcription) = transcription {
-            self.stt_input_ref().set_visible(cx, false);
-            self.prompt_input_ref().set_visible(cx, true);
+            self.stt_input_ref(cx).set_visible(cx, false);
+            self.prompt_input_ref(cx).set_visible(cx, true);
 
-            let mut text = self.prompt_input_ref().text();
+            let mut text = self.prompt_input_ref(cx).text();
             if let Some(last) = text.as_bytes().last()
                 && *last != b' '
             {
                 text.push(' ');
             }
             text.push_str(&transcription);
-            self.prompt_input_ref().set_text(cx, &text);
+            self.prompt_input_ref(cx).set_text(cx, &text);
 
-            self.prompt_input_ref().redraw(cx);
+            self.prompt_input_ref(cx).redraw(cx);
         }
 
         let cancelled =
-            self.stt_input_ref().read().cancelled(event.actions());
+            self.stt_input_ref(cx).read().cancelled(event.actions());
         if cancelled {
-            self.stt_input_ref().set_visible(cx, false);
-            self.prompt_input_ref().set_visible(cx, true);
-            self.prompt_input_ref().redraw(cx);
+            self.stt_input_ref(cx).set_visible(cx, false);
+            self.prompt_input_ref(cx).set_visible(cx, true);
+            self.prompt_input_ref(cx).redraw(cx);
         }
     }
 
-    fn handle_realtime(&mut self, _cx: &mut Cx) {
+    fn handle_realtime(&mut self, cx: &mut Cx) {
         if self.realtime(cx, ids!(realtime)).connection_requested()
             && self
                 .chat_controller
@@ -269,7 +270,7 @@ impl Chat {
                     VecMutation::Set(all_messages),
                 );
 
-                self.messages_ref()
+                self.messages_ref(cx)
                     .write()
                     .instant_scroll_to_bottom(cx);
             }
@@ -286,7 +287,7 @@ impl Chat {
                     .map(|bot| bot.capabilities.clone())
             });
 
-        self.prompt_input_ref()
+        self.prompt_input_ref(cx)
             .write()
             .set_bot_capabilities(cx, capabilities);
     }
@@ -302,7 +303,7 @@ impl Chat {
             };
 
             if action.widget_uid
-                != self.messages_ref().widget_uid()
+                != self.messages_ref(cx).widget_uid()
             {
                 continue;
             }
@@ -331,12 +332,12 @@ impl Chat {
                 }
                 MessagesAction::EditSave(index) => {
                     let text = self
-                        .messages_ref()
+                        .messages_ref(cx)
                         .read()
-                        .current_editor_text()
+                        .current_editor_text(cx)
                         .expect("no editor text");
 
-                    self.messages_ref()
+                    self.messages_ref(cx)
                         .write()
                         .set_message_editor_visibility(
                             index, false,
@@ -369,12 +370,12 @@ impl Chat {
                         .to_vec();
 
                     let text = self
-                        .messages_ref()
+                        .messages_ref(cx)
                         .read()
-                        .current_editor_text()
+                        .current_editor_text(cx)
                         .expect("no editor text");
 
-                    self.messages_ref()
+                    self.messages_ref(cx)
                         .write()
                         .set_message_editor_visibility(
                             index, false,
@@ -505,7 +506,7 @@ impl Chat {
     }
 
     fn handle_submit(&mut self, cx: &mut Cx) {
-        let mut prompt = self.prompt_input_ref();
+        let mut prompt = self.prompt_input_ref(cx);
         let chat_controller =
             self.chat_controller.clone().unwrap();
 
@@ -521,7 +522,7 @@ impl Chat {
             let text = prompt.text();
             let attachments = prompt
                 .read()
-                .attachment_list_ref()
+                .attachment_list_ref(cx)
                 .read()
                 .attachments
                 .clone();
@@ -586,7 +587,7 @@ impl Chat {
     /// Sets the chat controller for this widget.
     pub fn set_chat_controller(
         &mut self,
-        _cx: &mut Cx,
+        cx: &mut Cx,
         chat_controller: Option<Arc<Mutex<ChatController>>>,
     ) {
         if self.chat_controller.as_ref().map(Arc::as_ptr)
@@ -598,13 +599,13 @@ impl Chat {
         self.unlink_current_controller();
         self.chat_controller = chat_controller;
 
-        self.messages_ref().write().chat_controller =
+        self.messages_ref(cx).write().chat_controller =
             self.chat_controller.clone();
         self.realtime(cx, ids!(realtime))
             .set_chat_controller(self.chat_controller.clone());
-        self.prompt_input_ref()
+        self.prompt_input_ref(cx)
             .write()
-            .set_chat_controller(self.chat_controller.clone());
+            .set_chat_controller(cx, self.chat_controller.clone());
 
         if let Some(controller) = self.chat_controller.as_ref() {
             let mut guard = controller.lock().unwrap();
@@ -639,15 +640,15 @@ impl Chat {
     }
 
     fn handle_streaming_start(&mut self, cx: &mut Cx) {
-        self.prompt_input_ref().write().set_stop();
-        self.messages_ref()
+        self.prompt_input_ref(cx).write().set_stop();
+        self.messages_ref(cx)
             .write()
             .animated_scroll_to_bottom(cx);
         self.redraw(cx);
     }
 
     fn handle_streaming_end(&mut self, cx: &mut Cx) {
-        self.prompt_input_ref().write().set_send();
+        self.prompt_input_ref(cx).write().set_send();
         self.redraw(cx);
     }
 }

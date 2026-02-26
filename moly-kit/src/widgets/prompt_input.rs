@@ -266,8 +266,8 @@ impl Widget for PromptInput {
             let ui = self.ui_runner();
             Attachment::pick_multiple(move |result| match result {
                 Ok(attachments) => {
-                    ui.defer_with_redraw(move |me: &mut PromptInput, _, _| {
-                        let mut list = me.attachment_list_ref();
+                    ui.defer_with_redraw(move |me: &mut PromptInput, cx, _| {
+                        let mut list = me.attachment_list_ref(cx);
                         list.write().attachments.extend(attachments);
                         list.write().on_tap(move |list, index| {
                             list.attachments.remove(index);
@@ -280,11 +280,11 @@ impl Widget for PromptInput {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        let button = self.button(cx, ids!(submit));
+        let mut button = self.button(cx, ids!(submit));
 
         match self.task {
             Task::Send => {
-                let icon = self.send_icon;
+                let icon = self.send_icon.clone();
                 script_apply_eval!(cx, button, {
                     draw_icon: {
                         svg: #(icon)
@@ -292,7 +292,7 @@ impl Widget for PromptInput {
                 });
             }
             Task::Stop => {
-                let icon = self.stop_icon;
+                let icon = self.stop_icon.clone();
                 script_apply_eval!(cx, button, {
                     draw_icon: {
                         svg: #(icon)
@@ -330,26 +330,26 @@ impl PromptInput {
     /// Shadows the [`CommandTextInput::reset`] method.
     pub fn reset(&mut self, cx: &mut Cx) {
         self.deref.reset(cx);
-        self.attachment_list_ref().write().attachments.clear();
+        self.attachment_list_ref(cx).write().attachments.clear();
     }
 
     /// Returns whether the submit button or the return key was pressed.
     ///
     /// To know what the submission means, check [`Self::task`].
-    pub fn submitted(&self, actions: &Actions) -> bool {
+    pub fn submitted(&self, cx: &Cx, actions: &Actions) -> bool {
         let submit = self.button(cx, ids!(submit));
-        let input = self.text_input_ref();
+        let input = self.text_input_ref(cx);
         (submit.clicked(actions) || input.returned(actions).is_some())
             && self.interactivity == Interactivity::Enabled
     }
 
     /// Returns whether the call/audio button was pressed.
-    pub fn call_pressed(&self, actions: &Actions) -> bool {
+    pub fn call_pressed(&self, cx: &Cx, actions: &Actions) -> bool {
         self.button(cx, ids!(audio)).clicked(actions)
     }
 
     /// Returns whether the STT button was pressed.
-    pub fn stt_pressed(&self, actions: &Actions) -> bool {
+    pub fn stt_pressed(&self, cx: &Cx, actions: &Actions) -> bool {
         self.button(cx, ids!(stt)).clicked(actions)
     }
 
@@ -383,19 +383,20 @@ impl PromptInput {
         self.task = Task::Stop;
     }
 
-    pub(crate) fn attachment_list_ref(&self) -> AttachmentListRef {
+    pub(crate) fn attachment_list_ref(&self, cx: &Cx) -> AttachmentListRef {
         self.attachment_list(cx, ids!(attachments))
     }
 
     /// Sets the chat controller for the model selector.
     pub fn set_chat_controller(
         &mut self,
+        cx: &Cx,
         controller: Option<
             std::sync::Arc<std::sync::Mutex<crate::aitk::controllers::chat::ChatController>>,
         >,
     ) {
         if let Some(mut inner) = self
-            .widget(ids!(model_selector))
+            .widget(cx, ids!(model_selector))
             .borrow_mut::<crate::widgets::model_selector::ModelSelector>()
         {
             inner.chat_controller = controller;
@@ -452,16 +453,16 @@ impl PromptInput {
 
         if supports_realtime {
             self.interactivity = Interactivity::Disabled;
-            self.text_input_ref().set_is_read_only(cx, true);
-            self.text_input_ref().set_empty_text(
+            self.text_input_ref(cx).set_is_read_only(cx, true);
+            self.text_input_ref(cx).set_empty_text(
                 cx,
                 "For realtime models, use the audio feature ->".to_string(),
             );
             self.redraw(cx);
         } else {
             self.interactivity = Interactivity::Enabled;
-            self.text_input_ref().set_is_read_only(cx, false);
-            self.text_input_ref().set_text(cx, "");
+            self.text_input_ref(cx).set_is_read_only(cx, false);
+            self.text_input_ref(cx).set_text(cx, "");
             self.redraw(cx);
         }
     }

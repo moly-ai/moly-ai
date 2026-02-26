@@ -56,7 +56,7 @@ impl Widget for ImageView {
         let scaled_width = image_width * scale;
         let scaled_height = image_height * scale;
 
-        let image_ref = self.image_ref();
+        let mut image_ref = self.image_ref(cx);
         script_apply_eval!(cx, image_ref, {
             width: #(scaled_width)
             height: #(scaled_height)
@@ -105,7 +105,7 @@ impl ImageView {
 
     pub fn set_texture(&mut self, cx: &mut Cx, texture: Option<Texture>) {
         self.texture = texture;
-        self.image_ref().set_texture(cx, self.texture.clone());
+        self.image_ref(cx).set_texture(cx, self.texture.clone());
     }
 
     #[allow(dead_code)]
@@ -113,7 +113,7 @@ impl ImageView {
         self.texture.clone()
     }
 
-    fn image_ref(&self) -> ImageRef {
+    fn image_ref(&self, cx: &Cx) -> ImageRef {
         self.image(cx, ids!(image))
     }
 

@@ -72,7 +72,7 @@ impl Widget for AttachmentViewerModal {
 impl AttachmentViewerModal {
     /// Opens the modal and displays the given attachment.
     pub fn open(&mut self, cx: &mut Cx, attachment: Attachment) {
-        self.modal_ref().open(cx);
+        self.modal_ref(cx).open(cx);
         self.attachment_view(cx, ids!(attachment))
             .borrow_mut()
             .unwrap()
@@ -81,10 +81,10 @@ impl AttachmentViewerModal {
 
     /// Closes the modal.
     pub fn close(&mut self, cx: &mut Cx) {
-        self.modal_ref().close(cx);
+        self.modal_ref(cx).close(cx);
     }
 
-    fn modal_ref(&self) -> MolyModalRef {
+    fn modal_ref(&self, cx: &Cx) -> MolyModalRef {
         self.moly_modal(cx, ids!(modal))
     }
 }
