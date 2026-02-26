@@ -123,7 +123,7 @@ const TIMER_PRECISION: f64 = 0.1;
 #[derive(Script, Widget, ScriptHook)]
 pub struct SttInput {
     #[deref]
-    deref: View,
+    pub deref: View,
     #[source]
     source: ScriptObjectRef,
 

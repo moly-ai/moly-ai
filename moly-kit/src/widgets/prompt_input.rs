@@ -208,7 +208,7 @@ pub enum Interactivity {
 #[derive(Script, Widget)]
 pub struct PromptInput {
     #[deref]
-    deref: View,
+    pub deref: View,
 
     /// Icon used by this widget when the task is set to [Task::Send].
     #[live]
