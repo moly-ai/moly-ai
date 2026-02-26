@@ -19,7 +19,7 @@ script_mod! {
         spacing: 10
         server_url_visible: false
 
-        cursor: Hand
+        cursor: MouseCursor.Hand
         show_bg: true
         draw_bg +: {
             border_radius: 0

@@ -194,7 +194,7 @@ impl Widget for ModelList {
                                 let mut row = list.item(cx, item_id, id!(AgentRow));
 
                                 script_apply_eval!(cx, row, {
-                                    margin: Inset {bottom: #(margin_bottom)}
+                                    margin: {bottom: #(margin_bottom)}
                                 });
 
                                 [ids!(first), ids!(second), ids!(third)]

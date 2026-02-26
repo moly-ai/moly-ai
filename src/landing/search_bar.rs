@@ -22,7 +22,7 @@ script_mod! {
         show_bg: true
 
         draw_bg +: {
-            color: (MAIN_BG_COLOR_DARK)
+            color: instance((MAIN_BG_COLOR_DARK))
             color2: instance(#xa6bec6)
             get_color: fn() -> vec4 {
                 let coef = self.rect_size.y / self.rect_size.x
@@ -60,7 +60,7 @@ script_mod! {
 
             show_bg: true
             draw_bg +: {
-                color: (MAIN_BG_COLOR)
+                color: instance((MAIN_BG_COLOR))
                 border_radius: 8.5
                 shadow_color: uniform(#x0001)
                 shadow_radius: 8.0
@@ -223,8 +223,8 @@ impl SearchBarRef {
         script_apply_eval!(cx, inner, {
             flow: Right
             title +: { visible: false }
-            align: Align {x: 0.0 y: 0.5}
-            padding: Inset {left: 20}
+            align: {x: 0.0 y: 0.5}
+            padding: {left: 20}
             spacing: 80
             input_container +: { width: Fill }
             search_sorting +: { visible: true }
@@ -248,8 +248,8 @@ impl SearchBarRef {
         script_apply_eval!(cx, inner, {
             flow: Down
             title +: { visible: true }
-            align: Align {x: 0.5 y: 0.5}
-            padding: Inset {left: 0}
+            align: {x: 0.5 y: 0.5}
+            padding: {left: 0}
             spacing: 50
             input_container +: { width: 800 }
             search_sorting +: { visible: false }

@@ -10,9 +10,6 @@ script_mod! {
     let SUCCESS_ICON = crate_resource("self:resources/images/success_icon.png")
     let FAILURE_ICON = crate_resource("self:resources/images/failure_icon.png")
 
-    let PRIMARY_LINK_FONT_COLOR = #x0E7090
-    let SECONDARY_LINK_FONT_COLOR = #667085
-
     let PopupActionLink = LinkLabel {
         width: Fit
         margin: 2
@@ -21,11 +18,11 @@ script_mod! {
             get_color: fn() -> vec4 {
                 return mix(
                     mix(
-                        PRIMARY_LINK_FONT_COLOR
-                        PRIMARY_LINK_FONT_COLOR
+                        #x0E7090
+                        #x0E7090
                         self.hover
                     )
-                    PRIMARY_LINK_FONT_COLOR
+                    #x0E7090
                     self.down
                 )
             }
@@ -40,11 +37,11 @@ script_mod! {
             get_color: fn() -> vec4 {
                 return mix(
                     mix(
-                        SECONDARY_LINK_FONT_COLOR
-                        SECONDARY_LINK_FONT_COLOR
+                        #667085
+                        #667085
                         self.hover
                     )
-                    SECONDARY_LINK_FONT_COLOR
+                    #667085
                     self.down
                 )
             }

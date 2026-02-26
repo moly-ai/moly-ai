@@ -134,7 +134,7 @@ script_mod! {
         width: Fill height: Fit
         wrapper := View {
             width: Fill height: Fit
-            cursor: Hand
+            cursor: MouseCursor.Hand
             flow: Down
             align: Align {x: 0 y: 0.5}
             header := View {

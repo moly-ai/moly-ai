@@ -90,7 +90,7 @@ script_mod! {
             padding: Inset { left: 0 right: 15 top: 8 bottom: 8 }
 
             save_button := RoundedShadowView {
-                cursor: Hand
+                cursor: MouseCursor.Hand
                 margin: Inset {
                     left: 10 right: 10 bottom: 0 top: 0
                 }

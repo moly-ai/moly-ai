@@ -96,7 +96,7 @@ script_mod! {
             padding: Inset {left: 8 right: 8}
             spacing: 6
 
-            cursor: Hand
+            cursor: MouseCursor.Hand
             show_bg: true
             draw_bg +: {
                 down: instance(0.0)
@@ -304,16 +304,18 @@ impl Widget for ChatHistoryCard {
             let mut content_view_highlight = self.view(cx, ids!(selected_bg));
 
             if current_chat_id == self.chat_id {
+                let color = vec4(0.922, 0.929, 0.933, 1.0);
                 script_apply_eval!(cx, content_view_highlight, {
-                    draw_bg: {color: #xebedee}
+                    draw_bg +: {color: #(color)}
                 });
             } else {
                 if chat.borrow().has_unread_messages {
                     self.view(cx, ids!(unread_message_badge))
                         .set_visible(cx, true);
                 }
+                let color = vec4(0.0, 0.0, 0.0, 0.0);
                 script_apply_eval!(cx, content_view_highlight, {
-                    draw_bg: {color: #x0000}
+                    draw_bg +: {color: #(color)}
                 });
             }
         }

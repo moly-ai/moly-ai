@@ -46,7 +46,7 @@ script_mod! {
 
     let ConnectionActionButton = View {
         visible: false
-        cursor: Hand
+        cursor: MouseCursor.Hand
         width: Fit
         height: Fit
 
@@ -81,7 +81,7 @@ script_mod! {
         align: Align { x: 0.0 y: 0.5 }
 
         main_view := View {
-            cursor: Hand
+            cursor: MouseCursor.Hand
             padding: 8
             align: Align { x: 0.0 y: 0.5 }
             spacing: 20
@@ -178,7 +178,7 @@ script_mod! {
         }
 
         add_provider_button := RoundedShadowView {
-            cursor: Hand
+            cursor: MouseCursor.Hand
             margin: Inset {
                 left: 10 right: 10 bottom: 0 top: 10
             }
@@ -205,7 +205,7 @@ script_mod! {
         }
 
         open_sync_button := RoundedShadowView {
-            cursor: Hand
+            cursor: MouseCursor.Hand
             margin: Inset { left: 10 right: 10 bottom: 0 }
             width: Fill
             height: Fit
@@ -230,7 +230,7 @@ script_mod! {
         }
 
         utilities_button := RoundedShadowView {
-            cursor: Hand
+            cursor: MouseCursor.Hand
             margin: Inset { left: 10 right: 10 bottom: 20 }
             width: Fill
             height: Fit

@@ -310,7 +310,7 @@ script_mod! {
     let MuteControl = View {
         width: Fit, height: Fit
         align: Align { x: 0.5, y: 0.5 }
-        cursor: Hand
+        cursor: MouseCursor.Hand
         mute_button := IconButton {
             text: "\u{f130}"
         }
@@ -409,7 +409,7 @@ script_mod! {
 
         request_permission_button := RoundedShadowView {
             visible: false
-            cursor: Hand
+            cursor: MouseCursor.Hand
             margin: Inset {
                 left: 10, right: 10, bottom: 0, top: 10
             }
@@ -440,7 +440,7 @@ script_mod! {
         }
 
         start_stop_button := RoundedShadowView {
-            cursor: Hand
+            cursor: MouseCursor.Hand
             margin: Inset {
                 left: 10, right: 10, bottom: 0, top: 10
             }

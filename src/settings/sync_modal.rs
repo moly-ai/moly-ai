@@ -16,7 +16,7 @@ script_mod! {
     use mod.widgets.*
 
     let ShadowButton = RoundedShadowView {
-        cursor: Hand
+        cursor: MouseCursor.Hand
         width: Fill
         height: Fit
         align: Align { x: 0.5 y: 0.5 }

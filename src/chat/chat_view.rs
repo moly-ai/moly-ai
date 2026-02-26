@@ -253,23 +253,27 @@ impl Widget for ChatView {
         // On mobile, only set padding on top of the prompt
         // TODO: do this with AdaptiveView instead of script_apply_eval
         if !cx.display_context.is_desktop() && cx.display_context.is_screen_size_known() {
+            let padding = Inset {
+                bottom: 50.0, left: 20.0, right: 20.0, top: 0.0,
+            };
             let mut prompt = self.prompt_input(cx, ids!(chat.prompt));
-            script_apply_eval!(cx, prompt, {
-                padding: Inset {bottom: 50 left: 20 right: 20}
-            });
+            script_apply_eval!(cx, prompt, { padding: #(padding) });
+            let margin = Inset {
+                bottom: 50.0, left: 20.0, right: 20.0, top: 0.0,
+            };
             let mut stt = self.stt_input(cx, ids!(chat.stt_input));
-            script_apply_eval!(cx, stt, {
-                margin: Inset {bottom: 50 left: 20 right: 20}
-            });
+            script_apply_eval!(cx, stt, { margin: #(margin) });
         } else {
+            let padding = Inset {
+                left: 10.0, right: 10.0, top: 8.0, bottom: 8.0,
+            };
             let mut prompt = self.prompt_input(cx, ids!(chat.prompt));
-            script_apply_eval!(cx, prompt, {
-                padding: Inset {left: 10 right: 10 top: 8 bottom: 8}
-            });
+            script_apply_eval!(cx, prompt, { padding: #(padding) });
+            let margin = Inset {
+                left: 10.0, right: 10.0, top: 8.0, bottom: 8.0,
+            };
             let mut stt = self.stt_input(cx, ids!(chat.stt_input));
-            script_apply_eval!(cx, stt, {
-                margin: Inset {left: 10 right: 10 top: 8 bottom: 8}
-            });
+            script_apply_eval!(cx, stt, { margin: #(margin) });
         }
 
         self.view.draw_walk(cx, scope, walk)

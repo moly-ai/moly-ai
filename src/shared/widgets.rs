@@ -178,7 +178,8 @@ script_mod! {
 
         draw_icon +: {
             color: #fff
-            color_hover: #000
+            color_hover: uniform(#000)
+            hover: instance(0.0)
             rotation_angle: uniform(0.0)
 
             get_color: fn() -> vec4 {

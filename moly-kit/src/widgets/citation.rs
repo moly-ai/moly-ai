@@ -11,7 +11,7 @@ script_mod! {
     mod.widgets.Citation = set_type_default() do mod.widgets.CitationBase {
         flow: Down
         height: Fit
-        cursor: Hand
+        cursor: MouseCursor.Hand
         width: 170
         padding: 6
         spacing: 5

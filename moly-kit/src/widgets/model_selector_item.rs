@@ -23,7 +23,7 @@ script_mod! {
             }
         }
 
-        cursor: Hand
+        cursor: MouseCursor.Hand
 
         animator: Animator {
             hover: {

@@ -11,7 +11,7 @@ script_mod! {
         height: 200.0
         width: 200.0
         margin: Inset { right: 4 }
-        cursor: Hand
+        cursor: MouseCursor.Hand
         draw_bg +: {
             border_radius: 8.0
             border_color: #xD0D5DD

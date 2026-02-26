@@ -45,7 +45,7 @@ script_mod! {
         width: Fill, height: Fit
         padding: Inset { top: 8, right: 12, bottom: 8, left: 12 }
         margin: 2
-        cursor: Hand
+        cursor: MouseCursor.Hand
         flow: Right
         align: Align { x: 0.0, y: 0.5 }
 

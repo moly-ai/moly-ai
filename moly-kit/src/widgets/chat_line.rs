@@ -303,7 +303,7 @@ script_mod! {
                     error_details_toggle := View {
                         width: Fit,
                         height: Fit,
-                        cursor: Hand,
+                        cursor: MouseCursor.Hand,
                         margin: Inset { top: 6 },
                         toggle_label := Label {
                             text: "Show details",

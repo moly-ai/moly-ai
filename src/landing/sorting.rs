@@ -76,7 +76,9 @@ script_mod! {
         draw_bg +: {
             open: instance(0.0)
 
-            get_bg: fn(inout sdf: Sdf2d) {
+            pixel: fn() -> vec4 {
+                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
+
                 sdf.box(
                     2
                     2
@@ -86,11 +88,6 @@ script_mod! {
                 )
                 sdf.stroke_keep(#EAECF0 2.)
                 sdf.fill(#fff)
-            }
-
-            pixel: fn() -> vec4 {
-                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
-                self.get_bg(sdf)
 
                 let c = vec2(self.rect_size.x - 20.0 self.rect_size.y * 0.5)
                 let sz = 2.5

@@ -109,7 +109,7 @@ script_mod! {
     }
 
     let FooterLink = View {
-        cursor: Hand
+        cursor: MouseCursor.Hand
         align: Align {x: 0.0 y: 0.5}
         spacing: 10
         icon := Icon {

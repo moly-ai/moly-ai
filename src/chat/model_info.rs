@@ -30,7 +30,7 @@ script_mod! {
         spacing: 10
         align: Align {x: 0.0 y: 0.5}
 
-        cursor: Hand
+        cursor: MouseCursor.Hand
 
         provider_image_view := View {
             width: Fit height: Fit
@@ -91,7 +91,7 @@ script_mod! {
         align: Align {x: 0.0 y: 0.5}
         spacing: 10
 
-        cursor: Hand
+        cursor: MouseCursor.Hand
 
         avatar := mod.widgets.ChatAgentAvatar {}
 

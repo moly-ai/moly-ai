@@ -294,19 +294,9 @@ impl Widget for PromptInput {
 
         match self.interactivity {
             Interactivity::Enabled => {
-                script_apply_eval!(cx, button, {
-                    draw_bg: {
-                        enabled: 1.0
-                    }
-                });
                 button.set_enabled(cx, true);
             }
             Interactivity::Disabled => {
-                script_apply_eval!(cx, button, {
-                    draw_bg: {
-                        enabled: 0.0
-                    }
-                });
                 button.set_enabled(cx, false);
             }
         }

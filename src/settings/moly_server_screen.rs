@@ -16,9 +16,6 @@ script_mod! {
         crate_resource("self://resources/icons/retry.svg")
 
     let SUBSIDEBAR_BG_COLOR = (MAIN_BG_COLOR)
-    let SUBSIDEBAR_BG_COLOR_HOVER = #xebedee
-    let SUBSIDEBAR_BG_COLOR_SELECTED = #xebedee
-
     let SUBSIDEBAR_FONT_COLOR = #x2C3E50
     let SUBSIDEBAR_FONT_COLOR_HOVER = #x2C3E50
     let SUBSIDEBAR_FONT_COLOR_SELECTED = #344054
@@ -43,11 +40,11 @@ script_mod! {
             get_color: fn() -> vec4 {
                 return mix(
                     mix(
-                        (SUBSIDEBAR_BG_COLOR)
-                        (SUBSIDEBAR_BG_COLOR_HOVER)
+                        #xf9f9f9
+                        #xebedee
                         self.hover
                     )
-                    (SUBSIDEBAR_BG_COLOR_SELECTED)
+                    #xebedee
                     self.active
                 )
             }

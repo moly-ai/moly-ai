@@ -182,7 +182,7 @@ script_mod! {
                     flow: Right
                     refresh_button := View {
                         visible: false
-                        cursor: Hand
+                        cursor: MouseCursor.Hand
                         width: Fit
                         height: Fit
 

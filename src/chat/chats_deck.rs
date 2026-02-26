@@ -94,12 +94,24 @@ impl Widget for ChatsDeck {
         // TODO: Do not use CachedWidget, create a shared structure of chat instances
         // that is shared across layouts.
         if cx.display_context.is_desktop() {
+            let padding = Inset {
+                top: 18.0,
+                bottom: 0.0,
+                right: 28.0,
+                left: 28.0,
+            };
             script_apply_eval!(cx, self.view, {
-                padding: Inset {top: 18 bottom: 0 right: 28 left: 28}
+                padding: #(padding)
             });
         } else {
+            let padding = Inset {
+                top: 55.0,
+                left: 0.0,
+                right: 0.0,
+                bottom: 0.0,
+            };
             script_apply_eval!(cx, self.view, {
-                padding: Inset {top: 55 left: 0 right: 0 bottom: 0}
+                padding: #(padding)
             });
         }
 
