@@ -17,8 +17,8 @@ script_mod! {
         avatar := Avatar {}
         name := Label {
             padding: 0
-            draw_text: DrawText {
-                text_style: theme.font_bold { font_size: 11 }
+            draw_text +: {
+                text_style +: theme.font_bold { font_size: 11 }
                 color: #x000
             }
         }
@@ -30,7 +30,7 @@ script_mod! {
         padding: Inset { top: 12 right: 12 bottom: 12 left: 12 }
         margin: 0
         align: Align { x: 0.0 y: 0.5 }
-        draw_bg +: DrawQuad {
+        draw_bg +: {
             pixel: fn() {
                 let sdf = Sdf2d.viewport(self.pos * self.rect_size)
                 let color = mix(#xF2F4F700, #xEAECEF88, self.hover)
@@ -44,14 +44,14 @@ script_mod! {
         }
 
         icon_walk: Walk { width: 12 height: 12 }
-        draw_icon +: DrawIcon {
+        draw_icon +: {
             get_color: fn() {
                 return #x000
             }
         }
 
-        draw_text +: DrawText {
-            text_style: TextStyle { font_size: 9 }
+        draw_text +: {
+            text_style +: { font_size: 9 }
             get_color: fn() {
                 return #x000
             }
@@ -60,7 +60,7 @@ script_mod! {
 
     let EditActionButton = Button {
         padding: Inset { left: 10 right: 10 top: 4 bottom: 4 }
-        draw_text +: DrawText {
+        draw_text +: {
             color: #x000
             color_hover: #x000
             color_focus: #x000
@@ -82,20 +82,20 @@ script_mod! {
             padding: Inset { top: 8 bottom: 8 left: 10 right: 10 }
             width: Fill
             empty_text: "\n"
-            draw_bg +: DrawQuad {
+            draw_bg +: {
                 color: #xfff
-                border_radius: 5.0
+                radius: 5.0
                 border_size: 0.0
                 color_focus: #xfff
             }
 
-            draw_selection +: DrawQuad {
+            draw_selection +: {
                 color: uniform(#xeee)
                 color_hover: uniform(#xddd)
                 color_focus: uniform(#xddd)
             }
 
-            draw_text +: DrawText {
+            draw_text +: {
                 color: #x0
                 color_hover: uniform(#x0)
                 color_focus: uniform(#x0)
@@ -104,12 +104,12 @@ script_mod! {
     }
 
     mod.widgets.ChatLineBase = #(ChatLine::register_widget(vm))
-    mod.widgets.ChatLine = set_type_default() do mod.widgets.ChatLineBase View {
+    mod.widgets.ChatLine = set_type_default() do mod.widgets.ChatLineBase {
         flow: Down
         height: Fit
         padding: 10
         show_bg: true
-        draw_bg +: DrawQuad {
+        draw_bg +: {
             hover: instance(0.0)
             down: instance(0.0)
 
@@ -147,7 +147,7 @@ script_mod! {
                     height: Fit
                     flow: Down
 
-                    draw_bg +: DrawQuad {
+                    draw_bg +: {
                         color: #xfff
                         border_size: 1.0
                         border_color: #xD0D5DD
@@ -156,7 +156,7 @@ script_mod! {
                     copy := ActionButton {
                         width: Fill
                         text: "Copy"
-                        draw_icon +: DrawIcon {
+                        draw_icon +: {
                             svg_file: crate_resource("self://resources/copy.svg")
                         }
                     }
@@ -164,7 +164,7 @@ script_mod! {
                     edit := ActionButton {
                         width: Fill
                         text: "Edit"
-                        draw_icon +: DrawIcon {
+                        draw_icon +: {
                             svg_file: crate_resource("self://resources/edit.svg")
                         }
                     }
@@ -172,13 +172,13 @@ script_mod! {
                     delete := ActionButton {
                         width: Fill
                         text: "Delete"
-                        draw_icon +: DrawIcon {
+                        draw_icon +: {
                             svg_file: crate_resource("self://resources/delete.svg")
                             get_color: fn() {
                                 return #xB42318
                             }
                         }
-                        draw_text +: DrawText {
+                        draw_text +: {
                             get_color: fn() {
                                 return #xB42318
                             }
@@ -188,7 +188,7 @@ script_mod! {
             }
         }
         animator: Animator {
-            hover = {
+            hover: {
                 default: @off
                 off: AnimatorState {
                     from: { all: Forward { duration: 0.15 } }
@@ -203,17 +203,15 @@ script_mod! {
                     }
                 }
             }
-            down = {
+            down: {
                 default: @off
                 off: AnimatorState {
                     from: { all: Forward { duration: 0.5 } }
-                    ease: OutExp
                     apply: {
                         draw_bg: { down: 0.0 }
                     }
                 }
                 on: AnimatorState {
-                    ease: OutExp
                     from: {
                         all: Forward { duration: 0.2 }
                     }
@@ -226,10 +224,10 @@ script_mod! {
     }
 
     mod.widgets.UserLine = mod.widgets.ChatLine {
-        message_section = {
-            sender = {
-                avatar = {
-                    grapheme = {
+        message_section: {
+            sender: {
+                avatar: {
+                    grapheme: {
                         draw_bg +: {
                             color: #x008F7E
                         }
@@ -242,7 +240,7 @@ script_mod! {
     mod.widgets.BotLine = mod.widgets.ChatLine {}
 
     mod.widgets.LoadingLine = mod.widgets.BotLine {
-        message_section = {
+        message_section: {
             content_section := View {
                 height: Fit
                 padding: Inset { left: 32 }
@@ -253,36 +251,36 @@ script_mod! {
 
     mod.widgets.AppLine = mod.widgets.BotLine {
         margin: Inset { left: 0 }
-        message_section = {
+        message_section: {
             padding: Inset { left: 12 right: 12 top: 12 bottom: 0 }
             draw_bg +: {
                 border_color: #x344054
                 border_size: 1.2
-                border_radius: 8.0
+                radius: 8.0
             }
-            sender = {
+            sender: {
                 margin: Inset { bottom: 5 }
-                avatar = {
-                    grapheme = { draw_bg +: { color: #x344054 } }
+                avatar: {
+                    grapheme: { draw_bg +: { color: #x344054 } }
                 }
-                name = { text: "Application" }
+                name: { text: "Application" }
             }
         }
-        actions_section = {
+        actions_section: {
             margin: Inset { left: 32 }
         }
     }
 
     mod.widgets.ErrorLine = mod.widgets.AppLine {
-        message_section = {
+        message_section: {
             draw_bg +: { color: #xf003 }
 
-            sender = {
-                avatar = {
-                    grapheme = { draw_bg +: { color: #xf003 } }
+            sender: {
+                avatar: {
+                    grapheme: { draw_bg +: { color: #xf003 } }
                 }
             }
-            content_section = {
+            content_section: {
                 flow: Down
                 padding: Inset { bottom: 10 }
                 error_details_section := View {
@@ -294,8 +292,8 @@ script_mod! {
                     error_note := Label {
                         width: Fill
                         margin: Inset { top: 6 }
-                        draw_text: DrawText {
-                            text_style: theme.font_italic { font_size: 10 }
+                        draw_text +: {
+                            text_style +: theme.font_italic { font_size: 10 }
                             color: #x555
                             wrap: Word
                         }
@@ -307,8 +305,8 @@ script_mod! {
                         margin: Inset { top: 6 }
                         toggle_label := Label {
                             text: "Show details"
-                            draw_text: DrawText {
-                                text_style: TextStyle { font_size: 9.5 }
+                            draw_text +: {
+                                text_style +: { font_size: 9.5 }
                                 color: #x1a5b9c
                             }
                         }
@@ -319,14 +317,14 @@ script_mod! {
                         visible: false
                         margin: Inset { top: 4 }
                         padding: 8
-                        draw_bg +: DrawQuad {
+                        draw_bg +: {
                             color: #x0001
-                            border_radius: 4.0
+                            radius: 4.0
                         }
                         details_text := Label {
                             width: Fill
-                            draw_text: DrawText {
-                                text_style: TextStyle { font_size: 9 }
+                            draw_text +: {
+                                text_style +: { font_size: 9 }
                                 color: #x333
                                 wrap: Word
                             }
@@ -338,22 +336,22 @@ script_mod! {
     }
 
     mod.widgets.SystemLine = mod.widgets.AppLine {
-        message_section = {
+        message_section: {
             draw_bg +: { color: #xe3f2fd }
 
-            sender = {
-                avatar = {
-                    grapheme = { draw_bg +: { color: #x1976d2 } }
+            sender: {
+                avatar: {
+                    grapheme: { draw_bg +: { color: #x1976d2 } }
                 }
-                name = { text: "System" }
+                name: { text: "System" }
             }
         }
     }
 
     let ToolApprovalButton = Button {
         padding: Inset { left: 15 right: 15 top: 8 bottom: 8 }
-        draw_text +: DrawText {
-            text_style: theme.font_bold { font_size: 10 }
+        draw_text +: {
+            text_style +: theme.font_bold { font_size: 10 }
             color: #xfff
             color_hover: #xfff
             color_focus: #xfff
@@ -377,15 +375,15 @@ script_mod! {
     }
 
     mod.widgets.ToolRequestLine = mod.widgets.AppLine {
-        message_section = {
+        message_section: {
             draw_bg +: { color: #xfff3e0 }
 
-            sender = {
-                avatar = {
-                    grapheme = { draw_bg +: { color: #xff9800 } }
+            sender: {
+                avatar: {
+                    grapheme: { draw_bg +: { color: #xff9800 } }
                 }
             }
-            content_section = {
+            content_section: {
                 flow: Down
                 tool_actions := ToolApprovalActions { visible: false }
                 status_view := View {
@@ -395,8 +393,8 @@ script_mod! {
                     align: Align { x: 1.0 y: 0.5 }
                     padding: Inset { bottom: 8 right: 10 }
                     approved_status := Label {
-                        draw_text: DrawText {
-                            text_style: theme.font_bold { font_size: 11 }
+                        draw_text +: {
+                            text_style +: theme.font_bold { font_size: 11 }
                             color: #x000
                         }
                     }
@@ -406,12 +404,12 @@ script_mod! {
     }
 
     mod.widgets.ToolResultLine = mod.widgets.AppLine {
-        message_section = {
+        message_section: {
             draw_bg +: { color: #xcfe4ff }
 
-            sender = {
-                avatar = {
-                    grapheme = { draw_bg +: { color: #x1a5b9c } }
+            sender: {
+                avatar: {
+                    grapheme: { draw_bg +: { color: #x1a5b9c } }
                 }
             }
         }
