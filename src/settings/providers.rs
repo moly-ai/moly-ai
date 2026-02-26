@@ -18,15 +18,6 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    let ICON_EDIT =
-        crate_resource("self://resources/icons/edit.svg")
-    let ICON_TRASH =
-        crate_resource("self://resources/images/trash_icon.png")
-    let ICON_REMOTE =
-        crate_resource("self://resources/images/globe_icon.png")
-    let ICON_LOCAL =
-        crate_resource("self://resources/images/laptop_icon.png")
-
     let ICON_SUCCESS =
         crate_resource("self://resources/images/circle_check_icon.png")
     let ICON_LOADER =
@@ -263,18 +254,6 @@ script_mod! {
             }
         }
 
-        provider_icons: [
-            ICON_OPENAI
-            ICON_GEMINI
-            ICON_SILICONFLOW
-            ICON_OPENROUTER
-            ICON_MOLYSERVER
-            ICON_DEEPSEEK
-            ICON_OLLAMA
-            ICON_ANTHROPIC
-            ICON_OPENCLAW
-        ]
-
         View {
             width: Fill
             height: Fit
@@ -318,34 +297,22 @@ struct Providers {
 impl ScriptHook for Providers {
     fn on_after_apply(
         &mut self,
-        vm: &mut ScriptVm,
+        _vm: &mut ScriptVm,
         _apply: &Apply,
         _scope: &mut Scope,
-        value: ScriptValue,
+        _value: ScriptValue,
     ) {
-        if let Some(obj) = value.as_object() {
-            vm.map_mut_with(obj, |vm, map| {
-                let key = id!(provider_icons).into();
-                if let Some(arr_val) = map.get(&key) {
-                if let Some(arr_obj) = arr_val.value.as_object() {
-                        let resources_rc =
-                            vm.cx().script_data.resources.resources.clone();
-                        self.provider_icon_paths = vm.vec_with(arr_obj, |_vm, vec| {
-                            let resources = resources_rc.borrow();
-                            vec.iter()
-                                .filter_map(|kv| {
-                                    let handle = kv.value.as_handle()?;
-                                    resources
-                                        .iter()
-                                        .find(|r| r.handle == handle)
-                                        .map(|r| r.abs_path.clone())
-                                })
-                                .collect()
-                        });
-                    }
-                }
-            });
-        }
+        self.provider_icon_paths = vec![
+            "resources/images/providers/openai.png".to_string(),
+            "resources/images/providers/gemini.png".to_string(),
+            "resources/images/providers/siliconflow.png".to_string(),
+            "resources/images/providers/openrouter.png".to_string(),
+            "resources/images/providers/molyserver.png".to_string(),
+            "resources/images/providers/deepseek.png".to_string(),
+            "resources/images/providers/ollama.png".to_string(),
+            "resources/images/providers/anthropic.png".to_string(),
+            "resources/images/providers/openclaw.png".to_string(),
+        ];
     }
 }
 

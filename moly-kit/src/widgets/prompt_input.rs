@@ -24,7 +24,7 @@ script_mod! {
 
         draw_bg +: {
             get_color: fn() {
-                if self.enabled == 0.0 {
+                if self.disabled == 1.0 {
                     return #xD0D5DD;
                 }
                 return #000;
