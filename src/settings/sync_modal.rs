@@ -16,7 +16,7 @@ script_mod! {
     use mod.widgets.*
 
     let ShadowButton = RoundedShadowView {
-        cursor: MouseCursor.Hand
+        cursor: Hand
         width: Fill
         height: Fit
         align: Align { x: 0.5 y: 0.5 }
@@ -212,8 +212,9 @@ script_mod! {
         }
     }
 
+    mod.widgets.SyncModalBase = #(SyncModal::register_widget(vm))
     mod.widgets.SyncModal =
-        #(SyncModal::register_widget(vm)) ViewBase {
+        set_type_default() do mod.widgets.SyncModalBase {
         width: Fit
         height: Fit
 

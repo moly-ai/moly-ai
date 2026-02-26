@@ -26,7 +26,6 @@ script_mod! {
 
         draw_text +: {
             text_style: REGULAR_FONT {font_size: 10}
-            word: Wrap
 
             prompt_enabled: instance(0.0)
             get_color: fn() -> vec4 {
@@ -68,7 +67,8 @@ script_mod! {
         text: "Cancel"
     }
 
-    mod.widgets.ChatHistoryCard = #(ChatHistoryCard::register_widget(vm)) {
+    mod.widgets.ChatHistoryCardBase = #(ChatHistoryCard::register_widget(vm))
+    mod.widgets.ChatHistoryCard = set_type_default() do mod.widgets.ChatHistoryCardBase {
         flow: Overlay
         width: Fill
         height: 56
@@ -84,7 +84,7 @@ script_mod! {
                 border_radius: 5.0
                 shadow_color: #x47546722
                 shadow_radius: 25.0
-                shadow_offset: vec2(f32(-2.0) f32(1.0))
+                shadow_offset: vec2(-2.0 1.0)
                 border_color: #xD0D5DD
             }
         }
@@ -96,7 +96,7 @@ script_mod! {
             padding: Inset {left: 8 right: 8}
             spacing: 6
 
-            cursor: MouseCursor.Hand
+            cursor: Hand
             show_bg: true
             draw_bg +: {
                 down: instance(0.0)
@@ -211,19 +211,19 @@ script_mod! {
                     reset_hover_on_click: false
                 }
             }
-            animator: {
+            animator: Animator {
                 hover: {
                     default: @off
                     off: AnimatorState {
                         from: {all: Forward {duration: 0.15}}
                         apply: {
-                            draw_bg +: {color: #xF2F4F700}
+                            draw_bg: {color: #xF2F4F700}
                         }
                     }
                     on: AnimatorState {
                         from: {all: Forward {duration: 0.15}}
                         apply: {
-                            draw_bg +: {color: #xEAECEF88}
+                            draw_bg: {color: #xEAECEF88}
                         }
                     }
                 }
@@ -233,7 +233,7 @@ script_mod! {
                         from: {all: Forward {duration: 0.5}}
                         ease: OutExp
                         apply: {
-                            draw_bg +: {down: instance(0.0)}
+                            draw_bg: {down: instance(0.0)}
                         }
                     }
                     on: AnimatorState {
@@ -242,7 +242,7 @@ script_mod! {
                             all: Forward {duration: 0.2}
                         }
                         apply: {
-                            draw_bg +: {down: instance(1.0)}
+                            draw_bg: {down: instance(1.0)}
                         }
                     }
                 }
@@ -251,17 +251,17 @@ script_mod! {
 
         chat_history_card_options_modal := MolyModal {
             align: Align {x: 0.0 y: 0.0}
-            bg_view: {
+            bg_view +: {
                 visible: false
             }
-            content: {
-                chat_history_card_options := ChatHistoryCardOptions {}
+            content +: {
+                chat_history_card_options := mod.widgets.ChatHistoryCardOptions {}
             }
         }
 
         delete_chat_modal := MolyModal {
-            content: {
-                delete_chat_modal_inner := DeleteChatModal {}
+            content +: {
+                delete_chat_modal_inner := mod.widgets.DeleteChatModal {}
             }
         }
     }

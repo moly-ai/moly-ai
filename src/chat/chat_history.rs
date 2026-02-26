@@ -26,7 +26,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.ChatHistory = #(ChatHistory::register_widget(vm)) {
+    mod.widgets.ChatHistoryBase = #(ChatHistory::register_widget(vm))
+    mod.widgets.ChatHistory = set_type_default() do mod.widgets.ChatHistoryBase {
         width: Fill height: Fill
         show_bg: true
         draw_bg +: {
@@ -36,14 +37,14 @@ script_mod! {
 
         list := PortalList {
             drag_scrolling: false
-            AgentHeading = HeadingLabel { text: "AGENTS" }
-            NoAgentsWarning = NoAgentsWarning {}
-            Agent = EntityButton {
+            AgentHeading := HeadingLabel { text: "AGENTS" }
+            NoAgentsWarning := NoAgentsWarning {}
+            Agent := mod.widgets.EntityButton {
                 server_url_visible: true
             }
-            ChatsHeading = HeadingLabel { text: "CHATS" margin: Inset {top: 10} }
-            ChatHistoryCard = ChatHistoryCard {
-                cursor: MouseCursor.Default
+            ChatsHeading := HeadingLabel { text: "CHATS" margin: Inset {top: 10} }
+            ChatHistoryCard := mod.widgets.ChatHistoryCard {
+                cursor: Default
             }
         }
     }

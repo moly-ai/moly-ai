@@ -16,11 +16,12 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.StandardMessageContent = StandardMessageContent {{StandardMessageContent}} {
+    mod.widgets.StandardMessageContentBase = #(StandardMessageContent::register_widget(vm))
+    mod.widgets.StandardMessageContent = set_type_default() do mod.widgets.StandardMessageContentBase {
         flow: Down
         height: Fit,
         spacing: 5
-        thinking_block := MessageThinkingBlock {}
+        thinking_block := mod.widgets.MessageThinkingBlock {}
         markdown := MessageMarkdown {}
         citations := CitationList { visible: false }
         attachments := AttachmentList {}

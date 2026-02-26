@@ -27,7 +27,8 @@ script_mod! {
 
     // TODO: TogglePanel was removed from new Makepad. This is a simplified
     // replacement that just shows the chat history directly in a View.
-    mod.widgets.ChatHistoryPanel = #(ChatHistoryPanel::register_widget(vm)) {
+    mod.widgets.ChatHistoryPanelBase = #(ChatHistoryPanel::register_widget(vm))
+    mod.widgets.ChatHistoryPanel = set_type_default() do mod.widgets.ChatHistoryPanelBase {
         width: Fill height: Fill
         flow: Overlay
 

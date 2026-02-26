@@ -46,19 +46,11 @@ script_mod! {
 
         attr_name := Label {
             draw_text +: {
-                wrap: Word
                 text_style: REGULAR_FONT { font_size: 8 }
                 color: #x0
             }
         }
     }
-
-    mod.widgets.SIDEBAR_FONT_COLOR = #x1A2533
-    mod.widgets.SIDEBAR_FONT_COLOR_HOVER = MAIN_BG_COLOR
-    mod.widgets.SIDEBAR_FONT_COLOR_SELECTED = MAIN_BG_COLOR
-
-    mod.widgets.SIDEBAR_BG_COLOR_SELECTED = #344054
-    mod.widgets.SIDEBAR_BG_COLOR_HOVER = #677483
 
     mod.widgets.SidebarMenuButton = RadioButton {
         width: 70
@@ -73,8 +65,6 @@ script_mod! {
         label_walk: Walk { margin: 0 }
 
         draw_bg +: {
-            radio_type: Tab
-
             border_size: instance(0.0)
             border_color_1: instance(#0000)
             inset: instance(vec4(0.0 0.0 0.0 0.0))
@@ -83,11 +73,11 @@ script_mod! {
             get_color: fn() -> vec4 {
                 return mix(
                     mix(
-                        MAIN_BG_COLOR_DARK
-                        SIDEBAR_BG_COLOR_HOVER
+                        #xf2f2f2
+                        #x677483
                         self.hover
                     )
-                    SIDEBAR_BG_COLOR_SELECTED
+                    #x344054
                     self.active
                 )
             }
@@ -114,39 +104,31 @@ script_mod! {
         }
 
         draw_text +: {
-            color: SIDEBAR_FONT_COLOR
-            color_hover: SIDEBAR_FONT_COLOR_HOVER
-            color_active: SIDEBAR_FONT_COLOR_SELECTED
+            color: #x1A2533
+            color_hover: uniform(#xF9F9F9)
+            color_active: uniform(#xF9F9F9)
+            hover: instance(0.0)
+            active: instance(0.0)
 
             text_style: BOLD_FONT { font_size: 9 }
 
             get_color: fn() -> vec4 {
-                return mix(
-                    mix(
-                        self.color
-                        self.color_hover
-                        self.hover
-                    )
-                    self.color_active
-                    self.active
-                )
+                return self.color
+                    .mix(self.color_hover self.hover)
+                    .mix(self.color_active self.active)
             }
         }
 
         draw_icon +: {
-            color: instance(SIDEBAR_FONT_COLOR)
-            color_hover: instance(SIDEBAR_FONT_COLOR_HOVER)
-            color_active: instance(SIDEBAR_FONT_COLOR_SELECTED)
+            color: #x1A2533
+            color_hover: uniform(#xF9F9F9)
+            color_active: uniform(#xF9F9F9)
+            focus: instance(0.0)
+            active: instance(0.0)
             get_color: fn() -> vec4 {
-                return mix(
-                    mix(
-                        self.color
-                        self.color_hover
-                        self.focus
-                    )
-                    self.color_active
-                    self.active
-                )
+                return self.color
+                    .mix(self.color_hover self.focus)
+                    .mix(self.color_active self.active)
             }
         }
     }
@@ -195,8 +177,8 @@ script_mod! {
         }
 
         draw_icon +: {
-            color: instance(#fff)
-            color_hover: instance(#000)
+            color: #fff
+            color_hover: #000
             rotation_angle: uniform(0.0)
 
             get_color: fn() -> vec4 {
@@ -272,25 +254,21 @@ script_mod! {
             }
 
             get_border_color: fn() -> vec4 {
-                return self.border_color_1
+                return self.border_color
             }
 
             pixel: fn() -> vec4 {
                 let sdf = Sdf2d.viewport(self.pos * self.rect_size)
-                match self.radio_type {
-                    RadioType::Tab => {
-                        sdf.box(
-                            self.border_size
-                            self.border_size
-                            self.rect_size.x - (self.border_size * 2.0)
-                            self.rect_size.y - (self.border_size * 2.0)
-                            max(1.0 self.border_radius)
-                        )
-                        sdf.fill_keep(self.get_color())
-                        if self.border_size > 0.0 {
-                            sdf.stroke(self.get_border_color() self.border_size)
-                        }
-                    }
+                sdf.box(
+                    self.border_size
+                    self.border_size
+                    self.rect_size.x - (self.border_size * 2.0)
+                    self.rect_size.y - (self.border_size * 2.0)
+                    max(1.0 self.border_radius)
+                )
+                sdf.fill_keep(self.get_color())
+                if self.border_size > 0.0 {
+                    sdf.stroke(self.get_border_color() self.border_size)
                 }
                 return sdf.result
             }
@@ -409,7 +387,7 @@ script_mod! {
                 }
             }
         }
-        draw_slider +: {
+        draw_bg +: {
             bipolar: instance(0.0)
             pixel: fn() -> vec4 {
                 let sdf = Sdf2d.viewport(self.pos * self.rect_size)
@@ -482,7 +460,7 @@ script_mod! {
         }
     }
 
-    mod.widgets.TogglePanelButton = MolyButton {
+    mod.widgets.TogglePanelButton = mod.widgets.MolyButton {
         width: Fit
         height: Fit
         icon_walk +: { width: 20 height: 20 }

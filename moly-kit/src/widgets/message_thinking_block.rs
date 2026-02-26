@@ -5,18 +5,13 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    ANIMATION_SPEED: 0.66
-    BALL_MAX_SIZE: 20.0
-    BALL_MIN_SIZE: 10.0
-    BALL_SPACING: 0.0
-
     let LoadingBall = CircleView {
-        width: BALL_MAX_SIZE
-        height: BALL_MAX_SIZE
+        width: 20.0
+        height: 20.0
         margin: 0.0
         padding: 0.0
         draw_bg +: {
-            border_radius: (BALL_MAX_SIZE / 2.0)
+            border_radius: 10.0
         }
     }
 
@@ -24,7 +19,7 @@ script_mod! {
         width: Fit
         height: Fit
         align: Align { x: 0.0, y: 0.5 }
-        spacing: BALL_SPACING
+        spacing: 0.0
         flow: Right
         padding: 0
         margin: 0
@@ -50,7 +45,7 @@ script_mod! {
         width: Fill, height: Fit
         padding: Inset { top: 8, right: 12, bottom: 8, left: 12 }
         margin: 2
-        cursor: MouseCursor.Hand
+        cursor: Hand
         flow: Right
         align: Align { x: 0.0, y: 0.5 }
 
@@ -88,8 +83,9 @@ script_mod! {
         }
     }
 
+    mod.widgets.MessageThinkingBlockBase = #(MessageThinkingBlock::register_widget(vm))
     mod.widgets.MessageThinkingBlock =
-        #(MessageThinkingBlock::register_widget(vm)) View {
+        set_type_default() do mod.widgets.MessageThinkingBlockBase {
         width: Fill
         height: Fit
         flow: Down
@@ -116,26 +112,26 @@ script_mod! {
                 default: @start
                 start: AnimatorState {
                     redraw: true
-                    from: { all: Forward { duration: ANIMATION_SPEED } }
+                    from: { all: Forward { duration: 0.66 } }
                     apply: {
-                        inner +: { collapse +: { balls +: { ball1 +: {
-                            width: BALL_MIN_SIZE
-                            height: BALL_MIN_SIZE
-                            draw_bg +: {
-                                border_radius: (BALL_MIN_SIZE / 2.0)
+                        inner: { collapse: { balls: { ball1: {
+                            width: 10.0
+                            height: 10.0
+                            draw_bg: {
+                                border_radius: 5.0
                             }
                         } } } }
                     }
                 }
                 run: AnimatorState {
                     redraw: true
-                    from: { all: Forward { duration: ANIMATION_SPEED } }
+                    from: { all: Forward { duration: 0.66 } }
                     apply: {
-                        inner +: { collapse +: { balls +: { ball1 +: {
-                            width: BALL_MAX_SIZE
-                            height: BALL_MAX_SIZE
-                            draw_bg +: {
-                                border_radius: (BALL_MAX_SIZE / 2.0)
+                        inner: { collapse: { balls: { ball1: {
+                            width: 20.0
+                            height: 20.0
+                            draw_bg: {
+                                border_radius: 10.0
                             }
                         } } } }
                     }
@@ -146,26 +142,26 @@ script_mod! {
                 default: @start
                 start: AnimatorState {
                     redraw: true
-                    from: { all: Forward { duration: ANIMATION_SPEED } }
+                    from: { all: Forward { duration: 0.66 } }
                     apply: {
-                        inner +: { collapse +: { balls +: { ball2 +: {
-                            width: BALL_MIN_SIZE
-                            height: BALL_MIN_SIZE
-                            draw_bg +: {
-                                border_radius: (BALL_MIN_SIZE / 2.0)
+                        inner: { collapse: { balls: { ball2: {
+                            width: 10.0
+                            height: 10.0
+                            draw_bg: {
+                                border_radius: 5.0
                             }
                         } } } }
                     }
                 }
                 run: AnimatorState {
                     redraw: true
-                    from: { all: Forward { duration: ANIMATION_SPEED } }
+                    from: { all: Forward { duration: 0.66 } }
                     apply: {
-                        inner +: { collapse +: { balls +: { ball2 +: {
-                            width: BALL_MAX_SIZE
-                            height: BALL_MAX_SIZE
-                            draw_bg +: {
-                                border_radius: (BALL_MAX_SIZE / 2.0)
+                        inner: { collapse: { balls: { ball2: {
+                            width: 20.0
+                            height: 20.0
+                            draw_bg: {
+                                border_radius: 10.0
                             }
                         } } } }
                     }

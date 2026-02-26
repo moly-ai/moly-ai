@@ -35,7 +35,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.SttInput = SttInput {{SttInput}} RoundedView {
+    mod.widgets.SttInputBase = #(SttInput::register_widget(vm))
+    mod.widgets.SttInput = set_type_default() do mod.widgets.SttInputBase {
         flow: Right,
         height: 50,
         align: Align { y: 0.5 },

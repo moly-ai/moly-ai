@@ -11,10 +11,8 @@ use crate::data::mcp_servers::McpServersConfig;
 script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
-    use makepad_code_editor::code_editor::*
-
-    let MolyCodeView = MolyCodeView {
-        #(MolyCodeView::register_widget(vm))
+    mod.widgets.MolyCodeViewBase = #(MolyCodeView::register_widget(vm))
+    let MolyCodeView = mod.widgets.MolyCodeViewBase {
         editor := CodeEditor {
             pad_left_top: vec2(0.0 -0.0)
             height: Fit
@@ -25,7 +23,7 @@ script_mod! {
     }
 
     let McpCodeView = MolyCodeView {
-        editor: {
+        editor +: {
             read_only: false
             margin: Inset { top: -2 bottom: 2 }
             pad_left_top: vec2(10.0 10.0)
@@ -38,7 +36,7 @@ script_mod! {
                 }
             }
 
-            token_colors: {
+            token_colors +: {
                 whitespace: #a8b5d1
                 delimiter: #a8b5d1
                 delimiter_highlight: #xc5cee0
@@ -63,10 +61,10 @@ script_mod! {
 
     let ServersEditorWrapper = View {
         AdaptiveView {
-            Desktop = {
+            Desktop +: {
                 mcp_code_view := McpCodeView {}
             }
-            Mobile = {
+            Mobile +: {
                 mcp_code_view := MolyTextInput {
                     width: Fill, height: Fill
                 }
@@ -92,7 +90,7 @@ script_mod! {
             padding: Inset { left: 0 right: 15 top: 8 bottom: 8 }
 
             save_button := RoundedShadowView {
-                cursor: MouseCursor.Hand
+                cursor: Hand
                 margin: Inset {
                     left: 10 right: 10 bottom: 0 top: 0
                 }
@@ -138,7 +136,6 @@ script_mod! {
             text: "Add new servers by editing the list under 'servers'. You can copy paste you configuration from other applications like Clade Desktop or VSCode.
 You can also add an \"enabled\": false flag to disable a specific server."
             draw_text +: {
-                wrap: Word
                 text_style: REGULAR_FONT { font_size: 11 }
                 color: #000
             }
@@ -158,9 +155,9 @@ You can also add an \"enabled\": false flag to disable a specific server."
         }
 
         servers_enabled_switch := MolySwitch {
-            animator: {
-                selected = {
-                    default: on
+            animator: Animator {
+                selected: {
+                    default: @on
                 }
             }
         }
@@ -185,9 +182,9 @@ You can also add an \"enabled\": false flag to disable a specific server."
             }
 
             dangerous_mode_switch := MolySwitch {
-                animator: {
-                    selected = {
-                        default: off
+                animator: Animator {
+                    selected: {
+                        default: @off
                     }
                 }
             }
@@ -197,7 +194,6 @@ You can also add an \"enabled\": false flag to disable a specific server."
             text: "WARNING: This mode automatically approves ALL tool calls without asking for permission.
 Only enable if you trust all configured MCP servers completely."
             draw_text +: {
-                wrap: Word
                 text_style: REGULAR_FONT { font_size: 11 }
                 color: #xFF6666
             }
@@ -205,10 +201,10 @@ Only enable if you trust all configured MCP servers completely."
         }
     }
 
-    mod.widgets.McpServers = McpServers {
-        #(McpServers::register_widget(vm))
+    mod.widgets.McpServersBase = #(McpServers::register_widget(vm))
+    mod.widgets.McpServers = set_type_default() do mod.widgets.McpServersBase {
         AdaptiveView {
-            Desktop = {
+            Desktop +: {
                 width: Fill, height: Fill
                 flow: Right
                 ServersEditor { width: 600 }
@@ -222,7 +218,7 @@ Only enable if you trust all configured MCP servers completely."
                     SaveStatus {}
                 }
             }
-            Mobile = {
+            Mobile +: {
                 ScrollYView {
                     flow: Down
                     padding: Inset { left: 10 }

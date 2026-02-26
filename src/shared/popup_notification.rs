@@ -23,7 +23,7 @@ script_mod! {
             width: Fit
             height: Fit
 
-            cursor: MouseCursor.Default
+            cursor: Default
             capture_overload: true
         }
     }

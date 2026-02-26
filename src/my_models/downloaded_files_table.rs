@@ -37,20 +37,20 @@ script_mod! {
         }
 
         RowHeaderLabel {
-            width: 500 label = { text: "Model File" }
+            width: 500 label +: { text: "Model File" }
         }
         RowHeaderLabel {
-            width: 100 label = { text: "File Size" }
+            width: 100 label +: { text: "File Size" }
         }
         RowHeaderLabel {
-            width: 100 label = { text: "Added Date" }
+            width: 100 label +: { text: "Added Date" }
         }
-        RowHeaderLabel { width: 250 label = { text: "" } }
+        RowHeaderLabel { width: 250 label +: { text: "" } }
     }
 
+    mod.widgets.DownloadedFilesTableBase = #(DownloadedFilesTable::register_widget(vm))
     mod.widgets.DownloadedFilesTable =
-        #(DownloadedFilesTable::register_widget(vm))
-        RoundedShadowView {
+        set_type_default() do mod.widgets.DownloadedFilesTableBase {
         width: Fill
         height: Fill
         align: Align { x: 0.5 y: 0.5 }
@@ -65,11 +65,11 @@ script_mod! {
 
         list := PortalList {
             drag_scrolling: false
-            HeaderRow = HeaderRow {
-                cursor: MouseCursor.Default
+            HeaderRow := HeaderRow {
+                cursor: Default
             }
-            ItemRow = DownloadedFilesRow {
-                cursor: MouseCursor.Default
+            ItemRow := mod.widgets.DownloadedFilesRow {
+                cursor: Default
             }
         }
     }

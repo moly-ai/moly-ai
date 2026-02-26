@@ -8,7 +8,8 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.DeleteModelModal = #(DeleteModelModal::register_widget(vm)) {
+    mod.widgets.DeleteModelModalBase = #(DeleteModelModal::register_widget(vm))
+    mod.widgets.DeleteModelModal = set_type_default() do mod.widgets.DeleteModelModalBase {
         width: Fit
         height: Fit
 
@@ -76,7 +77,6 @@ script_mod! {
                             font_size: 10
                         }
                         color: #000
-                        wrap: Word
                     }
                 }
 

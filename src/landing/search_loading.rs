@@ -4,8 +4,6 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    let ANIMATION_SPEED = 0.33
-
     let LoadingBall = CircleView {
         width: 28
         height: 28
@@ -20,7 +18,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.SearchLoading = #(SearchLoading::register_widget(vm)) ViewBase {
+    mod.widgets.SearchLoadingBase = #(SearchLoading::register_widget(vm))
+    mod.widgets.SearchLoading = set_type_default() do mod.widgets.SearchLoadingBase {
         width: Fill
         height: Fill
 
@@ -45,46 +44,46 @@ script_mod! {
             text: "Searching..."
         }
 
-        animator: {
-            circle1 = {
+        animator: Animator {
+            circle1: {
                 default: @start
                 start: AnimatorState {
                     redraw: true
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle1 = { draw_bg +: {border_radius: 1.0} }}}
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {content: { circle1: { draw_bg: {border_radius: 1.0} }}}
                 }
                 run: AnimatorState {
                     redraw: true
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle1 = { draw_bg +: {border_radius: 14.0} }}}
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {content: { circle1: { draw_bg: {border_radius: 14.0} }}}
                 }
             }
 
-            circle2 = {
+            circle2: {
                 default: @start
                 start: AnimatorState {
                     redraw: true
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle2 = { draw_bg +: {border_radius: 1.0} }}}
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {content: { circle2: { draw_bg: {border_radius: 1.0} }}}
                 }
                 run: AnimatorState {
                     redraw: true
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle2 = { draw_bg +: {border_radius: 14.0} }}}
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {content: { circle2: { draw_bg: {border_radius: 14.0} }}}
                 }
             }
 
-            circle3 = {
+            circle3: {
                 default: @start
                 start: AnimatorState {
                     redraw: true
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle3 = { draw_bg +: {border_radius: 1.0} }}}
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {content: { circle3: { draw_bg: {border_radius: 1.0} }}}
                 }
                 run: AnimatorState {
                     redraw: true
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle3 = { draw_bg +: {border_radius: 14.0} }}}
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {content: { circle3: { draw_bg: {border_radius: 14.0} }}}
                 }
             }
         }

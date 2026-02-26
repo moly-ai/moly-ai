@@ -6,40 +6,34 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    ITEM_HEIGHT: 200.0
-    ITEM_WIDTH: ITEM_HEIGHT
-    ITEM_RADIUS: 8.0
-
-    DENSE_ITEM_HEIGHT: (ITEM_HEIGHT * 0.5)
-    DENSE_ITEM_WIDTH: (ITEM_WIDTH * 0.5)
-    DENSE_ITEM_RADIUS: (ITEM_RADIUS * 0.75)
-
-    mod.widgets.ItemView = #(ItemView::register_widget(vm)) RoundedView {
-        height: ITEM_HEIGHT
-        width: ITEM_WIDTH
+    mod.widgets.ItemViewBase = #(ItemView::register_widget(vm))
+    mod.widgets.ItemView = set_type_default() do mod.widgets.ItemViewBase {
+        height: 200.0
+        width: 200.0
         margin: Inset { right: 4 }
-        cursor: MouseCursor.Hand
+        cursor: Hand
         draw_bg +: {
-            border_radius: ITEM_RADIUS
+            border_radius: 8.0
             border_color: #xD0D5DD
             border_size: 1.0
         }
     }
 
-    mod.widgets.AttachmentList = #(AttachmentList::register_widget(vm)) View {
+    mod.widgets.AttachmentListBase = #(AttachmentList::register_widget(vm))
+    mod.widgets.AttachmentList = set_type_default() do mod.widgets.AttachmentListBase {
         height: Fit
         wrapper := View {
             visible: false
             height: Fit
             list := PortalList {
                 flow: Right
-                height: ITEM_HEIGHT
+                height: 200.0
                 scroll_bar +: { bar_size: 0.0 }
 
-                File := ItemView {
+                File := mod.widgets.ItemView {
                     preview_wrapper := CachedRoundedView {
                         draw_bg +: {
-                            border_radius: ITEM_RADIUS
+                            border_radius: 8.0
                         }
                         preview := AttachmentView {
                             image_wrapper +: {
@@ -53,19 +47,19 @@ script_mod! {
         }
     }
 
-    mod.widgets.DenseAttachmentList = AttachmentList {
+    mod.widgets.DenseAttachmentList = mod.widgets.AttachmentList {
         wrapper +: {
             list +: {
-                height: DENSE_ITEM_HEIGHT
+                height: 100.0
                 File +: {
-                    height: DENSE_ITEM_HEIGHT
-                    width: DENSE_ITEM_WIDTH
+                    height: 100.0
+                    width: 100.0
                     draw_bg +: {
-                        border_radius: DENSE_ITEM_RADIUS
+                        border_radius: 6.0
                     }
                     preview_wrapper +: {
                         draw_bg +: {
-                            border_radius: DENSE_ITEM_RADIUS
+                            border_radius: 6.0
                         }
                     }
                 }

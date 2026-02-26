@@ -55,7 +55,7 @@ script_mod! {
 
     let ConnectionActionButton = View {
         visible: false
-        cursor: MouseCursor.Hand
+        cursor: Hand
         width: Fit
         height: Fit
 
@@ -76,8 +76,9 @@ script_mod! {
         }
     }
 
+    mod.widgets.ProviderItemBase = #(ProviderItem::register_widget(vm))
     let ProviderItem =
-        #(ProviderItem::register_widget(vm)) RoundedView {
+        mod.widgets.ProviderItemBase {
         width: Fill
         height: 40
         flow: Overlay
@@ -89,7 +90,7 @@ script_mod! {
         align: Align { x: 0.0 y: 0.5 }
 
         main_view := View {
-            cursor: MouseCursor.Hand
+            cursor: Hand
             padding: 8
             align: Align { x: 0.0 y: 0.5 }
             spacing: 20
@@ -171,8 +172,9 @@ script_mod! {
         }
     }
 
+    mod.widgets.ProvidersBase = #(Providers::register_widget(vm))
     mod.widgets.Providers =
-        #(Providers::register_widget(vm)) ViewBase {
+        set_type_default() do mod.widgets.ProvidersBase {
         width: 300
         height: Fill
         flow: Down
@@ -185,7 +187,7 @@ script_mod! {
         }
 
         add_provider_button := RoundedShadowView {
-            cursor: MouseCursor.Hand
+            cursor: Hand
             margin: Inset {
                 left: 10 right: 10 bottom: 0 top: 10
             }
@@ -212,7 +214,7 @@ script_mod! {
         }
 
         open_sync_button := RoundedShadowView {
-            cursor: MouseCursor.Hand
+            cursor: Hand
             margin: Inset { left: 10 right: 10 bottom: 0 }
             width: Fill
             height: Fit
@@ -237,7 +239,7 @@ script_mod! {
         }
 
         utilities_button := RoundedShadowView {
-            cursor: MouseCursor.Hand
+            cursor: Hand
             margin: Inset { left: 10 right: 10 bottom: 20 }
             width: Fill
             height: Fit
@@ -262,15 +264,15 @@ script_mod! {
         }
 
         provider_icons: [
-            (ICON_OPENAI)
-            (ICON_GEMINI)
-            (ICON_SILICONFLOW)
-            (ICON_OPENROUTER)
-            (ICON_MOLYSERVER)
-            (ICON_DEEPSEEK)
-            (ICON_OLLAMA)
-            (ICON_ANTHROPIC)
-            (ICON_OPENCLAW)
+            ICON_OPENAI
+            ICON_GEMINI
+            ICON_SILICONFLOW
+            ICON_OPENROUTER
+            ICON_MOLYSERVER
+            ICON_DEEPSEEK
+            ICON_OLLAMA
+            ICON_ANTHROPIC
+            ICON_OPENCLAW
         ]
 
         View {
@@ -279,19 +281,19 @@ script_mod! {
             flow: Overlay
 
             add_provider_modal := MolyModal {
-                content: {
+                content +: {
                     add_provider_modal_inner := AddProviderModal {}
                 }
             }
 
             sync_modal := MolyModal {
-                content: {
+                content +: {
                     sync_modal_inner := SyncModal {}
                 }
             }
 
             utilities_modal := MolyModal {
-                content: {
+                content +: {
                     utilities_modal_inner := UtilitiesModal {}
                 }
             }

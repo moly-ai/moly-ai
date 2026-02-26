@@ -75,7 +75,6 @@ script_mod! {
             version := Label {
                 width: Fit
                 draw_text +: {
-                    wrap: Ellipsis
                     text_style: REGULAR_FONT { font_size: 9 }
                     color: #667085
                 }
@@ -135,8 +134,9 @@ script_mod! {
     }
 
 
+    mod.widgets.DownloadedFilesRowBase = #(DownloadedFilesRow::register_widget(vm))
     mod.widgets.DownloadedFilesRow =
-        #(DownloadedFilesRow::register_widget(vm)) {
+        set_type_default() do mod.widgets.DownloadedFilesRowBase {
         flow: Overlay
         width: Fill
         height: Fit
@@ -165,14 +165,14 @@ script_mod! {
         }
 
         info_modal := MolyModal {
-            content: {
-                ModelInfoModal {}
+            content +: {
+                mod.widgets.ModelInfoModal {}
             }
         }
 
         delete_modal := MolyModal {
-            content: {
-                DeleteModelModal {}
+            content +: {
+                mod.widgets.DeleteModelModal {}
             }
         }
     }
@@ -206,15 +206,17 @@ impl Widget for DownloadedFilesRow {
             .set_text(cx, &name);
 
         let base_model = dash_if_empty(&downloaded_file.model.architecture);
-        self.label(cx, ids!(
-            h_wrapper.model_file.base_model_tag.base_model.attr_name
-        ))
+        self.label(
+            cx,
+            ids!(h_wrapper.model_file.base_model_tag.base_model.attr_name),
+        )
         .set_text(cx, &base_model);
 
         let parameters = dash_if_empty(&downloaded_file.model.size);
-        self.label(cx, ids!(
-            h_wrapper.model_file.parameters_tag.parameters.attr_name
-        ))
+        self.label(
+            cx,
+            ids!(h_wrapper.model_file.parameters_tag.parameters.attr_name),
+        )
         .set_text(cx, &parameters);
 
         let filename = format!(
@@ -248,7 +250,10 @@ impl WidgetMatchEvent for DownloadedFilesRow {
             }
         }
 
-        if self.button(cx, ids!(row_actions.info_button)).clicked(actions) {
+        if self
+            .button(cx, ids!(row_actions.info_button))
+            .clicked(actions)
+        {
             self.moly_modal(cx, ids!(info_modal)).open_as_dialog(cx);
         }
 

@@ -27,12 +27,13 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.Messages = Messages {{Messages}} {
+    mod.widgets.MessagesBase = #(Messages::register_widget(vm))
+    mod.widgets.Messages = set_type_default() do mod.widgets.MessagesBase {
         flow: Overlay,
 
         list := PortalList {
             grab_key_focus: true
-            scroll_bar: {
+            scroll_bar +: {
                 bar_size: 0.0,
             }
             UserLine := UserLine {}

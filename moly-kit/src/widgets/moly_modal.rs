@@ -6,7 +6,8 @@ use makepad_widgets::*;
 script_mod! {
     use mod.prelude.widgets.*
 
-    mod.widgets.MolyModal = #(MolyModal::register_widget(vm)) {
+    mod.widgets.MolyModalBase = #(MolyModal::register_widget(vm))
+    mod.widgets.MolyModal = set_type_default() do mod.widgets.MolyModalBase {
         width: Fill
         height: Fill
         flow: Overlay

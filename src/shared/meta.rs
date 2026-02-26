@@ -8,7 +8,8 @@ use makepad_widgets::*;
 script_mod! {
     use mod.prelude.widgets.*
 
-    mod.widgets.Meta = #(Meta::register_widget(vm)) ViewBase { width: 0, height: 0 }
+    mod.widgets.MetaBase = #(Meta::register_widget(vm))
+    mod.widgets.Meta = set_type_default() do mod.widgets.MetaBase { width: 0, height: 0 }
 }
 
 /// A non visual widget that can store any value.

@@ -4,7 +4,7 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    let ERROR_ICON = crate_resource("self://resources/images/failure_icon.png")
+    let ERROR_ICON = crate_resource("self:resources/images/failure_icon.png")
 
     let MolyServerPopupDialog = RoundedView {
         width: 350
@@ -80,7 +80,6 @@ script_mod! {
         title := Label {
             draw_text +: {
                 text_style: BOLD_FONT { font_size: 9 }
-                word: Wrap
                 color: #000
             }
             text: "Network Connection Error"
@@ -90,15 +89,15 @@ script_mod! {
             width: Fill
             draw_text +: {
                 text_style: REGULAR_FONT { font_size: 9 }
-                word: Wrap
                 color: #000
             }
             text: "Connection with MolySever interrupted.\nPlease check that the server is running and try again."
         }
     }
 
+    mod.widgets.MolyServerPopupBase = #(MolyServerPopup::register_widget(vm))
     mod.widgets.MolyServerPopup =
-        #(MolyServerPopup::register_widget(vm)) ViewBase {
+        set_type_default() do mod.widgets.MolyServerPopupBase {
         width: Fit
         height: Fit
 

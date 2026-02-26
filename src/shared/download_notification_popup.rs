@@ -7,8 +7,8 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    let SUCCESS_ICON = crate_resource("self://resources/images/success_icon.png")
-    let FAILURE_ICON = crate_resource("self://resources/images/failure_icon.png")
+    let SUCCESS_ICON = crate_resource("self:resources/images/success_icon.png")
+    let FAILURE_ICON = crate_resource("self:resources/images/failure_icon.png")
 
     let PRIMARY_LINK_FONT_COLOR = #x0E7090
     let SECONDARY_LINK_FONT_COLOR = #667085
@@ -135,7 +135,6 @@ script_mod! {
         title := Label {
             draw_text +: {
                 text_style: BOLD_FONT { font_size: 9 }
-                word: Wrap
                 color: #000
             }
             text: "Model Downloaded Successfully"
@@ -145,7 +144,6 @@ script_mod! {
             width: Fill
             draw_text +: {
                 text_style: REGULAR_FONT { font_size: 9 }
-                word: Wrap
                 color: #000
             }
             text: ""
@@ -174,8 +172,9 @@ script_mod! {
         }
     }
 
+    mod.widgets.DownloadNotificationPopupBase = #(DownloadNotificationPopup::register_widget(vm))
     mod.widgets.DownloadNotificationPopup =
-        #(DownloadNotificationPopup::register_widget(vm)) ViewBase {
+        set_type_default() do mod.widgets.DownloadNotificationPopupBase {
         width: Fit
         height: Fit
 

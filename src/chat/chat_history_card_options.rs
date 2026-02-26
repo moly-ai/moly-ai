@@ -9,7 +9,8 @@ script_mod! {
     let ICON_DELETE = crate_resource("self://resources/icons/delete.svg")
     let ICON_EDIT = crate_resource("self://resources/icons/edit.svg")
 
-    mod.widgets.ChatHistoryCardOptions = #(ChatHistoryCardOptions::register_widget(vm)) {
+    mod.widgets.ChatHistoryCardOptionsBase = #(ChatHistoryCardOptions::register_widget(vm))
+    mod.widgets.ChatHistoryCardOptions = set_type_default() do mod.widgets.ChatHistoryCardOptionsBase {
         width: Fit
         height: Fit
         flow: Overlay

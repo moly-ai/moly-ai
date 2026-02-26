@@ -45,7 +45,7 @@ script_mod! {
         align: Align {x: 0.0 y: 0.5}
 
         architecture_tag := ModelAttributeTag {
-            caption := {
+            caption +: {
                 text: "StableLM"
             }
             draw_bg +: {
@@ -54,7 +54,7 @@ script_mod! {
         }
 
         params_size_tag := ModelAttributeTag {
-            caption := {
+            caption +: {
                 text: "3B"
             }
             draw_bg +: {
@@ -180,7 +180,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.DownloadItem = #(DownloadItem::register_widget(vm)) RoundedView {
+    mod.widgets.DownloadItemBase = #(DownloadItem::register_widget(vm))
+    mod.widgets.DownloadItem = set_type_default() do mod.widgets.DownloadItemBase {
         width: Fill
         height: Fit
 
@@ -189,7 +190,7 @@ script_mod! {
         spacing: 30
         align: Align {x: 0.0 y: 0.5}
 
-        cursor: MouseCursor.Default
+        cursor: Default
 
         draw_bg +: {
             border_color: #EAECF0

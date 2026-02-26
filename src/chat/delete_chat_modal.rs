@@ -6,7 +6,8 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.DeleteChatModal = #(DeleteChatModal::register_widget(vm)) {
+    mod.widgets.DeleteChatModalBase = #(DeleteChatModal::register_widget(vm))
+    mod.widgets.DeleteChatModal = set_type_default() do mod.widgets.DeleteChatModalBase {
         width: Fit
         height: Fit
 
@@ -72,7 +73,6 @@ script_mod! {
                     draw_text +: {
                         text_style: REGULAR_FONT {font_size: 10}
                         color: #000
-                        wrap: Word
                     }
                 }
 

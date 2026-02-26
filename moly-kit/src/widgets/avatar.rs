@@ -6,7 +6,8 @@ use makepad_widgets::*;
 script_mod! {
     use mod.prelude.widgets.*
 
-    mod.widgets.Avatar = #(Avatar::register_widget(vm)) View {
+    mod.widgets.AvatarBase = #(Avatar::register_widget(vm))
+    mod.widgets.Avatar = set_type_default() do mod.widgets.AvatarBase {
         height: Fit
         width: Fit
         grapheme := RoundedView {

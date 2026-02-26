@@ -30,7 +30,7 @@ script_mod! {
         spacing: 10
         align: Align {x: 0.0 y: 0.5}
 
-        cursor: MouseCursor.Hand
+        cursor: Hand
 
         provider_image_view := View {
             width: Fit height: Fit
@@ -61,7 +61,7 @@ script_mod! {
         }
 
         file_size_tag := ModelAttributeTag {
-            caption: {
+            caption +: {
                 draw_text +: {
                     color: #000
                 }
@@ -91,9 +91,9 @@ script_mod! {
         align: Align {x: 0.0 y: 0.5}
         spacing: 10
 
-        cursor: MouseCursor.Hand
+        cursor: Hand
 
-        avatar := ChatAgentAvatar {}
+        avatar := mod.widgets.ChatAgentAvatar {}
 
         label := Label {
             draw_text +: {

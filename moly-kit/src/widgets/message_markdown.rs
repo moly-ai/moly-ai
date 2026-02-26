@@ -1,9 +1,7 @@
 use makepad_widgets::*;
 script_mod! {
     use mod.prelude.widgets.*
-
-    MD_LINE_SPACING: 1.5
-    MD_FONT_COLOR: #000
+    use mod.widgets.*
 
     mod.widgets.MessageMarkdown = Markdown {
         padding: 0
@@ -56,7 +54,6 @@ script_mod! {
                         }
                     }
 
-                    // Inspired by Electron Highlighter theme
                     token_colors +: {
                         whitespace: #xa8b5d1
                         delimiter: #xa8b5d1
@@ -106,38 +103,23 @@ script_mod! {
             }
         }
 
-        draw_normal +: {
-            color: MD_FONT_COLOR
-            text_style +: {
-                line_spacing: MD_LINE_SPACING
-            }
+        text_style_normal +: {
+            line_spacing: 1.5
         }
-        draw_italic +: {
-            color: MD_FONT_COLOR
-            text_style +: {
-                line_spacing: MD_LINE_SPACING
-            }
+        text_style_italic +: {
+            line_spacing: 1.5
         }
-        draw_bold +: {
-            color: MD_FONT_COLOR
-            text_style +: {
-                line_spacing: MD_LINE_SPACING
-            }
+        text_style_bold +: {
+            line_spacing: 1.5
         }
-        draw_bold_italic +: {
-            color: MD_FONT_COLOR
-            text_style +: {
-                line_spacing: MD_LINE_SPACING
-            }
+        text_style_bold_italic +: {
+            line_spacing: 1.5
         }
-        draw_fixed +: {
-            color: MD_FONT_COLOR
-            text_style +: {
-                line_spacing: MD_LINE_SPACING
-            }
+        text_style_fixed +: {
+            line_spacing: 1.5
         }
         draw_block +: {
-            line_color: MD_FONT_COLOR
+            line_color: #000
             sep_color: #xEDEDED
             quote_bg_color: #xEDEDED
             quote_fg_color: #x969696

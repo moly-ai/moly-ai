@@ -9,16 +9,16 @@ script_mod! {
 
     let MolyHtml = Html {
         font_color: #000
-        draw_fixed: { color: #x0 }
         draw_block +: {
             code_color: (#EAECF0)
         }
         font_size: 10
-        code_layout: { padding: 15 }
+        code_layout: Layout { padding: 15 }
     }
 
+    mod.widgets.ModelInfoModalBase = #(ModelInfoModal::register_widget(vm))
     mod.widgets.ModelInfoModal =
-        #(ModelInfoModal::register_widget(vm)) {
+        set_type_default() do mod.widgets.ModelInfoModalBase {
         width: Fit
         height: Fit
 
@@ -88,7 +88,7 @@ script_mod! {
                 path := MolyHtml {
                     width: Fill
                     font_size: 10
-                    code_layout: { padding: 9 }
+                    code_layout: Layout { padding: 9 }
                 }
             }
 

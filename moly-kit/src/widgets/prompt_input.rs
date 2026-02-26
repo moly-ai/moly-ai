@@ -1,4 +1,3 @@
-use makepad_widgets::command_text_input::CommandTextInput;
 use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use makepad_widgets::*;
 use std::cell::{Ref, RefMut};
@@ -115,12 +114,16 @@ script_mod! {
         submit := SubmitButton {}
     }
 
-    mod.widgets.PromptInput = #(PromptInput::register_widget(vm)) CommandTextInput {
+    mod.widgets.PromptInputBase = #(PromptInput::register_widget(vm))
+    mod.widgets.PromptInput = set_type_default() do mod.widgets.PromptInputBase {
         send_icon: crate_resource("self://resources/send.svg"),
         stop_icon: crate_resource("self://resources/stop.svg"),
-        height: Fit { max: 350 }
-        persistent := {
+        height: Fit { max: FitBound.Abs(350) }
+        flow: Down
+
+        persistent := RoundedView {
             height: Fit
+            flow: Down
             padding: Inset { top: 10, bottom: 10, left: 10, right: 10 }
             draw_bg +: {
                 color: #fff,
@@ -128,18 +131,18 @@ script_mod! {
                 border_color: #xD0D5DD,
                 border_size: 1.0,
             }
-            top := {
+            top := View {
                 height: Fit
-                attachments := DenseAttachmentList {
+                attachments := mod.widgets.DenseAttachmentList {
                     wrapper := {}
                 }
             }
-            center := {
+            center := View {
                 height: Fit
-                text_input := {
+                text_input := TextInput {
                     height: Fit {
-                        min: 35
-                        max: 180
+                        min: FitBound.Abs(35)
+                        max: FitBound.Abs(180)
                     }
                     width: Fill
                     empty_text: "Start typing...",
@@ -165,17 +168,17 @@ script_mod! {
                         color: #000
                     }
                 }
-                right := {
-                    // In mobile, show the send controls here, right to the input
+                right := View {
+                    width: Fit, height: Fit
                 }
             }
-            bottom := {
+            bottom := View {
                 height: Fit
                 left := View {
                     width: Fit, height: Fit
                     align: Align { x: 0.0, y: 0.5 }
                     attach := AttachButton {}
-                    model_selector := ModelSelector {}
+                    model_selector := mod.widgets.ModelSelector {}
                 }
                 width: Fill, height: Fit
                 separator := View { width: Fill, height: 1 }
@@ -205,7 +208,7 @@ pub enum Interactivity {
 #[derive(Script, Widget)]
 pub struct PromptInput {
     #[deref]
-    deref: CommandTextInput,
+    deref: View,
 
     /// Icon used by this widget when the task is set to [Task::Send].
     #[live]
@@ -237,11 +240,13 @@ impl ScriptHook for PromptInput {
 
 impl Widget for PromptInput {
     fn set_text(&mut self, cx: &mut Cx, v: &str) {
-        self.deref.set_text(cx, v);
+        self.text_input(cx, ids!(text_input)).set_text(cx, v);
     }
 
     fn text(&self) -> String {
-        self.deref.text()
+        // Text is stored in the child TextInput; callers with cx should
+        // use text_input_ref(cx).text() instead.
+        String::new()
     }
 
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
@@ -312,11 +317,14 @@ impl Widget for PromptInput {
 
 impl PromptInput {
     /// Reset this prompt input erasing text, removing attachments, etc.
-    ///
-    /// Shadows the [`CommandTextInput::reset`] method.
     pub fn reset(&mut self, cx: &mut Cx) {
-        self.deref.reset(cx);
+        self.text_input_ref(cx).set_text(cx, "");
         self.attachment_list_ref(cx).write().attachments.clear();
+    }
+
+    /// Returns a reference to the inner `TextInput` widget.
+    pub fn text_input_ref(&self, cx: &Cx) -> TextInputRef {
+        self.text_input(cx, ids!(text_input))
     }
 
     /// Check if the submit button or the return key was pressed.

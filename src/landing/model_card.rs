@@ -42,7 +42,7 @@ script_mod! {
 
             VerticalFiller {}
 
-            model_like_count := ModelAttributeTag {
+            model_like_count := mod.widgets.ModelAttributeTag {
                 width: Fit
                 height: Fit
 
@@ -63,7 +63,7 @@ script_mod! {
                     icon_walk +: {width: 14 height: 14}
                 }
 
-                attr_value: {
+                attr_value +: {
                     margin: Inset {left: 5}
                     draw_text +: {
                         color: #000
@@ -72,7 +72,7 @@ script_mod! {
                 }
             }
 
-            model_download_count := ModelAttributeTag {
+            model_download_count := mod.widgets.ModelAttributeTag {
                 width: Fit
                 height: Fit
 
@@ -93,7 +93,7 @@ script_mod! {
                     icon_walk +: {width: 12 height: 12}
                 }
 
-                attr_value: {
+                attr_value +: {
                     margin: Inset {left: 5}
                     draw_text +: {
                         color: #000
@@ -106,7 +106,7 @@ script_mod! {
             View {
                 width: 260
                 height: Fit
-                model_released_at_tag := ModelAttributeTag {
+                model_released_at_tag := mod.widgets.ModelAttributeTag {
                     width: Fit
                     height: Fit
 
@@ -115,18 +115,18 @@ script_mod! {
                         border_color: #98A2B3
                         border_size: 0.8
                     }
-                    attr_name: {
+                    attr_name +: {
                         draw_text +: { color: #000 }
                         text: "Released"
                     }
-                    attr_value: {
+                    attr_value +: {
                         margin: Inset {left: 10}
                         draw_text +: { color: #000 }
                     }
                 }
             }
         }
-        ModelAttributes {}
+        mod.widgets.ModelAttributes {}
     }
 
     let ModelSummary = View {
@@ -147,13 +147,12 @@ script_mod! {
             width: Fill
             draw_text +: {
                 text_style: theme.font_regular {font_size: 9}
-                word: Wrap
                 color: #000
             }
         }
 
-        view_all_button := ModelLink {
-            link: { text: "View All" }
+        view_all_button := mod.widgets.ModelLink {
+            link +: { text: "View All" }
         }
     }
 
@@ -193,7 +192,7 @@ script_mod! {
             align: Align {x: 0.5 y: 1.0}
             width: Fit
             height: Fit
-            model_hugging_face_link := ExternalLink { link: { text: "Hugging Face" } }
+            model_hugging_face_link := ExternalLink { link +: { text: "Hugging Face" } }
             ExternalLinkIcon {}
         }
     }
@@ -207,7 +206,8 @@ script_mod! {
     }
 
 
-    mod.widgets.ModelCardViewAllModal = #(ModelCardViewAllModal::register_widget(vm)) ViewBase {
+    mod.widgets.ModelCardViewAllModalBase = #(ModelCardViewAllModal::register_widget(vm))
+    mod.widgets.ModelCardViewAllModal = set_type_default() do mod.widgets.ModelCardViewAllModalBase {
         width: Fit
         height: Fit
 
@@ -271,7 +271,6 @@ script_mod! {
                     width: Fill
                     draw_text +: {
                         text_style: theme.font_regular {font_size: 9}
-                        word: Wrap
                         color: #000
                     }
                 }
@@ -280,14 +279,15 @@ script_mod! {
     }
 
 
-    mod.widgets.ModelCard = #(ModelCard::register_widget(vm)) ViewBase {
+    mod.widgets.ModelCardBase = #(ModelCard::register_widget(vm))
+    mod.widgets.ModelCard = set_type_default() do mod.widgets.ModelCardBase {
         width: Fill
         height: Fit
 
         // This is necesary because we have a Modal widget inside this widget
         flow: Overlay
 
-        cursor: MouseCursor.Default
+        cursor: Default
         padding: Inset {left: 10 top: 8 right: 10 bottom: 8}
 
         RoundedShadowView {
@@ -313,8 +313,8 @@ script_mod! {
         }
 
         modal := MolyModal {
-            content: {
-                ModelCardViewAllModal {}
+            content +: {
+                mod.widgets.ModelCardViewAllModal {}
             }
         }
     }
@@ -404,7 +404,10 @@ impl Widget for ModelCard {
 
 impl WidgetMatchEvent for ModelCard {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if self.link_label(cx, ids!(view_all_button.link)).clicked(actions) {
+        if self
+            .link_label(cx, ids!(view_all_button.link))
+            .clicked(actions)
+        {
             self.moly_modal(cx, ids!(modal)).open(cx);
             self.redraw(cx);
         }

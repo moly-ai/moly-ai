@@ -29,7 +29,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.ChatAgentAvatar = #(ChatAgentAvatar::register_widget(vm)) {
+    mod.widgets.ChatAgentAvatarBase = #(ChatAgentAvatar::register_widget(vm))
+    mod.widgets.ChatAgentAvatar = set_type_default() do mod.widgets.ChatAgentAvatarBase {
         reasoner_agent_icon: crate_resource("self://resources/images/reasoner_agent_icon.png")
         width: Fit
         height: Fit

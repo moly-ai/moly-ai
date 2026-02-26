@@ -3,7 +3,8 @@ use makepad_widgets::*;
 script_mod! {
     use mod.prelude.widgets.*
 
-    mod.widgets.List = #(List::register_widget(vm)) ViewBase {
+    mod.widgets.ListBase = #(List::register_widget(vm))
+    mod.widgets.List = set_type_default() do mod.widgets.ListBase {
         flow: Down
         width: Fill
         height: Fill

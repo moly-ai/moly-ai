@@ -6,7 +6,8 @@ use makepad_widgets::{
 script_mod! {
     use mod.prelude.widgets.*
 
-    mod.widgets.ImageView = #(ImageView::register_widget(vm)) View {
+    mod.widgets.ImageViewBase = #(ImageView::register_widget(vm))
+    mod.widgets.ImageView = set_type_default() do mod.widgets.ImageViewBase {
         align: Align { x: 0.5, y: 0.5 }
         image := Image { width: 0, height: 0 }
     }

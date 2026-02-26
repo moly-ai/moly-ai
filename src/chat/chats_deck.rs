@@ -15,7 +15,8 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.ChatsDeck = #(ChatsDeck::register_widget(vm)) {
+    mod.widgets.ChatsDeckBase = #(ChatsDeck::register_widget(vm))
+    mod.widgets.ChatsDeck = set_type_default() do mod.widgets.ChatsDeckBase {
         width: Fill height: Fill
         padding: Inset {top: 18 bottom: 0 right: 28 left: 28}
 

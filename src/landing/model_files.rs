@@ -10,11 +10,11 @@ script_mod! {
     let ICON_ADD = crate_resource("self://resources/icons/add.svg")
     let ICON_REMOVE = crate_resource("self://resources/icons/remove.svg")
 
-    let ActionToggleButton = MolyRadioButtonTab {
+    let ActionToggleButton = mod.widgets.MolyRadioButtonTab {
         width: Fit
         height: 40
         padding: Inset {left: 20 top: 10 bottom: 10 right: 20}
-        label_walk: { margin: 0 }
+        label_walk: Walk { margin: 0 }
         draw_text +: {
             text_style: theme.font_bold {font_size: 9}
             color_active: #475467
@@ -58,20 +58,20 @@ script_mod! {
             }
 
             show_all_button := ActionToggleButton {
-                animator: {selected: {default: @on}}
+                animator: Animator {selected: {default: @on}}
             }
             only_recommended_button := ActionToggleButton {}
         }
     }
 
-    let ModelFilesHeader = ModelFilesRow {
+    let ModelFilesHeader = mod.widgets.ModelFilesRow {
         show_bg: true
         draw_bg +: {
             color: #F2F4F7
             border_radius: vec2(3.0 0.5)
         }
 
-        cell1: {
+        cell1 +: {
             height: 40
             Label {
                 draw_text +: {
@@ -82,7 +82,7 @@ script_mod! {
             }
         }
 
-        cell2: {
+        cell2 +: {
             height: 40
             Label {
                 draw_text +: {
@@ -93,7 +93,7 @@ script_mod! {
             }
         }
 
-        cell3: {
+        cell3 +: {
             height: 40
             Label {
                 draw_text +: {
@@ -103,13 +103,13 @@ script_mod! {
                 text: "Quantization"
             }
         }
-        cell4: {
+        cell4 +: {
             height: 40
         }
     }
 
     let FooterLink = View {
-        cursor: MouseCursor.Hand
+        cursor: Hand
         align: Align {x: 0.0 y: 0.5}
         spacing: 10
         icon := Icon {
@@ -130,7 +130,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.ModelFiles = #(ModelFiles::register_widget(vm)) RoundedView {
+    mod.widgets.ModelFilesBase = #(ModelFiles::register_widget(vm))
+    mod.widgets.ModelFiles = set_type_default() do mod.widgets.ModelFilesBase {
         width: Fill
         height: Fit
         flow: Down
@@ -145,8 +146,8 @@ script_mod! {
         }
 
         show_all_animation_progress: 0.0
-        animator: {
-            show_all = {
+        animator: Animator {
+            show_all: {
                 default: @hide
                 show: AnimatorState {
                     redraw: true

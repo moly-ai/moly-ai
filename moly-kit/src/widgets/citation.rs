@@ -7,10 +7,11 @@ use url::Url;
 script_mod! {
     use mod.prelude.widgets.*
 
-    mod.widgets.Citation = #(Citation::register_widget(vm)) RoundedView {
+    mod.widgets.CitationBase = #(Citation::register_widget(vm))
+    mod.widgets.Citation = set_type_default() do mod.widgets.CitationBase {
         flow: Down
         height: Fit
-        cursor: MouseCursor.Hand
+        cursor: Hand
         width: 170
         padding: 6
         spacing: 5

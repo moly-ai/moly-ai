@@ -16,8 +16,7 @@ use crate::{
 
 script_mod! {
     use mod.prelude.widgets.*
-
-    ICON_DROP = crate_resource("self://resources/drop_icon.png")
+    use mod.widgets.*
 
     let ModelSelectorButton = Button {
         width: Fit
@@ -111,7 +110,7 @@ script_mod! {
         }
     }
 
-    mod.widgets.ModelSelector = ModelSelector View {
+    mod.widgets.ModelSelector = #(ModelSelector::register_widget(vm)) View {
         width: Fit, height: Fit
         flow: Overlay
 
@@ -126,7 +125,7 @@ script_mod! {
             }
             align: Align { x: 0.0, y: 0.0 }
 
-            content +: View {
+            content +: {
                 width: 400
                 height: Fit
                 padding: Inset { top: 20, left: 10, right: 10, bottom: 20 }

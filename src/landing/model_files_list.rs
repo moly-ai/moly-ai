@@ -8,7 +8,8 @@ script_mod! {
 
     use mod.widgets.*
 
-    mod.widgets.ModelFilesList = #(ModelFilesList::register_widget(vm)) {
+    mod.widgets.ModelFilesListBase = #(ModelFilesList::register_widget(vm))
+    mod.widgets.ModelFilesList = set_type_default() do mod.widgets.ModelFilesListBase {
         width: Fill
         height: Fit
         flow: Down

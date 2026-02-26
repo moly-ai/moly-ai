@@ -22,7 +22,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.ModelFilesTags = #(ModelFilesTags::register_widget(vm)) {
+    mod.widgets.ModelFilesTagsBase = #(ModelFilesTags::register_widget(vm))
+    mod.widgets.ModelFilesTags = set_type_default() do mod.widgets.ModelFilesTagsBase {
         width: Fit
         height: Fit
         flow: Right
@@ -83,7 +84,7 @@ impl ModelFilesTagsRef {
                     WidgetRef::script_from_value(vm, obj.into())
                 })
             };
-            script_apply_eval!(cx, item_widget, { label: { text: #(tag) } });
+            script_apply_eval!(cx, item_widget, { label +: { text: #(tag) } });
             tags_widget.items.insert(item_id, item_widget);
         }
     }

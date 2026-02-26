@@ -8,7 +8,8 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.EntityButton = #(EntityButton::register_widget(vm)) RoundedView {
+    mod.widgets.EntityButtonBase = #(EntityButton::register_widget(vm))
+    mod.widgets.EntityButton = set_type_default() do mod.widgets.EntityButtonBase {
         flow: Right
         width: Fill
         visible: false
@@ -18,14 +19,14 @@ script_mod! {
         spacing: 10
         server_url_visible: false
 
-        cursor: MouseCursor.Hand
+        cursor: Hand
         show_bg: true
         draw_bg +: {
             border_radius: 0
             color: #0000
         }
 
-        agent_avatar := ChatAgentAvatar {}
+        agent_avatar := mod.widgets.ChatAgentAvatar {}
         text_layout := View {
             width: Fill
             height: Fit
@@ -59,26 +60,25 @@ script_mod! {
                     width: Fill
                     height: Fit
                     draw_text +: {
-                        wrap: Wrap.Ellipsis
                         text_style: REGULAR_FONT {font_size: 9}
                         color: #667085
                     }
                 }
             }
         }
-        animator: {
+        animator: Animator {
             hover: {
                 default: @off
                 off: AnimatorState {
                     from: {all: Forward {duration: 0.15}}
                     apply: {
-                        draw_bg +: {color: #xF2F4F700}
+                        draw_bg: {color: #xF2F4F700}
                     }
                 }
                 on: AnimatorState {
                     from: {all: Snap}
                     apply: {
-                        draw_bg +: {color: #xEAECEF88}
+                        draw_bg: {color: #xEAECEF88}
                     }
                 }
             }
@@ -88,7 +88,7 @@ script_mod! {
                     from: {all: Forward {duration: 0.5}}
                     ease: OutExp
                     apply: {
-                        draw_bg +: {down: 0.0}
+                        draw_bg: {down: 0.0}
                     }
                 }
                 on: AnimatorState {
@@ -97,7 +97,7 @@ script_mod! {
                         all: Forward {duration: 0.2}
                     }
                     apply: {
-                        draw_bg +: {down: 1.0}
+                        draw_bg: {down: 1.0}
                     }
                 }
             }

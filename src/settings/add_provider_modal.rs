@@ -52,7 +52,7 @@ script_mod! {
             }
         }
 
-        popup_menu: {
+        popup_menu: PopupMenuFlat {
             width: 300
             height: Fit
             flow: Down
@@ -128,8 +128,9 @@ script_mod! {
         }
     }
 
+    mod.widgets.AddProviderModalBase = #(AddProviderModal::register_widget(vm))
     mod.widgets.AddProviderModal =
-        #(AddProviderModal::register_widget(vm)) ViewBase {
+        set_type_default() do mod.widgets.AddProviderModalBase {
         width: Fit
         height: Fit
 
@@ -325,7 +326,11 @@ impl WidgetMatchEvent for AddProviderModal {
 
         if self.button(cx, ids!(add_server_button)).clicked(actions) {
             self.clear_error_message(cx);
-            let api_host = self.text_input(cx, ids!(api_host)).text().trim().to_string();
+            let api_host = self
+                .text_input(cx, ids!(api_host))
+                .text()
+                .trim()
+                .to_string();
             let name = self.text_input(cx, ids!(name)).text().trim().to_string();
 
             if self.selected_provider.is_none() {
@@ -489,13 +494,16 @@ impl WidgetMatchEvent for AddProviderModal {
         }
 
         let selected = self
-            .radio_button_set(cx, ids_array!(
-                radios.radio_openai,
-                radios.radio_mofa,
-                radios.radio_deepinquire,
-                radios.radio_moly_server,
-                radios.radio_openai_realtime
-            ))
+            .radio_button_set(
+                cx,
+                ids_array!(
+                    radios.radio_openai,
+                    radios.radio_mofa,
+                    radios.radio_deepinquire,
+                    radios.radio_moly_server,
+                    radios.radio_openai_realtime
+                ),
+            )
             .selected(cx, actions);
         if let Some(selected) = selected {
             self.selected_provider = match selected {

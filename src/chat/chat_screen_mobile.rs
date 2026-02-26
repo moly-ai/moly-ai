@@ -9,10 +9,10 @@ script_mod! {
 
     let SettingsMenu = MolyModal {
         align: Align {x: 0.0 y: 0.0}
-        bg_view: {
+        bg_view +: {
             visible: false
         }
-        content: RoundedView {
+        content +: {
             show_bg: true
             draw_bg +: {border_radius: instance(5) color: #xf}
             width: 150 height: Fit
@@ -23,7 +23,7 @@ script_mod! {
             go_to_providers := View {
                 align: Align {x: 0.5 y: 0.5}
                 width: Fill height: Fit
-                cursor: MouseCursor.Hand
+                cursor: Hand
                 Label {
                     text: "Providers"
                     draw_text +: {
@@ -42,7 +42,7 @@ script_mod! {
             go_to_mcp := View {
                 align: Align {x: 0.5 y: 0.5}
                 width: Fill height: Fit
-                cursor: MouseCursor.Hand
+                cursor: Hand
                 Label {
                     text: "MCP Servers"
                     draw_text +: {
@@ -86,8 +86,9 @@ script_mod! {
         body +: { margin: Inset {top: (HEADER_HEIGHT) }}
     }
 
+    mod.widgets.ChatScreenMobileBase = #(ChatScreenMobile::register_widget(vm))
     mod.widgets.ChatScreenMobile =
-        #(ChatScreenMobile::register_widget(vm)) {
+        set_type_default() do mod.widgets.ChatScreenMobileBase {
         width: Fill height: Fill
         flow: Overlay
         margin: Inset { top: 40 }
@@ -100,7 +101,7 @@ script_mod! {
                 menu_toggle := View {
                     margin: Inset {top: 10 left: 20}
                     width: Fit height: Fit
-                    cursor: MouseCursor.Hand
+                    cursor: Hand
                     IconSet {
                         text: "\u{f0c9}"
                         draw_text +: {
@@ -128,7 +129,7 @@ script_mod! {
                             align: Align {x: 1.0 y: 0.5}
                             width: Fill height: Fit
                             margin: Inset {right: 15}
-                            cursor: MouseCursor.Hand
+                            cursor: Hand
                             IconSet {
                                 text: "\u{f013}"
                                 draw_text +: {
@@ -171,9 +172,7 @@ script_mod! {
                             }
                             draw_icon +: {
                                 svg: (ICON_NEW_CHAT)
-                                color: fn() -> vec4 {
-                                    return #xf
-                                }
+                                color: #xf
                             }
                         }
                     }
@@ -191,7 +190,7 @@ script_mod! {
                     }
                 }
                 body +: {
-                    mcp_screen := McpScreen {
+                    mcp_screen := mod.widgets.McpScreen {
                         width: Fill height: Fill
                         header +: { visible: false }
                     }
@@ -209,7 +208,7 @@ script_mod! {
                     }
                 }
                 body +: {
-                    providers := ProvidersScreen {
+                    providers := mod.widgets.ProvidersScreen {
                         width: Fill height: Fill
                         header +: { visible: false }
                     }
@@ -228,7 +227,7 @@ script_mod! {
                 }
                 body +: {
                     padding: Inset {top: 10}
-                    provider_view := ProviderView {
+                    provider_view := mod.widgets.ProviderView {
                         width: Fill height: Fill
                         padding: Inset {
                             left: 20 right: 20 top: 30 bottom: 30

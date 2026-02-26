@@ -10,7 +10,8 @@ script_mod! {
     let ICON_SEARCH = crate_resource("self://resources/icons/search.svg")
     let ICON_CLOSE = crate_resource("self://resources/icons/close.svg")
 
-    mod.widgets.SearchBar = #(SearchBar::register_widget(vm)) ViewBase {
+    mod.widgets.SearchBarBase = #(SearchBar::register_widget(vm))
+    mod.widgets.SearchBar = set_type_default() do mod.widgets.SearchBarBase {
         width: Fill
         height: 200
 
@@ -108,11 +109,11 @@ script_mod! {
             width: 300
             height: Fit
             margin: Inset {left: 30 right: 30}
-            Sorting {}
+            mod.widgets.Sorting {}
         }
 
-        animator: {
-            search_bar = {
+        animator: Animator {
+            search_bar: {
                 default: @expanded
                 collapsed: AnimatorState {
                     redraw: true
@@ -221,12 +222,12 @@ impl SearchBarRef {
 
         script_apply_eval!(cx, inner, {
             flow: Right
-            title: { visible: false }
+            title +: { visible: false }
             align: Align {x: 0.0 y: 0.5}
             padding: Inset {left: 20}
             spacing: 80
-            input_container: { width: Fill }
-            search_sorting: { visible: true }
+            input_container +: { width: Fill }
+            search_sorting +: { visible: true }
         });
 
         inner
@@ -246,12 +247,12 @@ impl SearchBarRef {
 
         script_apply_eval!(cx, inner, {
             flow: Down
-            title: { visible: true }
+            title +: { visible: true }
             align: Align {x: 0.5 y: 0.5}
             padding: Inset {left: 0}
             spacing: 50
-            input_container: { width: 800 }
-            search_sorting: { visible: false }
+            input_container +: { width: 800 }
+            search_sorting +: { visible: false }
         });
 
         inner.animator_play(cx, ids!(search_bar.expanded));

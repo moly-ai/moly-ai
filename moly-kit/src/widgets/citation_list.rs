@@ -6,7 +6,8 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.CitationList = #(CitationList::register_widget(vm)) View {
+    mod.widgets.CitationListBase = #(CitationList::register_widget(vm))
+    mod.widgets.CitationList = set_type_default() do mod.widgets.CitationListBase {
         width: Fill
         height: Fit
         list := PortalList {

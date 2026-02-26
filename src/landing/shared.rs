@@ -66,19 +66,19 @@ script_mod! {
         height: Fit
         spacing: 8
 
-        model_size_tag := ModelAttributeTag {
+        model_size_tag := mod.widgets.ModelAttributeTag {
             draw_bg +: { color: #D4E6F7 }
-            attr_name = { text: "Model Size" }
+            attr_name +: { text: "Model Size" }
         }
 
-        model_requires_tag := ModelAttributeTag {
+        model_requires_tag := mod.widgets.ModelAttributeTag {
             draw_bg +: { color: #D6F5EB }
-            attr_name = { text: "Requires" }
+            attr_name +: { text: "Requires" }
         }
 
-        model_architecture_tag := ModelAttributeTag {
+        model_architecture_tag := mod.widgets.ModelAttributeTag {
             draw_bg +: { color: #F0D6F5 }
-            attr_name = { text: "Architecture" }
+            attr_name +: { text: "Architecture" }
         }
     }
 }

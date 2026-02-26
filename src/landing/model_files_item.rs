@@ -143,13 +143,15 @@ script_mod! {
         }
     }
 
-    mod.widgets.ModelFilesItem = #(ModelFilesItem::register_widget(vm)) ModelFilesRow {
+    mod.widgets.ModelFilesItemBase = #(ModelFilesItem::register_widget(vm))
+    mod.widgets.ModelFilesItem = set_type_default() do mod.widgets.ModelFilesItemBase {
         show_bg: true
         draw_bg +: {
             color: #f
         }
 
-        cell1: {
+        cell1 := View {
+            width: Fill height: 56 padding: 10 align: Align {x: 0.0 y: 0.5}
             spacing: 10
             filename := Label {
                 draw_text +: {
@@ -159,7 +161,8 @@ script_mod! {
             }
         }
 
-        cell2: {
+        cell2 := View {
+            width: 140 height: 56 padding: 10 align: Align {x: 0.0 y: 0.5}
             full_size := Label {
                 draw_text +: {
                     text_style: theme.font_regular {font_size: 9}
@@ -168,7 +171,8 @@ script_mod! {
             }
         }
 
-        cell3: {
+        cell3 := View {
+            width: 340 height: 56 padding: 10 align: Align {x: 0.0 y: 0.5}
             spacing: 6
             quantization_tag := RoundedView {
                 width: Fit
@@ -192,7 +196,8 @@ script_mod! {
             tags := ModelFilesTags {}
         }
 
-        cell4: {
+        cell4 := View {
+            width: 250 height: 56 padding: 10 align: Align {x: 0.0 y: 0.5}
             download_button := DownloadButton { visible: false }
             start_chat_button := StartChatButton { visible: false }
             download_pending_controls := DownloadPendingControls { visible: false }
@@ -231,12 +236,12 @@ impl Widget for ModelFilesItem {
             cx,
             self,
             {
-                cell1: {
-                    filename: { text: #(filename) }
+                cell1 +: {
+                    filename +: { text: #(filename) }
                 }
-                cell2: { full_size: { text: #(size) }}
-                cell3: {
-                    quantization_tag: { quantization: { text: #(quantization) }}
+                cell2 +: { full_size +: { text: #(size) }}
+                cell3 +: {
+                    quantization_tag +: { quantization +: { text: #(quantization) }}
                 }
             },
         );
@@ -266,60 +271,60 @@ impl Widget for ModelFilesItem {
             script_apply_eval!(
                 cx,
                 self,
-                { cell4: {
-                    download_pending_controls: {
+                { cell4 +: {
+                    download_pending_controls +: {
                         visible: #(true)
-                        progress_text_layout: {
-                            progress_text: {
+                        progress_text_layout +: {
+                            progress_text +: {
                                 text: #(progress)
                                 draw_text: {
                                     color: #(status_color)
                                 }
                             }
                         }
-                        progress_bar: {
-                            progress_fill: {
+                        progress_bar +: {
+                            progress_fill +: {
                                 width: #(progress_fill)
                                 draw_bg: {
                                     color: #(status_color)
                                 }
                             }
                         }
-                        resume_download_button: {
+                        resume_download_button +: {
                             visible: #(is_resume_download_visible)
                         }
-                        retry_download_button: {
+                        retry_download_button +: {
                             visible: #(is_retry_download_visible)
                         }
-                        pause_download_button: {
+                        pause_download_button +: {
                             visible: #(is_pause_download_visible)
                         }
-                        cancel_download_button: {
+                        cancel_download_button +: {
                             visible: #(is_cancel_download_visible)
                         }
                     }
-                    start_chat_button: { visible: #(false) }
-                    download_button: { visible: #(false) }
+                    start_chat_button +: { visible: #(false) }
+                    download_button +: { visible: #(false) }
                 }},
             );
         } else if files_info.file.downloaded {
             script_apply_eval!(
                 cx,
                 self,
-                { cell4: {
-                    download_pending_controls: { visible: #(false) }
-                    start_chat_button: { visible: #(true) }
-                    download_button: { visible: #(false) }
+                { cell4 +: {
+                    download_pending_controls +: { visible: #(false) }
+                    start_chat_button +: { visible: #(true) }
+                    download_button +: { visible: #(false) }
                 }},
             );
         } else {
             script_apply_eval!(
                 cx,
                 self,
-                { cell4: {
-                    download_pending_controls: { visible: #(false) }
-                    start_chat_button: { visible: #(false) }
-                    download_button: { visible: #(true) }
+                { cell4 +: {
+                    download_pending_controls +: { visible: #(false) }
+                    start_chat_button +: { visible: #(false) }
+                    download_button +: { visible: #(true) }
                 }},
             );
         };
@@ -361,11 +366,17 @@ impl WidgetMatchEvent for ModelFilesItem {
             cx.action(DownloadAction::Play(file_id.clone()));
         }
 
-        if self.button(cx, ids!(pause_download_button)).clicked(&actions) {
+        if self
+            .button(cx, ids!(pause_download_button))
+            .clicked(&actions)
+        {
             cx.action(DownloadAction::Pause(file_id.clone()));
         }
 
-        if self.button(cx, ids!(cancel_download_button)).clicked(&actions) {
+        if self
+            .button(cx, ids!(cancel_download_button))
+            .clicked(&actions)
+        {
             cx.action(DownloadAction::Cancel(file_id.clone()));
         }
     }

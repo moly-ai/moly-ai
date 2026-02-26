@@ -20,12 +20,12 @@ pub fn script_mod(vm: &mut ScriptVm) {
     model_files_item::script_mod(vm);
     model_files_list::script_mod(vm);
     model_files::script_mod(vm);
+    sorting::script_mod(vm);
+    search_loading::script_mod(vm);
+    download_item::script_mod(vm);
+    downloads::script_mod(vm);
     model_card::script_mod(vm);
     model_list::script_mod(vm);
-    landing_screen::script_mod(vm);
     search_bar::script_mod(vm);
-    search_loading::script_mod(vm);
-    sorting::script_mod(vm);
-    downloads::script_mod(vm);
-    download_item::script_mod(vm);
+    landing_screen::script_mod(vm);
 }

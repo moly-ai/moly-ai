@@ -105,8 +105,9 @@ script_mod! {
         }
     }
 
+    mod.widgets.MyModelsScreenBase = #(MyModelsScreen::register_widget(vm))
     mod.widgets.MyModelsScreen =
-        #(MyModelsScreen::register_widget(vm)) {
+        set_type_default() do mod.widgets.MyModelsScreenBase {
         width: Fill
         height: Fill
         flow: Overlay
@@ -154,7 +155,7 @@ script_mod! {
                 search := SearchBar {}
             }
 
-            table := DownloadedFilesTable {
+            table := mod.widgets.DownloadedFilesTable {
                 margin: Inset { top: 20 }
             }
         }

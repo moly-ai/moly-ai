@@ -19,7 +19,7 @@ script_mod! {
             border_radius: 5
             color: #F9FAFB
         }
-        button := EntityButton {
+        button := mod.widgets.EntityButton {
             width: Fill
             height: Fill
             padding: Inset {left: 15 right: 15}
@@ -30,24 +30,23 @@ script_mod! {
             draw_bg +: {
                 border_radius: 5
             }
-            agent_avatar: {
-                image: {
+            agent_avatar +: {
+                image +: {
                     width: 64
                     height: 64
                 }
             }
-            text_layout: {
+            text_layout +: {
                 height: Fit
                 flow: Down
-                caption: {
+                caption +: {
                     draw_text +: {
                         text_style: theme.font_bold {font_size: 11}
                     }
                 }
-                description: {
-                    label: {
+                description +: {
+                    label +: {
                         draw_text +: {
-                            wrap: Word
                             color: #1D2939
                         }
                     }
@@ -56,7 +55,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.ModelList = #(ModelList::register_widget(vm)) ViewBase {
+    mod.widgets.ModelListBase = #(ModelList::register_widget(vm))
+    mod.widgets.ModelList = set_type_default() do mod.widgets.ModelListBase {
         width: Fill
         height: Fill
 

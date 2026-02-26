@@ -13,8 +13,9 @@ pub use crate::widgets::stt_input::SttUtility;
 
 script_mod!(
     use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    mod.widgets.Chat = Chat RoundedView {
+    mod.widgets.Chat = #(Chat::register_widget(vm)) RoundedView {
         flow: Down
         messages := Messages {}
         prompt := PromptInput {}
@@ -26,7 +27,7 @@ script_mod!(
 
             audio_modal := MolyModal {
                 dismiss_on_focus_lost: false
-                content +: RealtimeContent {}
+                content +: mod.widgets.RealtimeContent {}
             }
         }
     }

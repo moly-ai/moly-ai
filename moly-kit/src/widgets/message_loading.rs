@@ -3,8 +3,6 @@ use makepad_widgets::*;
 script_mod! {
     use mod.prelude.widgets.*
 
-    ANIMATION_SPEED: 0.33
-
     let VerticalFiller = View {
         width: Fill
         height: 1
@@ -31,7 +29,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.MessageLoading = #(MessageLoading::register_widget(vm)) View {
+    mod.widgets.MessageLoadingBase = #(MessageLoading::register_widget(vm))
+    mod.widgets.MessageLoading = set_type_default() do mod.widgets.MessageLoadingBase {
         width: Fill
         height: Fit
 
@@ -52,13 +51,13 @@ script_mod! {
                 default: @start
                 start: AnimatorState {
                     redraw: true
-                    from: { all: Forward { duration: ANIMATION_SPEED } }
-                    apply: { line1 +: { draw_bg +: { dither: 0.1 } } }
+                    from: { all: Forward { duration: 0.33 } }
+                    apply: { line1: { draw_bg: { dither: 0.1 } } }
                 }
                 run: AnimatorState {
                     redraw: true
-                    from: { all: Forward { duration: ANIMATION_SPEED } }
-                    apply: { line1 +: { draw_bg +: { dither: 0.9 } } }
+                    from: { all: Forward { duration: 0.33 } }
+                    apply: { line1: { draw_bg: { dither: 0.9 } } }
                 }
             }
 
@@ -66,13 +65,13 @@ script_mod! {
                 default: @start
                 start: AnimatorState {
                     redraw: true
-                    from: { all: Forward { duration: ANIMATION_SPEED } }
-                    apply: { line2 +: { draw_bg +: { dither: 0.1 } } }
+                    from: { all: Forward { duration: 0.33 } }
+                    apply: { line2: { draw_bg: { dither: 0.1 } } }
                 }
                 run: AnimatorState {
                     redraw: true
-                    from: { all: Forward { duration: ANIMATION_SPEED } }
-                    apply: { line2 +: { draw_bg +: { dither: 0.9 } } }
+                    from: { all: Forward { duration: 0.33 } }
+                    apply: { line2: { draw_bg: { dither: 0.9 } } }
                 }
             }
 
@@ -80,13 +79,13 @@ script_mod! {
                 default: @start
                 start: AnimatorState {
                     redraw: true
-                    from: { all: Forward { duration: ANIMATION_SPEED } }
-                    apply: { line3 +: { draw_bg +: { dither: 0.1 } } }
+                    from: { all: Forward { duration: 0.33 } }
+                    apply: { line3: { draw_bg: { dither: 0.1 } } }
                 }
                 run: AnimatorState {
                     redraw: true
-                    from: { all: Forward { duration: ANIMATION_SPEED } }
-                    apply: { line3 +: { draw_bg +: { dither: 0.9 } } }
+                    from: { all: Forward { duration: 0.33 } }
+                    apply: { line3: { draw_bg: { dither: 0.9 } } }
                 }
             }
         }

@@ -7,7 +7,8 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.DeepInquireContent = #(DeepInquireContent::register_widget(vm)) {
+    mod.widgets.DeepInquireContentBase = #(DeepInquireContent::register_widget(vm))
+    mod.widgets.DeepInquireContent = set_type_default() do mod.widgets.DeepInquireContentBase {
         flow: Down spacing: 10
         height: Fit
         Label {

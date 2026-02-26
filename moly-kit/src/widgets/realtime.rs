@@ -14,6 +14,7 @@ use std::sync::{Arc, Mutex};
 
 script_mod! {
     use mod.prelude.widgets.*
+    use mod.widgets.*
 
     let AIAnimation = RoundedView {
         width: 200, height: 200
@@ -152,7 +153,7 @@ script_mod! {
         popup_menu: PopupMenu {
             width: 300, height: Fit,
             flow: Down,
-            padding: theme.mspace_1
+            padding: theme.mspace_1 {}
 
             menu_item: PopupMenuItem {
                 width: Fill, height: Fit,
@@ -203,20 +204,20 @@ script_mod! {
 
         transcription_model_selector := SimpleDropDown {
             margin: 5
-            labels: ["whisper-1", "whisper",
-                "gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
-            values: [whisper_1, whisper,
-                gpt_4o_transcribe, gpt_4o_mini_transcribe]
+            labels: ["whisper-1" "whisper"
+                "gpt-4o-transcribe" "gpt-4o-mini-transcribe"]
 
             draw_text +: {
                 color: #222
                 text_style +: { font_size: 11 }
             }
 
-            popup_menu: PopupMenu {
-                draw_text +: {
-                    color: #222
-                    text_style +: { font_size: 11 }
+            popup_menu +: {
+                menu_item +: {
+                    draw_text +: {
+                        color: #222
+                        text_style +: { font_size: 11 }
+                    }
                 }
             }
         }
@@ -237,20 +238,20 @@ script_mod! {
 
         voice_selector := SimpleDropDown {
             margin: 5
-            labels: ["marin", "cedar", "alloy", "shimmer",
-                "ash", "ballad", "coral", "echo", "sage", "verse"]
-            values: [marin, cedar, alloy, shimmer,
-                ash, ballad, coral, echo, sage, verse]
+            labels: ["marin" "cedar" "alloy" "shimmer"
+                "ash" "ballad" "coral" "echo" "sage" "verse"]
 
             draw_text +: {
                 color: #222
                 text_style +: { font_size: 11 }
             }
 
-            popup_menu: PopupMenu {
-                draw_text +: {
-                    color: #222
-                    text_style +: { font_size: 11 }
+            popup_menu +: {
+                menu_item +: {
+                    draw_text +: {
+                        color: #222
+                        text_style +: { font_size: 11 }
+                    }
                 }
             }
         }
@@ -289,17 +290,18 @@ script_mod! {
         device_selector := SimpleDropDown {
             margin: 5
             labels: ["default"]
-            values: [default]
 
             draw_text +: {
                 color: #222
                 text_style +: { font_size: 11 }
             }
 
-            popup_menu: PopupMenu {
-                draw_text +: {
-                    color: #222
-                    text_style +: { font_size: 11 }
+            popup_menu +: {
+                menu_item +: {
+                    draw_text +: {
+                        color: #222
+                        text_style +: { font_size: 11 }
+                    }
                 }
             }
         }
@@ -308,7 +310,7 @@ script_mod! {
     let MuteControl = View {
         width: Fit, height: Fit
         align: Align { x: 0.5, y: 0.5 }
-        cursor: MouseCursor.Hand
+        cursor: Hand
         mute_button := IconButton {
             text: "\u{f130}"
         }
@@ -329,12 +331,12 @@ script_mod! {
             height: Fit
             mic_selector := DeviceSelector {
                 width: Fit
-                label: Label { text: "Mic:" }
+                label +: { text: "Mic:" }
             }
             mute_control := MuteControl {}
         }
         speaker_selector := DeviceSelector {
-            label: Label { text: "Speaker:" }
+            label +: { text: "Speaker:" }
         }
     }
 
@@ -401,14 +403,13 @@ script_mod! {
             width: Fill
             draw_text +: {
                 color: #222
-                wrap: Word
                 text_style +: { font_size: 11 }
             }
         }
 
         request_permission_button := RoundedShadowView {
             visible: false
-            cursor: MouseCursor.Hand
+            cursor: Hand
             margin: Inset {
                 left: 10, right: 10, bottom: 0, top: 10
             }
@@ -439,7 +440,7 @@ script_mod! {
         }
 
         start_stop_button := RoundedShadowView {
-            cursor: MouseCursor.Hand
+            cursor: Hand
             margin: Inset {
                 left: 10, right: 10, bottom: 0, top: 10
             }
@@ -496,21 +497,21 @@ script_mod! {
         align: Align { x: 0.5, y: 0.5 }
 
         AdaptiveView {
-            Desktop = {
+            Desktop +: {
                 width: 450, height: Fit
                 align: Align { x: 0.5, y: 0.5 }
 
                 CachedWidget {
-                    realtime := Realtime {}
+                    realtime := mod.widgets.Realtime {}
                 }
             }
 
-            Mobile = {
+            Mobile +: {
                 width: Fill, height: Fill
                 align: Align { x: 0.5, y: 0.5 }
 
                 CachedWidget {
-                    realtime := Realtime {}
+                    realtime := mod.widgets.Realtime {}
                 }
             }
         }

@@ -21,7 +21,7 @@ script_mod! {
     use mod.widgets.*
 
     let RoundedShadowShader = {
-        color: #fefefe
+        color: instance(#fefefe)
         border_radius: uniform(7.0)
         border_size: uniform(0.0)
         border_color: uniform(#0000)
@@ -85,7 +85,7 @@ script_mod! {
         persistent +: {
             clip_x: false clip_y: false
             show_bg: true
-            draw_bg +: RoundedShadowShader {}
+            draw_bg +: { ..RoundedShadowShader }
         }
     }
 
@@ -94,10 +94,11 @@ script_mod! {
         visible: false
         clip_x: false clip_y: false
         show_bg: true
-        draw_bg +: RoundedShadowShader {}
+        draw_bg +: { ..RoundedShadowShader }
     }
 
-    mod.widgets.ChatView = #(ChatView::register_widget(vm)) {
+    mod.widgets.ChatViewBase = #(ChatView::register_widget(vm))
+    mod.widgets.ChatView = set_type_default() do mod.widgets.ChatViewBase {
         width: Fill height: Fill
         flow: Down
         spacing: 0

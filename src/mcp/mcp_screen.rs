@@ -4,10 +4,8 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    use mod.widgets.McpServers
-
-    mod.widgets.McpScreen = McpScreen {
-        #(McpScreen::register_widget(vm))
+    mod.widgets.McpScreenBase = #(McpScreen::register_widget(vm))
+    mod.widgets.McpScreen = set_type_default() do mod.widgets.McpScreenBase {
         width: Fill, height: Fill
         spacing: 20
         flow: Down
@@ -35,7 +33,7 @@ script_mod! {
             }
         }
 
-        mcp_servers := McpServers {}
+        mcp_servers := mod.widgets.McpServers {}
     }
 }
 

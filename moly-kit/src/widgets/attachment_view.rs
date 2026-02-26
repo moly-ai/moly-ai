@@ -13,7 +13,8 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.AttachmentView = #(AttachmentView::register_widget(vm)) View {
+    mod.widgets.AttachmentViewBase = #(AttachmentView::register_widget(vm))
+    mod.widgets.AttachmentView = set_type_default() do mod.widgets.AttachmentViewBase {
         flow: Overlay
         icon_wrapper := View {
             flow: Down

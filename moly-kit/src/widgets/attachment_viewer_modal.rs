@@ -9,8 +9,9 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
+    mod.widgets.AttachmentViewerModalBase = #(AttachmentViewerModal::register_widget(vm))
     mod.widgets.AttachmentViewerModal =
-        #(AttachmentViewerModal::register_widget(vm)) View {
+        set_type_default() do mod.widgets.AttachmentViewerModalBase {
         flow: Overlay
         width: 0
         height: 0

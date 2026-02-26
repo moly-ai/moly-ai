@@ -10,8 +10,6 @@ script_mod! {
         height: Fit
         padding: Inset {top: 20.0 right: 10.0 bottom: 20.0 left: 16.0}
 
-        popup_menu_position: BelowInput
-
         draw_text +: {
             text_style: theme.font_bold { font_size: 9 }
             get_color: fn() -> vec4 {
@@ -23,7 +21,7 @@ script_mod! {
             }
         }
 
-        popup_menu: {
+        popup_menu +: {
             width: 220
 
             draw_bg +: {
@@ -33,7 +31,7 @@ script_mod! {
                 border_radius: 4.0
             }
 
-            menu_item: {
+            menu_item: PopupMenuItem {
                 width: Fill
                 height: Fit
 
@@ -114,7 +112,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.Sorting = #(Sorting::register_widget(vm)) ViewBase {
+    mod.widgets.SortingBase = #(Sorting::register_widget(vm))
+    mod.widgets.Sorting = set_type_default() do mod.widgets.SortingBase {
         width: Fit
         height: Fit
         align: Align {x: 0.5 y: 0.5}
@@ -134,7 +133,6 @@ script_mod! {
             margin: Inset {left: 20 right: 40}
 
             labels: ["Most Downloads", "Least Downloads", "Most Likes", "Least Likes"]
-            values: [MostDownloads, LeastDownloads, MostLikes, LeastLikes]
         }
     }
 }

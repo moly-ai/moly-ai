@@ -4,7 +4,7 @@ use makepad_widgets::*;
 script_mod! {
     use mod.prelude.widgets.*
 
-    mod.widgets.ModelSelectorItem = ModelSelectorItem {
+    mod.widgets.ModelSelectorItem = #(ModelSelectorItem::register_widget(vm)) View {
         width: Fill
         height: Fit
         padding: Inset { left: 24, right: 16, top: 8, bottom: 8 }
@@ -23,22 +23,22 @@ script_mod! {
             }
         }
 
-        cursor: MouseCursor.Hand
+        cursor: Hand
 
-        animator: {
+        animator: Animator {
             hover: {
                 default: @off
                 off: AnimatorState {
                     from: { all: Forward { duration: 0.2 } }
                     apply: {
-                        draw_bg +: { hover: 0.0 }
+                        draw_bg: { hover: 0.0 }
                     }
                 }
 
                 on: AnimatorState {
                     from: { all: Snap }
                     apply: {
-                        draw_bg +: { hover: 1.0 }
+                        draw_bg: { hover: 1.0 }
                     }
                 }
             }

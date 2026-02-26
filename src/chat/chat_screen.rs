@@ -20,16 +20,17 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.ChatScreen = #(ChatScreen::register_widget(vm)) {
+    mod.widgets.ChatScreenBase = #(ChatScreen::register_widget(vm))
+    mod.widgets.ChatScreen = set_type_default() do mod.widgets.ChatScreenBase {
         width: Fill height: Fill
         spacing: 10
 
         adaptive_view := AdaptiveView {
-            Mobile = {
-                ChatScreenMobile {}
+            Mobile +: {
+                mod.widgets.ChatScreenMobile {}
             }
 
-            Desktop = {
+            Desktop +: {
                 View {
                     width: Fit height: Fill
                     chat_history_panel := ChatHistoryPanel {}

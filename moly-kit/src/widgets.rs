@@ -48,15 +48,15 @@ pub fn script_mod(vm: &mut makepad_widgets::ScriptVm) {
     message_loading::script_mod(vm);
     avatar::script_mod(vm);
     slot::script_mod(vm);
+    message_thinking_block::script_mod(vm);
     standard_message_content::script_mod(vm);
     chat_line::script_mod(vm);
     messages::script_mod(vm);
     stt_input::script_mod(vm);
-    prompt_input::script_mod(vm);
     model_selector_item::script_mod(vm);
     model_selector_list::script_mod(vm);
     model_selector::script_mod(vm);
-    chat::script_mod(vm);
+    prompt_input::script_mod(vm);
     realtime::script_mod(vm);
-    message_thinking_block::script_mod(vm);
+    chat::script_mod(vm);
 }

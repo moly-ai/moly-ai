@@ -62,9 +62,9 @@ script_mod! {
         }
 
         draw_icon +: {
-            color: instance((SUBSIDEBAR_FONT_COLOR))
-            color_hover: instance((SUBSIDEBAR_FONT_COLOR_HOVER))
-            color_active: instance((SUBSIDEBAR_FONT_COLOR_SELECTED))
+            color: #x2C3E50
+            color_hover: #x2C3E50
+            color_active: #x344054
         }
     }
 
@@ -146,8 +146,9 @@ script_mod! {
         }
     }
 
+    mod.widgets.MolyServerScreenBase = #(MolyServerScreen::register_widget(vm))
     mod.widgets.MolyServerScreen =
-        #(MolyServerScreen::register_widget(vm)) ViewBase {
+        set_type_default() do mod.widgets.MolyServerScreenBase {
         show_bg: true
         main_content := View {
             visible: false
@@ -166,7 +167,7 @@ script_mod! {
                 }
 
                 discover_tab := SubSidebarMenuButton {
-                    animator: { active = { default: on } }
+                    animator: Animator { active: { default: @on } }
                     text: "Discover"
                     draw_icon +: {
                         svg: ICON_DISCOVER
@@ -225,7 +226,8 @@ impl Widget for MolyServerScreen {
                 .set_visible(cx, false);
             self.view(cx, ids!(main_content)).set_visible(cx, true);
         } else {
-            self.view(cx, ids!(server_not_accessible)).set_visible(cx, true);
+            self.view(cx, ids!(server_not_accessible))
+                .set_visible(cx, true);
             self.view(cx, ids!(main_content)).set_visible(cx, false);
         }
 

@@ -8,12 +8,13 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.LandingScreen = #(LandingScreen::register_widget(vm)) ViewBase {
+    mod.widgets.LandingScreenBase = #(LandingScreen::register_widget(vm))
+    mod.widgets.LandingScreen = set_type_default() do mod.widgets.LandingScreenBase {
         width: Fill
         height: Fill
         flow: Down
 
-        search_bar := SearchBar {}
+        search_bar := mod.widgets.SearchBar {}
 
         models := View {
             width: Fill
@@ -47,7 +48,7 @@ script_mod! {
 
             ModelList {}
         }
-        downloads := Downloads {}
+        downloads := mod.widgets.Downloads {}
     }
 }
 
@@ -78,9 +79,11 @@ impl Widget for LandingScreen {
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         let search = &scope.data.get::<Store>().unwrap().search;
         if search.is_pending() || search.was_error() {
-            self.view(cx, ids!(heading_with_filters)).set_visible(cx, false);
+            self.view(cx, ids!(heading_with_filters))
+                .set_visible(cx, false);
         } else if let Some(keyword) = search.keyword.clone() {
-            self.view(cx, ids!(heading_with_filters)).set_visible(cx, true);
+            self.view(cx, ids!(heading_with_filters))
+                .set_visible(cx, true);
 
             let models = &search.models;
             let models_count = models.len();
@@ -89,7 +92,8 @@ impl Widget for LandingScreen {
             self.label(cx, ids!(heading_with_filters.keyword))
                 .set_text(cx, &format!(" for \"{}\"", keyword));
         } else {
-            self.view(cx, ids!(heading_with_filters)).set_visible(cx, false);
+            self.view(cx, ids!(heading_with_filters))
+                .set_visible(cx, false);
         }
 
         self.view.draw_walk(cx, scope, walk)

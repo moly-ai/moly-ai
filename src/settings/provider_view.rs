@@ -12,15 +12,12 @@ script_mod! {
 
     let REFRESH_ICON =
         crate_resource("self://resources/images/refresh_icon.png")
-    let SM_GAP = 4
-    let MD_GAP = 10
-    let LG_GAP = 15
 
     let IconButton = Button {
         width: Fit
         height: Fit
         draw_text +: {
-            text_style: THEME_FONT_ICONS {
+            text_style: theme.font_icons {
                 font_size: 14.
             }
             color: #5
@@ -40,7 +37,8 @@ script_mod! {
         height: Fit
     }
 
-    let ModelEntry = #(ModelEntry::register_widget(vm)) ViewBase {
+    mod.widgets.ModelEntryBase = #(ModelEntry::register_widget(vm))
+    let ModelEntry = mod.widgets.ModelEntryBase {
         align: Align { x: 0.5 y: 0.5 }
         width: Fill
         height: 50
@@ -78,9 +76,9 @@ script_mod! {
                 align: Align { x: 1.0 y: 0.5 }
                 spacing: 20
                 enabled_switch := MolySwitch {
-                    animator: {
-                        selected = {
-                            default: on
+                    animator: Animator {
+                        selected: {
+                            default: @on
                         }
                     }
                 }
@@ -92,7 +90,7 @@ script_mod! {
         width: Fill
         height: Fit
         flow: Down
-        padding: Inset { top: (MD_GAP) }
+        padding: Inset { top: 10 }
 
         label := Label {
             draw_text +: {
@@ -102,7 +100,7 @@ script_mod! {
         }
 
         separator := View {
-            margin: Inset { top: (MD_GAP) }
+            margin: Inset { top: 10 }
             height: 1
             show_bg: true
             draw_bg +: {
@@ -111,8 +109,9 @@ script_mod! {
         }
     }
 
+    mod.widgets.ProviderViewBase = #(ProviderView::register_widget(vm))
     mod.widgets.ProviderView =
-        #(ProviderView::register_widget(vm)) RoundedShadowView {
+        set_type_default() do mod.widgets.ProviderViewBase {
         width: Fill
         height: Fill
         show_bg: true
@@ -128,8 +127,8 @@ script_mod! {
             flow: Down
             height: Fill
             padding: 0
-            scroll_bars: {
-                scroll_bar_y: {
+            scroll_bars: ScrollBars {
+                scroll_bar_y: ScrollBar {
                     bar_size: 7.
                     draw_bg +: {
                         color: #d5d4d4
@@ -155,7 +154,7 @@ script_mod! {
                     View {
                         width: Fit
                         height: Fit
-                        margin: Inset { top: (MD_GAP) }
+                        margin: Inset { top: 10 }
                         Label {
                             text: "Type:"
                             draw_text +: {
@@ -164,7 +163,7 @@ script_mod! {
                             }
                         }
                         provider_type := Label {
-                            margin: Inset { left: (SM_GAP) }
+                            margin: Inset { left: 4 }
                             draw_text +: {
                                 text_style +: { font_size: 11 }
                                 color: #000
@@ -176,14 +175,14 @@ script_mod! {
                 View { width: Fill height: 0 }
 
                 View {
-                    margin: Inset { top: (MD_GAP) }
+                    margin: Inset { top: 10 }
                     align: Align { x: 0.5 y: 0.5 }
                     width: Fit
                     height: Fit
                     flow: Right
                     refresh_button := View {
                         visible: false
-                        cursor: MouseCursor.Hand
+                        cursor: Hand
                         width: Fit
                         height: Fit
 
@@ -194,10 +193,10 @@ script_mod! {
                         }
                     }
                     provider_enabled_switch := MolySwitch {
-                        margin: Inset { left: (MD_GAP) }
-                        animator: {
-                            selected = {
-                                default: on
+                        margin: Inset { left: 10 }
+                        animator: Animator {
+                            selected: {
+                                default: @on
                             }
                         }
                     }
@@ -205,7 +204,7 @@ script_mod! {
             }
 
             separator := View {
-                margin: Inset { top: (LG_GAP) }
+                margin: Inset { top: 15 }
                 height: 1
                 show_bg: true
                 draw_bg +: {
@@ -214,7 +213,7 @@ script_mod! {
             }
 
             FormGroup {
-                margin: Inset { top: (LG_GAP) }
+                margin: Inset { top: 15 }
                 Label {
                     text: "API Host"
                     draw_text +: {
@@ -229,7 +228,7 @@ script_mod! {
                     api_host := MolyTextInput {
                         width: Fill
                         height: 30
-                        text: "https://some-api.com/v1"
+                        empty_text: "https://some-api.com/v1"
                         draw_text +: {
                             text_style: REGULAR_FONT { font_size: 12 }
                             color: #000
@@ -244,7 +243,7 @@ script_mod! {
             }
 
             FormGroup {
-                margin: Inset { top: (MD_GAP) }
+                margin: Inset { top: 10 }
                 Label {
                     text: "API Key"
                     draw_text +: {
@@ -276,7 +275,7 @@ script_mod! {
                     }
                 }
                 View {
-                    margin: Inset { top: (MD_GAP) }
+                    margin: Inset { top: 10 }
                     width: Fill
                     height: Fit
                     align: Align { x: 0.0 y: 0.5 }
@@ -290,7 +289,7 @@ script_mod! {
             }
 
             system_prompt_group := FormGroup {
-                margin: Inset { top: (MD_GAP) }
+                margin: Inset { top: 10 }
                 height: Fit
                 visible: false
                 Label {
@@ -306,7 +305,7 @@ script_mod! {
                     scroll_bars: ScrollBars {
                         show_scroll_x: false
                         show_scroll_y: true
-                        scroll_bar_y: {
+                        scroll_bar_y: ScrollBar {
                             draw_bg +: {
                                 color: #D9
                                 color_hover: #888
@@ -326,7 +325,7 @@ script_mod! {
             }
 
             save_provider := MolyButton {
-                margin: Inset { top: (MD_GAP) }
+                margin: Inset { top: 10 }
                 width: Fit
                 height: 30
                 padding: Inset {
@@ -345,12 +344,12 @@ script_mod! {
                 flow: Down
 
                 tools_form_group := FormGroup {
-                    margin: Inset { top: (MD_GAP) }
+                    margin: Inset { top: 10 }
                     visible: false
                     height: Fit
 
                     View {
-                        margin: Inset { top: (MD_GAP) }
+                        margin: Inset { top: 10 }
                         width: Fill
                         height: 1
                         show_bg: true
@@ -360,7 +359,7 @@ script_mod! {
                     }
 
                     Label {
-                        margin: Inset { top: (MD_GAP) }
+                        margin: Inset { top: 10 }
                         text: "MCP Configuration"
                         draw_text +: {
                             text_style: BOLD_FONT { font_size: 12 }
@@ -369,7 +368,7 @@ script_mod! {
                     }
 
                     View {
-                        margin: Inset { top: (MD_GAP) }
+                        margin: Inset { top: 10 }
                         flow: Right
                         width: Fit
                         height: Fit
@@ -383,17 +382,17 @@ script_mod! {
                         }
 
                         provider_tools_switch := MolySwitch {
-                            margin: Inset { left: (MD_GAP) }
-                            animator: {
-                                selected = {
-                                    default: on
+                            margin: Inset { left: 10 }
+                            animator: Animator {
+                                selected: {
+                                    default: @on
                                 }
                             }
                         }
                     }
 
                     View {
-                        margin: Inset { top: (MD_GAP) }
+                        margin: Inset { top: 10 }
                         width: Fill
                         height: 1
                         show_bg: true
@@ -404,7 +403,7 @@ script_mod! {
                 }
 
                 models_label := Label {
-                    margin: Inset { top: (MD_GAP) }
+                    margin: Inset { top: 10 }
                     text: "Models"
                     draw_text +: {
                         text_style: BOLD_FONT { font_size: 12 }
@@ -413,7 +412,7 @@ script_mod! {
                 }
 
                 View {
-                    margin: Inset { top: (MD_GAP) }
+                    margin: Inset { top: 10 }
                     width: Fill
                     height: Fit
                     model_search_input := MolyTextInput {
@@ -428,7 +427,7 @@ script_mod! {
                 }
 
                 models_list := FlatList {
-                    margin: Inset { top: (MD_GAP) }
+                    margin: Inset { top: 10 }
                     width: Fill
                     height: Fit
                     flow: Down
@@ -440,7 +439,7 @@ script_mod! {
                 }
 
                 show_others_button := MolyButton {
-                    margin: Inset { top: (MD_GAP) }
+                    margin: Inset { top: 10 }
                     visible: false
                     padding: Inset {
                         top: 6 bottom: 6 left: 12 right: 12
@@ -459,7 +458,7 @@ script_mod! {
             }
 
             remove_provider_view := View {
-                margin: Inset { top: (MD_GAP) }
+                margin: Inset { top: 10 }
                 width: Fill
                 height: Fit
                 align: Align { x: 1.0 y: 0.5 }
@@ -480,7 +479,7 @@ script_mod! {
                 }
             }
 
-            View { height: (MD_GAP) }
+            View { height: 10 }
         }
     }
 }

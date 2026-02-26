@@ -103,7 +103,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.ChatLine = ChatLine {{ChatLine}} View {
+    mod.widgets.ChatLineBase = #(ChatLine::register_widget(vm))
+    mod.widgets.ChatLine = set_type_default() do mod.widgets.ChatLineBase {
         flow: Down,
         height: Fit,
         padding: 10,
@@ -186,49 +187,49 @@ script_mod! {
                 }
             }
         }
-        animator: {
-            hover = {
+        animator: Animator {
+            hover: {
                 default: @off
-                off = {
+                off: AnimatorState {
                     from: { all: Forward { duration: 0.15 } }
                     apply: {
-                        draw_bg +: { hover: 0.0 }
+                        draw_bg: { hover: 0.0 }
                     }
                 }
-                on = {
+                on: AnimatorState {
                     from: { all: Snap }
                     apply: {
-                        draw_bg +: { hover: 1.0 }
+                        draw_bg: { hover: 1.0 }
                     }
                 }
             }
-            down = {
+            down: {
                 default: @off
-                off = {
+                off: AnimatorState {
                     from: { all: Forward { duration: 0.5 } }
                     ease: OutExp
                     apply: {
-                        draw_bg +: { down: 0.0 }
+                        draw_bg: { down: 0.0 }
                     }
                 }
-                on = {
+                on: AnimatorState {
                     ease: OutExp
                     from: {
                         all: Forward { duration: 0.2 }
                     }
                     apply: {
-                        draw_bg +: { down: 1.0 }
+                        draw_bg: { down: 1.0 }
                     }
                 }
             }
         }
     }
 
-    mod.widgets.UserLine = ChatLine {
-        message_section = {
-            sender = {
-                avatar = {
-                    grapheme = {
+    mod.widgets.UserLine = mod.widgets.ChatLine {
+        message_section +: {
+            sender +: {
+                avatar +: {
+                    grapheme +: {
                         draw_bg +: {
                             color: #x008F7E
                         }
@@ -238,10 +239,10 @@ script_mod! {
         }
     }
 
-    mod.widgets.BotLine = ChatLine {}
+    mod.widgets.BotLine = mod.widgets.ChatLine {}
 
-    mod.widgets.LoadingLine = BotLine {
-        message_section = {
+    mod.widgets.LoadingLine = mod.widgets.BotLine {
+        message_section +: {
             content_section := View {
                 height: Fit,
                 padding: Inset { left: 32 }
@@ -251,38 +252,38 @@ script_mod! {
     }
 
     // Note: For now, let's use bot's apparence for app messages.
-    mod.widgets.AppLine = BotLine {
+    mod.widgets.AppLine = mod.widgets.BotLine {
         margin: Inset { left: 0 }
-        message_section = {
+        message_section +: {
             padding: Inset { left: 12, right: 12, top: 12, bottom: 0 }
             draw_bg +: {
                 border_color: #344054
                 border_size: 1.2
                 border_radius: 8.0
             }
-            sender = {
+            sender +: {
                 margin: Inset { bottom: 5 }
-                avatar = {
-                    grapheme = { draw_bg +: { color: #344054 } }
+                avatar +: {
+                    grapheme +: { draw_bg +: { color: #344054 } }
                 }
-                name = { text: "Application" }
+                name +: { text: "Application" }
             }
         }
-        actions_section = {
+        actions_section +: {
             margin: Inset { left: 32 }
         }
     }
 
-    mod.widgets.ErrorLine = AppLine {
-        message_section = {
+    mod.widgets.ErrorLine = mod.widgets.AppLine {
+        message_section +: {
             draw_bg +: { color: #xf003 }
 
-            sender = {
-                avatar = {
-                    grapheme = { draw_bg +: { color: #xf003 } }
+            sender +: {
+                avatar +: {
+                    grapheme +: { draw_bg +: { color: #xf003 } }
                 }
             }
-            content_section = {
+            content_section +: {
                 flow: Down,
                 padding: Inset { bottom: 10 },
                 error_details_section := View {
@@ -297,13 +298,12 @@ script_mod! {
                         draw_text +: {
                             text_style: theme.font_italic { font_size: 10 },
                             color: #555,
-                            wrap: Word,
                         }
                     }
                     error_details_toggle := View {
                         width: Fit,
                         height: Fit,
-                        cursor: MouseCursor.Hand,
+                        cursor: Hand,
                         margin: Inset { top: 6 },
                         toggle_label := Label {
                             text: "Show details",
@@ -328,7 +328,6 @@ script_mod! {
                             draw_text +: {
                                 text_style +: { font_size: 9 },
                                 color: #333,
-                                wrap: Word,
                             }
                         }
                     }
@@ -337,15 +336,15 @@ script_mod! {
         }
     }
 
-    mod.widgets.SystemLine = AppLine {
-        message_section = {
+    mod.widgets.SystemLine = mod.widgets.AppLine {
+        message_section +: {
             draw_bg +: { color: #xe3f2fd }
 
-            sender = {
-                avatar = {
-                    grapheme = { draw_bg +: { color: #x1976d2 } }
+            sender +: {
+                avatar +: {
+                    grapheme +: { draw_bg +: { color: #x1976d2 } }
                 }
-                name = { text: "System" }
+                name +: { text: "System" }
             }
         }
     }
@@ -375,16 +374,16 @@ script_mod! {
         }
     }
 
-    mod.widgets.ToolRequestLine = AppLine {
-        message_section = {
+    mod.widgets.ToolRequestLine = mod.widgets.AppLine {
+        message_section +: {
             draw_bg +: { color: #xfff3e0 }
 
-            sender = {
-                avatar = {
-                    grapheme = { draw_bg +: { color: #xff9800 } }
+            sender +: {
+                avatar +: {
+                    grapheme +: { draw_bg +: { color: #xff9800 } }
                 }
             }
-            content_section = {
+            content_section +: {
                 flow: Down
                 tool_actions := ToolApprovalActions { visible: false }
                 status_view := View {
@@ -403,13 +402,13 @@ script_mod! {
         }
     }
 
-    mod.widgets.ToolResultLine = AppLine {
-        message_section = {
+    mod.widgets.ToolResultLine = mod.widgets.AppLine {
+        message_section +: {
             draw_bg +: { color: #xcfe4ff }
 
-            sender = {
-                avatar = {
-                    grapheme = { draw_bg +: { color: #x1a5b9c } }
+            sender +: {
+                avatar +: {
+                    grapheme +: { draw_bg +: { color: #x1a5b9c } }
                 }
             }
         }

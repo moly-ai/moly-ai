@@ -17,7 +17,7 @@ script_mod! {
         width: Fit
         height: Fit
         draw_text +: {
-            text_style: theme.THEME_FONT_ICONS {
+            text_style: theme.font_icons {
                 font_size: 14.
             }
             color: #5
@@ -42,7 +42,6 @@ script_mod! {
             width: Fill
             height: Fit
             draw_text +: {
-                wrap: Word
                 text_style: REGULAR_FONT { font_size: 9 }
                 color: #999
             }
@@ -53,8 +52,9 @@ script_mod! {
         }
     }
 
+    mod.widgets.UtilitiesModalBase = #(UtilitiesModal::register_widget(vm))
     mod.widgets.UtilitiesModal =
-        #(UtilitiesModal::register_widget(vm)) RoundedView {
+        set_type_default() do mod.widgets.UtilitiesModalBase {
         flow: Down
         width: 500
         height: Fit
@@ -82,7 +82,6 @@ script_mod! {
                     width: Fill
                     height: Fit
                     draw_text +: {
-                        wrap: Word
                         text_style: BOLD_FONT { font_size: 13 }
                         color: #000
                     }
@@ -113,7 +112,6 @@ script_mod! {
                 width: Fill
                 height: Fit
                 draw_text +: {
-                    wrap: Word
                     text_style: BOLD_FONT { font_size: 11 }
                     color: #666
                 }
@@ -138,9 +136,9 @@ script_mod! {
                 }
 
                 enabled_toggle := MolySwitch {
-                    animator: {
-                        selected = {
-                            default: off
+                    animator: Animator {
+                        selected: {
+                            default: @off
                         }
                     }
                 }
@@ -278,13 +276,18 @@ impl WidgetMatchEvent for UtilitiesModal {
             });
         }
 
-        if self.button(cx, ids!(toggle_key_visibility)).clicked(actions) {
+        if self
+            .button(cx, ids!(toggle_key_visibility))
+            .clicked(actions)
+        {
             let api_key_input = self.text_input(cx, ids!(api_key_input));
             api_key_input.set_is_password(cx, !api_key_input.is_password());
             if api_key_input.is_password() {
-                self.button(cx, ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye-slash
+                self.button(cx, ids!(toggle_key_visibility))
+                    .set_text(cx, ""); // fa-eye-slash
             } else {
-                self.button(cx, ids!(toggle_key_visibility)).set_text(cx, ""); // fa-eye
+                self.button(cx, ids!(toggle_key_visibility))
+                    .set_text(cx, ""); // fa-eye
             }
             self.redraw(cx);
         }

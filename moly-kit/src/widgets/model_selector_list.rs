@@ -19,13 +19,11 @@ pub trait BotFilter {
 script_mod! {
     use mod.prelude.widgets.*
 
-    ICON_SIZE = 25.0
-
-    mod.widgets.ModelSelectorList = ModelSelectorList {
+    mod.widgets.ModelSelectorList = #(ModelSelectorList::register_widget(vm)) {
         width: Fill, height: Fit
         flow: Down
 
-        item_template := ModelSelectorItem {}
+        item_template := mod.widgets.ModelSelectorItem {}
 
         section_label_template := View {
             width: Fill, height: Fit
@@ -37,12 +35,12 @@ script_mod! {
                 width: Fit, height: Fit
                 visible: false
                 icon_image := Image {
-                    width: (ICON_SIZE), height: (ICON_SIZE)
+                    width: 25.0, height: 25.0
                 }
             }
 
             icon_fallback_view := RoundedView {
-                width: (ICON_SIZE), height: (ICON_SIZE)
+                width: 25.0, height: 25.0
                 visible: false
                 show_bg: true
                 draw_bg +: {

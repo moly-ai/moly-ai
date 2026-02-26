@@ -72,11 +72,12 @@ script_mod! {
             width: Fill
             height: Fill
 
-            DownloadItem := DownloadItem {}
+            DownloadItem = mod.widgets.DownloadItem {}
         }
     }
 
-    mod.widgets.Downloads = #(Downloads::register_widget(vm)) ViewBase {
+    mod.widgets.DownloadsBase = #(Downloads::register_widget(vm))
+    mod.widgets.Downloads = set_type_default() do mod.widgets.DownloadsBase {
         width: Fill
         height: Fit
         flow: Down
@@ -96,20 +97,20 @@ script_mod! {
             padding: Inset {top: 12.0 bottom: 12.0 left: 43.0 right: 43.0}
         }
 
-        animator: {
-            content = {
+        animator: Animator {
+            content: {
                 default: @collapse
                 expand: AnimatorState {
                     redraw: true
                     from: {all: Forward {duration: 0.3}}
                     ease: ExpDecay {d1: 0.80 d2: 0.97}
-                    apply: {content = { height: 350.0 }}
+                    apply: {content: { height: 350.0 }}
                 }
                 collapse: AnimatorState {
                     redraw: true
                     from: {all: Forward {duration: 0.3}}
                     ease: ExpDecay {d1: 0.80 d2: 0.97}
-                    apply: {content = { height: 0.0 }}
+                    apply: {content: { height: 0.0 }}
                 }
             }
         }

@@ -118,8 +118,8 @@ script_mod! {
     startup() do #(App::script_component(vm)) {
         ui: Root {
             main_window := Window {
-                window: {inner_size: vec2(1440 1024) title: "Moly"}
-                pass: {clear_color: #xfff}
+                window +: {inner_size: vec2(1440 1024) title: "Moly"}
+                pass +: {clear_color: #xfff}
 
                 caption_bar +: {
                     caption_label := View {}
@@ -127,13 +127,13 @@ script_mod! {
                         visible: false
                         width: Fit height: Fit
                         min := MolyDesktopButton {
-                            draw_bg +: {button_type: WindowsMin}
+                            draw_bg +: {button_type: DesktopButtonType.WindowsMin}
                         }
                         max := MolyDesktopButton {
-                            draw_bg +: {button_type: WindowsMax}
+                            draw_bg +: {button_type: DesktopButtonType.WindowsMax}
                         }
                         close := MolyDesktopButton {
-                            draw_bg +: {button_type: WindowsClose}
+                            draw_bg +: {button_type: DesktopButtonType.WindowsClose}
                         }
                     }
                 }
@@ -170,13 +170,13 @@ script_mod! {
                         }
 
                         root_adaptive_view := AdaptiveView {
-                            Mobile = {
+                            Mobile +: {
                                 application_pages := ApplicationPages {
                                     margin: 0
                                 }
                             }
 
-                            Desktop = {
+                            Desktop +: {
                                 sidebar_menu := SidebarMenu {}
                                 application_pages := ApplicationPages {}
                             }
@@ -184,14 +184,14 @@ script_mod! {
                     }
 
                     download_popup := PopupNotification {
-                        content: {
+                        content +: {
                             popup_download_notification :=
                                 DownloadNotificationPopup {}
                         }
                     }
 
                     moly_server_popup := PopupNotification {
-                        content: {
+                        content +: {
                             popup_moly_server := MolyServerPopup {}
                         }
                     }
@@ -227,11 +227,15 @@ impl App {
         moly_kit::widgets::script_mod(vm);
 
         crate::shared::script_mod(vm);
+        // entity_button (and its dep chat::shared) must be registered before
+        // landing, which uses EntityButton in model_list.
+        crate::chat::shared::script_mod(vm);
+        crate::chat::entity_button::script_mod(vm);
         crate::landing::script_mod(vm);
-        crate::chat::script_mod(vm);
         crate::my_models::script_mod(vm);
         crate::settings::script_mod(vm);
         crate::mcp::script_mod(vm);
+        crate::chat::script_mod(vm);
 
         App::from_script_mod(vm, self::script_mod)
     }

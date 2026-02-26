@@ -18,8 +18,9 @@ script_mod! {
         }
     }
 
+    mod.widgets.ProvidersScreenBase = #(ProvidersScreen::register_widget(vm))
     mod.widgets.ProvidersScreen =
-        #(ProvidersScreen::register_widget(vm)) ViewBase {
+        set_type_default() do mod.widgets.ProvidersScreenBase {
         width: Fill
         height: Fill
         spacing: 20
@@ -49,14 +50,14 @@ script_mod! {
         }
 
         adaptive_view := AdaptiveView {
-            Desktop = {
+            Desktop +: {
                 spacing: 10
                 padding: Inset { top: 10 }
                 providers := Providers {}
                 provider_view := ProviderView {}
             }
 
-            Mobile = {
+            Mobile +: {
                 providers := Providers {
                     providers_list := {
                         provider_item := {

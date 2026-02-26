@@ -4,7 +4,8 @@ script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.ExternalLink = #(ExternalLink::register_widget(vm)) ViewBase {
+    mod.widgets.ExternalLinkBase = #(ExternalLink::register_widget(vm))
+    mod.widgets.ExternalLink = set_type_default() do mod.widgets.ExternalLinkBase {
         width: Fit
         height: Fit
         flow: Down

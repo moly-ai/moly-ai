@@ -112,7 +112,6 @@ script_mod! {
         content_heading_label := Label {
             width: Fill
             draw_text +: {
-                wrap: Word
                 text_style: theme.font_bold {font_size: 11}
                 color: #x003E62
             }
@@ -120,7 +119,8 @@ script_mod! {
         content_block_markdown := MessageMarkdown {}
     }
 
-    mod.widgets.SubStages = #(SubStages::register_widget(vm)) {
+    mod.widgets.SubStagesBase = #(SubStages::register_widget(vm))
+    mod.widgets.SubStages = set_type_default() do mod.widgets.SubStagesBase {
         flow: Down
         width: Fill height: Fit
         spacing: 20
@@ -128,12 +128,13 @@ script_mod! {
         substage_template := SubStage {}
     }
 
-    mod.widgets.StageView = #(StageView::register_widget(vm)) {
+    mod.widgets.StageViewBase = #(StageView::register_widget(vm))
+    mod.widgets.StageView = set_type_default() do mod.widgets.StageViewBase {
         visible: false
         width: Fill height: Fit
         wrapper := View {
             width: Fill height: Fit
-            cursor: MouseCursor.Hand
+            cursor: Hand
             flow: Down
             align: Align {x: 0 y: 0.5}
             header := View {
@@ -150,7 +151,7 @@ script_mod! {
                         border_radius: instance(11.0)
                         shadow_color: uniform(#x0001)
                         shadow_radius: instance(8.0)
-                        shadow_offset: instance(vec2(0.0 f32(-2.0)))
+                        shadow_offset: instance(vec2(0.0 -2.0))
                         border_size: instance(0.0)
                         border_color: instance(#x1A2533)
                     }
@@ -179,7 +180,6 @@ script_mod! {
                 stage_preview_label := Label {
                     width: Fill
                     draw_text +: {
-                        wrap: Word
                         text_style +: {font_size: 11}
                         color: #x0
                     }
@@ -204,7 +204,7 @@ script_mod! {
                     }
                     citations_list := CitationList {}
                 }
-                substages := SubStages {}
+                substages := mod.widgets.SubStages {}
             }
         }
 
@@ -216,8 +216,8 @@ script_mod! {
                     apply: {
                         wrapper: {
                             header: {
-                                stage_toggle: { draw_bg +: {
-                                    shadow_offset: vec2(0.0 f32(-2.0))
+                                stage_toggle: { draw_bg: {
+                                    shadow_offset: vec2(0.0 -2.0)
                                     shadow_color: #x0001
                                 } }
                             }
@@ -230,8 +230,8 @@ script_mod! {
                     apply: {
                         wrapper: {
                             header: {
-                                stage_toggle: { draw_bg +: {
-                                    shadow_offset: vec2(0.0 f32(-4.0))
+                                stage_toggle: { draw_bg: {
+                                    shadow_offset: vec2(0.0 -4.0)
                                     shadow_color: #x0002
                                 } }
                             }
@@ -244,8 +244,8 @@ script_mod! {
                     apply: {
                         wrapper: {
                             header: {
-                                stage_toggle: { draw_bg +: {
-                                    shadow_offset: vec2(3.0 f32(-2.0))
+                                stage_toggle: { draw_bg: {
+                                    shadow_offset: vec2(3.0 -2.0)
                                     shadow_color: #x0002
                                 } }
                             }
@@ -258,7 +258,7 @@ script_mod! {
                     apply: {
                         wrapper: {
                             header: {
-                                stage_toggle: { draw_bg +: {
+                                stage_toggle: { draw_bg: {
                                     shadow_offset: vec2(0.0 1.0)
                                     shadow_color: #x0002
                                 } }
@@ -272,8 +272,8 @@ script_mod! {
                     apply: {
                         wrapper: {
                             header: {
-                                stage_toggle: { draw_bg +: {
-                                    shadow_offset: vec2(f32(-3.0) f32(-2.0))
+                                stage_toggle: { draw_bg: {
+                                    shadow_offset: vec2(-3.0 -2.0)
                                     shadow_color: #x0002
                                 } }
                             }
@@ -284,13 +284,13 @@ script_mod! {
         }
     }
 
-    mod.widgets.Stages = #(Stages::register_widget(vm)) {
+    mod.widgets.StagesBase = #(Stages::register_widget(vm))
+    mod.widgets.Stages = set_type_default() do mod.widgets.StagesBase {
         flow: Down
         visible: false
         width: Fill height: Fit
 
-        thinking_stage := StageView {
-            stage_type: Thinking
+        thinking_stage := mod.widgets.StageView {
             wrapper: {
                 header: {
                     stage_title: { text: "Thinking" }
@@ -301,8 +301,7 @@ script_mod! {
             }
         }
 
-        content_stage := StageView {
-            stage_type: Content
+        content_stage := mod.widgets.StageView {
             wrapper: {
                 header: {
                     stage_title: { text: "Detailed Anaylsis" }
