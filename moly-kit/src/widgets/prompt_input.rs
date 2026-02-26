@@ -1,3 +1,5 @@
+use makepad_widgets::command_text_input::CommandTextInput;
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use makepad_widgets::*;
 use std::cell::{Ref, RefMut};
 
@@ -218,12 +220,12 @@ pub struct PromptInput {
     deref: CommandTextInput,
 
     /// Icon used when the task is set to [`Task::Send`].
-    #[script]
-    pub send_icon: LiveValue,
+    #[live]
+    pub send_icon: Option<ScriptHandleRef>,
 
     /// Icon used when the task is set to [`Task::Stop`].
-    #[script]
-    pub stop_icon: LiveValue,
+    #[live]
+    pub stop_icon: Option<ScriptHandleRef>,
 
     /// Whether this widget should send a message or stop streaming.
     #[rust]
@@ -282,18 +284,18 @@ impl Widget for PromptInput {
 
         match self.task {
             Task::Send => {
-                let icon = self.send_icon.clone();
+                let icon = self.send_icon;
                 script_apply_eval!(cx, button, {
                     draw_icon: {
-                        svg_file: #(icon)
+                        svg: #(icon)
                     }
                 });
             }
             Task::Stop => {
-                let icon = self.stop_icon.clone();
+                let icon = self.stop_icon;
                 script_apply_eval!(cx, button, {
                     draw_icon: {
-                        svg_file: #(icon)
+                        svg: #(icon)
                     }
                 });
             }
@@ -442,7 +444,8 @@ impl PromptInput {
         self.button(cx, ids!(attach)).set_visible(cx, false);
 
         #[cfg(not(target_arch = "wasm32"))]
-        self.button(cx, ids!(audio)).set_visible(cx, supports_realtime);
+        self.button(cx, ids!(audio))
+            .set_visible(cx, supports_realtime);
 
         self.button(cx, ids!(submit))
             .set_visible(cx, !supports_realtime);

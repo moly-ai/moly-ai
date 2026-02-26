@@ -7,6 +7,9 @@ use makepad_widgets::*;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
+const ITEM_TEMPLATE: LiveId = live_id!(Item);
+const SECTION_LABEL_TEMPLATE: LiveId = live_id!(SectionLabel);
+
 type ErasedGroupingClosure = Box<dyn Fn(&Bot) -> BotGroup>;
 
 /// Trait for filtering which bots to show in the model selector.
@@ -29,9 +32,9 @@ script_mod! {
         width: Fill height: Fit
         flow: Down
 
-        item_template: ModelSelectorItem {}
+        Item := ModelSelectorItem {}
 
-        section_label_template: View {
+        SectionLabel := View {
             width: Fill height: Fit
             padding: Inset{left: 14 top: 6 bottom: 4}
             align: Align{x: 0.0 y: 0.5}
@@ -73,7 +76,7 @@ script_mod! {
     }
 }
 
-#[derive(Script, ScriptHook, Widget)]
+#[derive(Script, Widget)]
 pub struct ModelSelectorList {
     #[redraw]
     #[rust]
@@ -85,11 +88,8 @@ pub struct ModelSelectorList {
     #[layout]
     layout: Layout,
 
-    #[script]
-    item_template: Option<LivePtr>,
-
-    #[script]
-    section_label_template: Option<LivePtr>,
+    #[rust]
+    templates: HashMap<LiveId, ScriptObjectRef>,
 
     #[rust]
     pub items: ComponentMap<LiveId, WidgetRef>,
@@ -108,6 +108,31 @@ pub struct ModelSelectorList {
 
     #[rust]
     pub filter: Option<Box<dyn BotFilter>>,
+}
+
+impl ScriptHook for ModelSelectorList {
+    fn on_after_apply(
+        &mut self,
+        vm: &mut ScriptVm,
+        apply: &Apply,
+        _scope: &mut Scope,
+        value: ScriptValue,
+    ) {
+        if !apply.is_eval() {
+            if let Some(obj) = value.as_object() {
+                vm.vec_with(obj, |vm, vec| {
+                    for kv in vec {
+                        if let Some(id) = kv.key.as_id() {
+                            if let Some(template_obj) = kv.value.as_object() {
+                                self.templates
+                                    .insert(id, vm.bx.heap.new_object_ref(template_obj));
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
 }
 
 impl Widget for ModelSelectorList {
@@ -198,10 +223,17 @@ impl ModelSelectorList {
         for (group_id, ((group_label, group_icon), mut group_bots)) in group_list {
             let section_id = LiveId::from_str(&format!("section_{}", group_id));
             let section_label = self.items.get_or_insert(cx, section_id, |cx| {
-                WidgetRef::new_from_ptr(cx, self.section_label_template)
+                let template_ref = self
+                    .templates
+                    .get(&SECTION_LABEL_TEMPLATE)
+                    .expect("SectionLabel template not found");
+                let template_value: ScriptValue = template_ref.as_object().into();
+                cx.with_vm(|vm| WidgetRef::script_from_value(vm, template_value))
             });
 
-            section_label.label(cx, ids!(label)).set_text(cx, &group_label);
+            section_label
+                .label(cx, ids!(label))
+                .set_text(cx, &group_label);
 
             match group_icon
                 .or_else(|| EntityAvatar::from_first_grapheme(&group_label.to_uppercase()))
@@ -211,7 +243,9 @@ impl ModelSelectorList {
                     section_label
                         .view(cx, ids!(icon_fallback_view))
                         .set_visible(cx, false);
-                    section_label.view(cx, ids!(icon_view)).set_visible(cx, true);
+                    section_label
+                        .view(cx, ids!(icon_view))
+                        .set_visible(cx, true);
                     let _ = section_label
                         .image(cx, ids!(icon_image))
                         .load_image_dep_by_path(cx, image.as_str())
@@ -222,7 +256,9 @@ impl ModelSelectorList {
                         });
                 }
                 EntityAvatar::Text(text) => {
-                    section_label.view(cx, ids!(icon_view)).set_visible(cx, false);
+                    section_label
+                        .view(cx, ids!(icon_view))
+                        .set_visible(cx, false);
                     section_label
                         .view(cx, ids!(icon_fallback_view))
                         .set_visible(cx, true);
@@ -241,7 +277,12 @@ impl ModelSelectorList {
                 let item_id = LiveId::from_str(bot.id.as_str());
 
                 let item_widget = self.items.get_or_insert(cx, item_id, |cx| {
-                    WidgetRef::new_from_ptr(cx, self.item_template)
+                    let template_ref = self
+                        .templates
+                        .get(&ITEM_TEMPLATE)
+                        .expect("Item template not found");
+                    let template_value: ScriptValue = template_ref.as_object().into();
+                    cx.with_vm(|vm| WidgetRef::script_from_value(vm, template_value))
                 });
 
                 let mut item = item_widget.as_model_selector_item();
