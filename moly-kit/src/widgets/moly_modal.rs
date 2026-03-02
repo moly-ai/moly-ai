@@ -158,12 +158,13 @@ impl MolyModal {
 
     /// Opens the modal as a centered dialog.
     pub fn open_as_dialog(&mut self, cx: &mut Cx) {
+        let center = Align { x: 0.5, y: 0.5 };
         script_apply_eval!(cx, self, {
-            align: Align { x: 0.5, y: 0.5 }
-            content: {
-                margin: 0,
+            align: #(center)
+            content +: {
+                margin: 0
             }
-            bg_view: {
+            bg_view +: {
                 visible: true
             }
         });
@@ -177,15 +178,19 @@ impl MolyModal {
         self.desired_popup_position = Some(pos);
         let screen_size = cx.display_context.screen_size;
 
+        let origin = Align { x: 0.0, y: 0.0 };
+        let margin = Inset {
+            left: screen_size.x,
+            top: screen_size.y,
+            right: 0.0,
+            bottom: 0.0,
+        };
         script_apply_eval!(cx, self, {
-            align: Align { x: 0.0, y: 0.0 }
-            content: {
-                margin: Inset {
-                    left: #(screen_size.x),
-                    top: #(screen_size.y)
-                }
+            align: #(origin)
+            content +: {
+                margin: #(margin)
             }
-            bg_view: {
+            bg_view +: {
                 visible: false
             }
         });
@@ -232,12 +237,15 @@ impl MolyModal {
             pos.y
         };
 
+        let margin = Inset {
+            left: pos_x,
+            top: pos_y,
+            right: 0.0,
+            bottom: 0.0,
+        };
         script_apply_eval!(cx, self, {
-            content: {
-                margin: Inset {
-                    left: #(pos_x),
-                    top: #(pos_y)
-                }
+            content +: {
+                margin: #(margin)
             }
         });
 

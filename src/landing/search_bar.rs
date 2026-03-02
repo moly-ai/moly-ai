@@ -220,13 +220,15 @@ impl SearchBarRef {
         }
         inner.collapsed = true;
 
+        let flow_right = Flow::default(); // Right is the default/pick variant
+        let fill = Size::fill();
         script_apply_eval!(cx, inner, {
-            flow: Right
+            flow: #(flow_right)
             title +: { visible: false }
             align: {x: 0.0 y: 0.5}
             padding: {left: 20}
             spacing: 80
-            input_container +: { width: Fill }
+            input_container +: { width: #(fill) }
             search_sorting +: { visible: true }
         });
 
@@ -245,8 +247,9 @@ impl SearchBarRef {
         }
         inner.collapsed = false;
 
+        let flow_down = Flow::Down;
         script_apply_eval!(cx, inner, {
-            flow: Down
+            flow: #(flow_down)
             title +: { visible: true }
             align: {x: 0.5 y: 0.5}
             padding: {left: 0}

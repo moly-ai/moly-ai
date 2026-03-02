@@ -652,7 +652,7 @@ impl ProviderView {
             ProviderConnectionStatus::Error(_error) => vec4(1.0, 0.0, 0.0, 1.0),
         };
         script_apply_eval!(cx, connection_status_label, {
-            draw_text: {
+            draw_text +: {
                 color: #(text_color)
             }
         });
@@ -889,17 +889,18 @@ impl Widget for ModelEntry {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
+        let fit = Size::fit();
         if cx.display_context.is_desktop() {
-            script_apply_eval!(cx, self, {
+            script_apply_eval!(cx, self.view, {
                 height: 60
-                content: { model_name: { width: Fit } }
-                vertical_filler: { visible: true }
+                content +: { model_name +: { width: #(fit) } }
+                vertical_filler +: { visible: true }
             });
         } else {
-            script_apply_eval!(cx, self, {
+            script_apply_eval!(cx, self.view, {
                 height: 80
-                content: { model_name: { width: 200 } }
-                vertical_filler: { visible: false }
+                content +: { model_name +: { width: 200 } }
+                vertical_filler +: { visible: false }
             });
         }
 

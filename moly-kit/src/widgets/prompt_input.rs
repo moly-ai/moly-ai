@@ -278,7 +278,7 @@ impl Widget for PromptInput {
                 if let Some(icon) = &self.send_icon {
                     let icon = icon.clone();
                     script_apply_eval!(cx, button, {
-                        draw_icon: { svg: #(icon) }
+                        draw_icon +: { svg: #(icon) }
                     });
                 }
             }
@@ -286,7 +286,7 @@ impl Widget for PromptInput {
                 if let Some(icon) = &self.stop_icon {
                     let icon = icon.clone();
                     script_apply_eval!(cx, button, {
-                        draw_icon: { svg: #(icon) }
+                        draw_icon +: { svg: #(icon) }
                     });
                 }
             }

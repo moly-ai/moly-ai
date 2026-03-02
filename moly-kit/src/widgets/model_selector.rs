@@ -335,31 +335,40 @@ impl ModelSelector {
         }
 
         let mut modal = self.moly_modal(cx, ids!(modal));
+        let margin = Inset {
+            left: modal_x,
+            top: modal_y,
+            right: 0.0,
+            bottom: 0.0,
+        };
         script_apply_eval!(cx, modal, {
-            bg_view: {
+            bg_view +: {
                 visible: #(bg_view_visible)
             }
-            content: {
-                margin: Inset {
-                    left: #(modal_x), top: #(modal_y)
-                }
+            content +: {
+                margin: #(margin)
             }
         });
 
         if !cx.display_context.is_desktop() {
+            let fill = Size::fill();
             script_apply_eval!(cx, modal, {
                 dismiss_on_focus_lost: false
-                content: {
-                    width: Fill
+                content +: {
+                    width: #(fill)
                     padding: 0
                 }
             });
         } else {
+            let padding = Inset {
+                top: 20.0,
+                left: 10.0,
+                right: 10.0,
+                bottom: 20.0,
+            };
             script_apply_eval!(cx, modal, {
-                content: { width: 400 }
-                padding: Inset {
-                    top: 20, left: 10, right: 10, bottom: 20
-                }
+                content +: { width: 400 }
+                padding: #(padding)
             });
         }
 

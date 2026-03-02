@@ -266,7 +266,8 @@ impl WidgetMatchEvent for ModelFiles {
 impl ModelFiles {
     fn expand_without_animation(&mut self, cx: &mut Cx) {
         let mut wrapper = self.view(cx, ids!(remaining_files_wrapper));
-        script_apply_eval!(cx, wrapper, {height: Fit});
+        let fit = Size::fit();
+        script_apply_eval!(cx, wrapper, {height: #(fit)});
         self.show_all_animation_progress = 0.0;
         self.redraw(cx);
     }

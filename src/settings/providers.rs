@@ -635,12 +635,14 @@ impl ProviderItemRef {
         }
 
         if is_selected && cx.display_context.is_desktop() {
+            let color = vec4(0.918, 0.926, 0.937, 1.0); // #EAECEF
             script_apply_eval!(cx, inner.view, {
-                draw_bg: { color: #xEAECEF }
+                draw_bg +: { color: #(color) }
             });
         } else {
+            let color = vec4(0.976, 0.976, 0.976, 1.0); // #f9f9f9
             script_apply_eval!(cx, inner.view, {
-                draw_bg: { color: #xf9f9f9 }
+                draw_bg +: { color: #(color) }
             });
         }
     }

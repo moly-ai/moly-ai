@@ -292,10 +292,12 @@ impl MessageThinkingBlock {
         self.is_expanded = !self.is_expanded;
 
         if self.is_expanded {
+            let fit = Size::fit();
+            let fill = Size::fill();
             let mut content = self.view(cx, ids!(content));
-            script_apply_eval!(cx, content, { height: Fit });
+            script_apply_eval!(cx, content, { height: #(fit) });
             let mut inner = self.view(cx, ids!(inner));
-            script_apply_eval!(cx, inner, { width: Fill });
+            script_apply_eval!(cx, inner, { width: #(fill) });
             let mut collapse = self.view(cx, ids!(collapse));
             script_apply_eval!(cx, collapse, {
                 draw_bg +: { color: #xf0f0f0 }
