@@ -57,8 +57,8 @@ impl Widget for ChatAgentAvatar {
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         if let Some(dep) = self.pending_image_update.take() {
-            script_apply_eval!(cx, self, {
-                image = {
+            script_apply_eval!(cx, self.view, {
+                image +: {
                     src: #(dep)
                 }
             })

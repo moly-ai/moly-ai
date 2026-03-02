@@ -284,7 +284,7 @@ impl WidgetMatchEvent for ChatScreenMobile {
             );
 
             script_apply_eval!(cx, modal, {
-                content: {
+                content +: {
                     margin: {
                         left: #(coords.x) top: #(coords.y)
                     }

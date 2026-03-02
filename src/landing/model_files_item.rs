@@ -277,7 +277,7 @@ impl Widget for ModelFilesItem {
                         progress_text_layout +: {
                             progress_text +: {
                                 text: #(progress)
-                                draw_text: {
+                                draw_text +: {
                                     color: #(status_color)
                                 }
                             }
@@ -285,7 +285,7 @@ impl Widget for ModelFilesItem {
                         progress_bar +: {
                             progress_fill +: {
                                 width: #(progress_fill)
-                                draw_bg: {
+                                draw_bg +: {
                                     color: #(status_color)
                                 }
                             }

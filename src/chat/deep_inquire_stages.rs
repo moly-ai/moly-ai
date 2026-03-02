@@ -455,12 +455,12 @@ impl Widget for StageView {
         if self.is_active {
             let mut toggle = self.view(cx, ids!(stage_toggle));
             script_apply_eval!(cx, toggle, {
-                draw_bg: { border_size: 1 }
+                draw_bg +: { border_size: 1 }
             });
         } else {
             let mut toggle = self.view(cx, ids!(stage_toggle));
             script_apply_eval!(cx, toggle, {
-                draw_bg: { border_size: 0 }
+                draw_bg +: { border_size: 0 }
             });
         }
 

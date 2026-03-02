@@ -889,20 +889,24 @@ impl Widget for ModelEntry {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        let fit = Size::fit();
-        if cx.display_context.is_desktop() {
-            script_apply_eval!(cx, self.view, {
-                height: 60
-                content +: { model_name +: { width: #(fit) } }
-                vertical_filler +: { visible: true }
-            });
+        let is_desktop = cx.display_context.is_desktop();
+        if is_desktop {
+            script_apply_eval!(cx, self.view, { height: 60 });
         } else {
-            script_apply_eval!(cx, self.view, {
-                height: 80
-                content +: { model_name +: { width: 200 } }
-                vertical_filler +: { visible: false }
-            });
+            script_apply_eval!(cx, self.view, { height: 80 });
         }
+
+        let mut model_name = self.view.label(cx, ids!(model_name));
+        if is_desktop {
+            let fit = Size::fit();
+            script_apply_eval!(cx, model_name, { width: #(fit) });
+        } else {
+            script_apply_eval!(cx, model_name, { width: 200 });
+        }
+
+        self.view
+            .view(cx, ids!(vertical_filler))
+            .set_visible(cx, is_desktop);
 
         self.view.draw_walk(cx, scope, walk)
     }

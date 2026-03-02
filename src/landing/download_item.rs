@@ -240,13 +240,13 @@ impl Widget for DownloadItem {
 
                 label.set_text(cx, &format!("Downloading {:.1}%", download.progress));
                 script_apply_eval!(cx, label, {
-                    draw_text: { color: #(downloading_color) }
+                    draw_text +: { color: #(downloading_color) }
                 });
 
                 let mut progress_bar = self.view(cx, ids!(progress_bar));
                 script_apply_eval!(cx, progress_bar, {
                     width: #(progress_bar_width)
-                    draw_bg: { color: #(downloading_color) }
+                    draw_bg +: { color: #(downloading_color) }
                 });
 
                 self.button(cx, ids!(pause_button)).set_visible(cx, false);
@@ -259,13 +259,13 @@ impl Widget for DownloadItem {
 
                 label.set_text(cx, &format!("Downloading {:.1}%", download.progress));
                 script_apply_eval!(cx, label, {
-                    draw_text: { color: #(downloading_color) }
+                    draw_text +: { color: #(downloading_color) }
                 });
 
                 let mut progress_bar = self.view(cx, ids!(progress_bar));
                 script_apply_eval!(cx, progress_bar, {
                     width: #(progress_bar_width)
-                    draw_bg: { color: #(downloading_color) }
+                    draw_bg +: { color: #(downloading_color) }
                 });
 
                 self.button(cx, ids!(pause_button)).set_visible(cx, true);
@@ -278,13 +278,13 @@ impl Widget for DownloadItem {
 
                 label.set_text(cx, &format!("Paused {:.1}%", download.progress));
                 script_apply_eval!(cx, label, {
-                    draw_text: { color: #(paused_color) }
+                    draw_text +: { color: #(paused_color) }
                 });
 
                 let mut progress_bar = self.view(cx, ids!(progress_bar));
                 script_apply_eval!(cx, progress_bar, {
                     width: #(progress_bar_width)
-                    draw_bg: { color: #(paused_color) }
+                    draw_bg +: { color: #(paused_color) }
                 });
 
                 self.button(cx, ids!(pause_button)).set_visible(cx, false);
@@ -297,13 +297,13 @@ impl Widget for DownloadItem {
 
                 label.set_text(cx, &format!("Error {:.1}%", download.progress));
                 script_apply_eval!(cx, label, {
-                    draw_text: { color: #(failed_color) }
+                    draw_text +: { color: #(failed_color) }
                 });
 
                 let mut progress_bar = self.view(cx, ids!(progress_bar));
                 script_apply_eval!(cx, progress_bar, {
                     width: #(progress_bar_width)
-                    draw_bg: { color: #(failed_color) }
+                    draw_bg +: { color: #(failed_color) }
                 });
 
                 self.button(cx, ids!(pause_button)).set_visible(cx, false);

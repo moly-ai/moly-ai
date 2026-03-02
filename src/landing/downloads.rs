@@ -226,7 +226,7 @@ impl Downloads {
         let rotation_angle = if is_open { 0.0 } else { 180.0 };
         let mut collapse_btn = self.button(cx, ids!(collapse));
         script_apply_eval!(cx, collapse_btn, {
-            draw_icon: { rotation_angle: #(rotation_angle) }
+            draw_icon +: { rotation_angle: #(rotation_angle) }
         });
     }
 }
