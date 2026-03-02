@@ -107,7 +107,7 @@ script_mod! {
         flow: Down
         spacing: 0
 
-        deep_inquire_content := DeepInquireContent {}
+        deep_inquire_content := DeepInquireContent { visible: false }
 
         chat := Chat {
             messages := PaddedMessages {}

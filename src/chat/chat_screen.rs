@@ -32,7 +32,7 @@ script_mod! {
 
             Desktop +: {
                 View {
-                    width: Fit height: Fill
+                    width: 280 height: Fill
                     chat_history_panel := ChatHistoryPanel {}
                 }
 
