@@ -157,7 +157,7 @@ script_mod! {
                         width: Fill,
                         text: "Copy"
                         draw_icon +: {
-                            svg_file: crate_resource("self://resources/copy.svg")
+                            svg: crate_resource("self://resources/copy.svg")
                         }
                     }
 
@@ -165,7 +165,7 @@ script_mod! {
                         width: Fill,
                         text: "Edit"
                         draw_icon +: {
-                            svg_file: crate_resource("self://resources/edit.svg")
+                            svg: crate_resource("self://resources/edit.svg")
                         }
                     }
 
@@ -173,7 +173,7 @@ script_mod! {
                         width: Fill,
                         text: "Delete"
                         draw_icon +: {
-                            svg_file: crate_resource("self://resources/delete.svg")
+                            svg: crate_resource("self://resources/delete.svg")
                             get_color: fn() -> vec4 {
                                 return #xB42318;
                             }

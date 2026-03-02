@@ -154,27 +154,27 @@ script_mod! {
 
         pause_button := ActionButton {
             draw_icon +: {
-                svg_file: (ICON_PAUSE)
+                svg: (ICON_PAUSE)
             }
             icon_walk +: { margin: Inset { left: 6 } }
         }
 
         play_button := ActionButton {
             draw_icon +: {
-                svg_file: (ICON_PLAY)
+                svg: (ICON_PLAY)
             }
             icon_walk +: { margin: Inset { left: 6 } }
         }
 
         retry_button := ActionButton {
             draw_icon +: {
-                svg_file: (ICON_RETRY)
+                svg: (ICON_RETRY)
             }
         }
 
         cancel_button := ActionButton {
             draw_icon +: {
-                svg_file: (ICON_CANCEL)
+                svg: (ICON_CANCEL)
             }
             icon_walk +: { margin: 0 }
         }

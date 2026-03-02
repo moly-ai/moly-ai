@@ -466,8 +466,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.Realtime = #(Realtime::register_widget(vm))
-        RoundedView {
+    mod.widgets.RealtimeBase = #(Realtime::register_widget(vm))
+    mod.widgets.Realtime = set_type_default() do mod.widgets.RealtimeBase {
         show_bg: true
         draw_bg +: {
             color: #xf9f9f9

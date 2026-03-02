@@ -87,7 +87,7 @@ impl Widget for ChatHistory {
 
         while let Some(view_item) = self.deref.draw_walk(cx, scope, walk).step() {
             if let Some(mut list) = view_item.as_portal_list().borrow_mut() {
-                list.set_item_range(cx, 0, items.len() - 1);
+                list.set_item_range(cx, 0, items.len());
                 while let Some(item_id) = list.next_visible_item(cx) {
                     if item_id >= items.len() {
                         continue;

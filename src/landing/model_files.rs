@@ -114,7 +114,7 @@ script_mod! {
         spacing: 10
         icon := Icon {
             draw_icon +: {
-                svg_file: (ICON_ADD)
+                svg: (ICON_ADD)
                 get_color: fn() -> vec4 {
                     return #667085
                 }

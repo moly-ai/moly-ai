@@ -75,7 +75,7 @@ script_mod! {
 
             Icon {
                 draw_icon +: {
-                    svg_file: (ICON_SEARCH)
+                    svg: (ICON_SEARCH)
                     get_color: fn() -> vec4 {
                         return #666
                     }
@@ -95,7 +95,7 @@ script_mod! {
             clear_text_button := MolyButton {
                 visible: false
                 draw_icon +: {
-                    svg_file: (ICON_CLOSE)
+                    svg: (ICON_CLOSE)
                     get_color: fn() -> vec4 {
                         return #8
                     }

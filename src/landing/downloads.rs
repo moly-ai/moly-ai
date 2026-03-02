@@ -12,7 +12,7 @@ script_mod! {
         width: Fit
         height: Fit
         draw_icon +: {
-            svg_file: (ICON_COLLAPSE)
+            svg: (ICON_COLLAPSE)
             color: #667085
         }
         icon_walk +: {width: 18 height: Fit}

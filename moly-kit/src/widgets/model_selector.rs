@@ -110,7 +110,8 @@ script_mod! {
         }
     }
 
-    mod.widgets.ModelSelector = #(ModelSelector::register_widget(vm)) View {
+    mod.widgets.ModelSelectorBase = #(ModelSelector::register_widget(vm))
+    mod.widgets.ModelSelector = set_type_default() do mod.widgets.ModelSelectorBase {
         width: Fit, height: Fit
         flow: Overlay
 

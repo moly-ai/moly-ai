@@ -53,7 +53,7 @@ script_mod! {
                     margin: Inset {top: -8}
 
                     draw_icon +: {
-                        svg_file: (ICON_CLOSE)
+                        svg: (ICON_CLOSE)
                         get_color: fn() -> vec4 {
                             return #000;
                         }

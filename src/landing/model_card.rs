@@ -55,7 +55,7 @@ script_mod! {
                 }
                 attr_name := Icon {
                     draw_icon +: {
-                        svg_file: (ICON_FAVORITE)
+                        svg: (ICON_FAVORITE)
                         get_color: fn() -> vec4 {
                             return #000;
                         }
@@ -85,7 +85,7 @@ script_mod! {
                 }
                 attr_name := Icon {
                     draw_icon +: {
-                        svg_file: (ICON_DOWNLOADS)
+                        svg: (ICON_DOWNLOADS)
                         get_color: fn() -> vec4 {
                             return #000;
                         }
@@ -158,7 +158,7 @@ script_mod! {
 
     let ExternalLinkIcon = Icon {
         draw_icon +: {
-            svg_file: (ICON_EXTERNAL_LINK)
+            svg: (ICON_EXTERNAL_LINK)
             get_color: fn() -> vec4 {
                 return (MODEL_LINK_FONT_COLOR);
             }
@@ -234,7 +234,7 @@ script_mod! {
                     height: Fit
 
                     draw_icon +: {
-                        svg_file: (ICON_CLOSE)
+                        svg: (ICON_CLOSE)
                         color: #000
                     }
                     icon_walk +: {width: 12 height: 12}

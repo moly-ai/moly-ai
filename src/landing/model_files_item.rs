@@ -57,7 +57,7 @@ script_mod! {
             color: (MAIN_BG_COLOR)
         }
         draw_icon +: {
-            svg_file: (ICON_DOWNLOAD)
+            svg: (ICON_DOWNLOAD)
         }
     }
 
@@ -68,7 +68,7 @@ script_mod! {
             color: (CTA_BUTTON_COLOR)
         }
         draw_icon +: {
-            svg_file: (START_CHAT)
+            svg: (START_CHAT)
             color: (CTA_BUTTON_COLOR)
         }
     }
@@ -122,23 +122,23 @@ script_mod! {
         resume_download_button := DownloadPendingButton {
             icon_walk +: { margin: Inset { left: 4 } }
             draw_icon +: {
-                svg_file: (ICON_PLAY)
+                svg: (ICON_PLAY)
             }
         }
         retry_download_button := DownloadPendingButton {
             draw_icon +: {
-                svg_file: (ICON_RETRY)
+                svg: (ICON_RETRY)
             }
         }
         pause_download_button := DownloadPendingButton {
             icon_walk +: { margin: Inset { left: 4 } }
             draw_icon +: {
-                svg_file: (ICON_PAUSE)
+                svg: (ICON_PAUSE)
             }
         }
         cancel_download_button := DownloadPendingButton {
             draw_icon +: {
-                svg_file: (ICON_CANCEL)
+                svg: (ICON_CANCEL)
             }
         }
     }

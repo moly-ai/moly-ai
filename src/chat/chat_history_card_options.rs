@@ -39,7 +39,7 @@ script_mod! {
 
                 icon_walk +: {width: 12 height: 12}
                 draw_icon +: {
-                    svg_file: (ICON_EDIT)
+                    svg: (ICON_EDIT)
                     get_color: fn() -> vec4 {
                         return #000;
                     }
@@ -68,7 +68,7 @@ script_mod! {
 
                 icon_walk +: {width: 12 height: 12}
                 draw_icon +: {
-                    svg_file: (ICON_DELETE)
+                    svg: (ICON_DELETE)
                     get_color: fn() -> vec4 {
                         return #xB42318;
                     }

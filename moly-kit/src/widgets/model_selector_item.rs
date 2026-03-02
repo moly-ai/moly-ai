@@ -4,7 +4,8 @@ use makepad_widgets::*;
 script_mod! {
     use mod.prelude.widgets.*
 
-    mod.widgets.ModelSelectorItem = #(ModelSelectorItem::register_widget(vm)) View {
+    mod.widgets.ModelSelectorItemBase = #(ModelSelectorItem::register_widget(vm))
+    mod.widgets.ModelSelectorItem = set_type_default() do mod.widgets.ModelSelectorItemBase {
         width: Fill
         height: Fit
         padding: Inset { left: 24, right: 16, top: 8, bottom: 8 }

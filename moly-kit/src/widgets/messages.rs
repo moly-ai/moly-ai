@@ -57,7 +57,7 @@ script_mod! {
                     margin: Inset { left: 4.5, top: 6.5 },
                 }
                 draw_icon +: {
-                    svg_file: crate_resource("self://resources/jump_to_bottom.svg")
+                    svg: crate_resource("self://resources/jump_to_bottom.svg")
                     color: #x1C1B1F,
                     color_hover: #x0
                 }

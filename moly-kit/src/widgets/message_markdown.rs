@@ -37,7 +37,7 @@ script_mod! {
                         color_hover: #3c3c3c
                         color_down: #x0
                         color_focus: #x0
-                        svg_file: crate_resource("self://resources/copy.svg")
+                        svg: crate_resource("self://resources/copy.svg")
                     }
                 }
             }
