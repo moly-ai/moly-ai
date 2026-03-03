@@ -101,8 +101,7 @@ script_mod! {
         draw_bg +: { ..RoundedShadowShader }
     }
 
-    mod.widgets.ChatViewBase = #(ChatView::register_widget(vm))
-    mod.widgets.ChatView = set_type_default() do mod.widgets.ChatViewBase {
+    mod.widgets.ChatView = #(ChatView::register_widget(vm)) {
         width: Fill height: Fill
         flow: Down
         spacing: 0
