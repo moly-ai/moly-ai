@@ -28,7 +28,7 @@ script_mod!(
 
             audio_modal := MolyModal {
                 dismiss_on_focus_lost: false
-                content +: mod.widgets.RealtimeContent {}
+                content: RealtimeContent {}
             }
         }
     }
