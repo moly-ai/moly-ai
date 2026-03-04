@@ -103,7 +103,6 @@ script_mod! {
 
     mod.widgets.ChatView = #(ChatView::register_widget(vm)) {
         width: Fill height: Fill
-        flow: Down
         spacing: 0
 
         deep_inquire_content := DeepInquireContent { visible: false }
@@ -255,26 +254,38 @@ impl Widget for ChatView {
             let prompt = self.prompt_input(cx, ids!(chat.prompt));
             if let Some(mut inner) = prompt.borrow_mut() {
                 inner.deref.layout.padding = Inset {
-                    bottom: 50.0, left: 20.0, right: 20.0, top: 0.0,
+                    bottom: 50.0,
+                    left: 20.0,
+                    right: 20.0,
+                    top: 0.0,
                 };
             }
             let stt = self.stt_input(cx, ids!(chat.stt_input));
             if let Some(mut inner) = stt.borrow_mut() {
                 inner.deref.walk.margin = Inset {
-                    bottom: 50.0, left: 20.0, right: 20.0, top: 0.0,
+                    bottom: 50.0,
+                    left: 20.0,
+                    right: 20.0,
+                    top: 0.0,
                 };
             }
         } else {
             let prompt = self.prompt_input(cx, ids!(chat.prompt));
             if let Some(mut inner) = prompt.borrow_mut() {
                 inner.deref.layout.padding = Inset {
-                    left: 10.0, right: 10.0, top: 8.0, bottom: 8.0,
+                    left: 10.0,
+                    right: 10.0,
+                    top: 8.0,
+                    bottom: 8.0,
                 };
             }
             let stt = self.stt_input(cx, ids!(chat.stt_input));
             if let Some(mut inner) = stt.borrow_mut() {
                 inner.deref.walk.margin = Inset {
-                    left: 10.0, right: 10.0, top: 8.0, bottom: 8.0,
+                    left: 10.0,
+                    right: 10.0,
+                    top: 8.0,
+                    bottom: 8.0,
                 };
             }
         }
