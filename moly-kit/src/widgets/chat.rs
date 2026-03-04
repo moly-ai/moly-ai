@@ -15,7 +15,8 @@ script_mod!(
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    mod.widgets.Chat = #(Chat::register_widget(vm)) RoundedView {
+    mod.widgets.ChatBase = #(Chat::register_widget(vm))
+    mod.widgets.Chat = set_type_default() do mod.widgets.ChatBase {
         flow: Down
         messages := Messages {}
         prompt := PromptInput {}
