@@ -15,6 +15,9 @@ script_mod! {
 /// with a known size.
 #[derive(Script, ScriptHook, Widget)]
 pub struct List {
+    #[uid]
+    uid: WidgetUid,
+
     #[walk]
     walk: Walk,
 

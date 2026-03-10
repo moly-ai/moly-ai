@@ -69,6 +69,9 @@ script_mod! {
 
 #[derive(Script, Widget)]
 pub struct ModelSelectorList {
+    #[uid]
+    uid: WidgetUid,
+
     #[redraw]
     #[rust]
     area: Area,

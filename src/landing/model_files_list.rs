@@ -20,6 +20,9 @@ script_mod! {
 
 #[derive(Script, ScriptHook, WidgetRegister, WidgetRef)]
 pub struct ModelFilesList {
+    #[uid]
+    uid: WidgetUid,
+
     #[rust]
     area: Area,
 
@@ -66,6 +69,10 @@ impl Widget for ModelFilesList {
 }
 
 impl WidgetNode for ModelFilesList {
+    fn widget_uid(&self) -> WidgetUid {
+        self.uid
+    }
+
     fn area(&self) -> Area {
         self.area
     }

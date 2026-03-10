@@ -19,6 +19,9 @@ script_mod! {
 /// destroyed automatically if this widget is destroyed. No risk of forgetting a call to `clear`.
 #[derive(Script, ScriptHook, Widget)]
 pub struct Meta {
+    #[uid]
+    uid: WidgetUid,
+
     #[walk]
     walk: Walk,
 

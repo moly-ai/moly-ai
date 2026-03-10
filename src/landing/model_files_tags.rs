@@ -35,6 +35,9 @@ script_mod! {
 
 #[derive(Script, ScriptHook, Widget)]
 pub struct ModelFilesTags {
+    #[uid]
+    uid: WidgetUid,
+
     #[redraw]
     #[rust]
     area: Area,

@@ -389,6 +389,9 @@ impl WidgetMatchEvent for McpServers {
 /// Moly's version of Makepad's CodeView (broken upstream)
 #[derive(Script, ScriptHook, WidgetRegister, WidgetRef)]
 pub struct MolyCodeView {
+    #[uid]
+    uid: WidgetUid,
+
     #[live]
     pub editor: CodeEditor,
     #[rust]
@@ -416,6 +419,10 @@ impl MolyCodeView {
 }
 
 impl WidgetNode for MolyCodeView {
+    fn widget_uid(&self) -> WidgetUid {
+        self.uid
+    }
+
     fn walk(&mut self, cx: &mut Cx) -> Walk {
         self.editor.walk(cx)
     }

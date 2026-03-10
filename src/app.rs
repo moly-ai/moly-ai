@@ -221,8 +221,8 @@ pub struct App {
     file_id: Option<FileId>,
 }
 
-impl App {
-    fn run(vm: &mut ScriptVm) -> Self {
+impl AppMain for App {
+    fn script_mod(vm: &mut ScriptVm) -> ScriptValue {
         makepad_widgets::script_mod(vm);
         moly_kit::widgets::script_mod(vm);
 
@@ -237,11 +237,9 @@ impl App {
         crate::mcp::script_mod(vm);
         crate::chat::script_mod(vm);
 
-        App::from_script_mod(vm, self::script_mod)
+        self::script_mod(vm)
     }
-}
 
-impl AppMain for App {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event) {
         self.ui_runner()
             .handle(cx, event, &mut Scope::empty(), self);
