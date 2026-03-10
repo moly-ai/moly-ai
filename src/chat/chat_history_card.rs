@@ -287,6 +287,21 @@ pub struct ChatHistoryCard {
 
 impl Widget for ChatHistoryCard {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+        // DEBUG: Check area validity on MouseDown BEFORE dispatching
+        if let Event::MouseDown(_) = event {
+            let self_area = self.area();
+            log!(
+                "ChatHistoryCard::handle_event MouseDown: chat_id={:?}, \
+                 self_area_valid={}, children_count={}",
+                self.chat_id,
+                self_area.is_valid(cx),
+                self.view.children.len(),
+            );
+            for (id, child) in &self.view.children {
+                let child_area = child.area();
+                log!("  child {:?}: area_valid={}", id, child_area.is_valid(cx),);
+            }
+        }
         self.view.handle_event(cx, event, scope);
         self.widget_match_event(cx, event, scope);
     }
@@ -335,7 +350,27 @@ impl Widget for ChatHistoryCard {
         );
         self.update_title_visibility(cx);
 
-        self.view.draw_walk(cx, scope, walk)
+        let result = self.view.draw_walk(cx, scope, walk);
+
+        // DEBUG: Check area after draw
+        let self_area = self.area();
+        log!(
+            "ChatHistoryCard::draw_walk DONE: chat_id={:?}, \
+             self_area={:?}, area_valid={}",
+            self.chat_id,
+            self_area,
+            self_area.is_valid(cx.cx),
+        );
+        // Check content view via widget query
+        let content_ref = self.view(cx.cx, ids!(content));
+        let content_area = content_ref.area();
+        log!(
+            "  content via query: area={:?}, area_valid={}",
+            content_area,
+            content_area.is_valid(cx.cx),
+        );
+
+        result
     }
 }
 
