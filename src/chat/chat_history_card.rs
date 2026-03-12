@@ -287,21 +287,6 @@ pub struct ChatHistoryCard {
 
 impl Widget for ChatHistoryCard {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
-        // DEBUG: Check area validity on MouseDown BEFORE dispatching
-        if let Event::MouseDown(_) = event {
-            let self_area = self.area();
-            log!(
-                "ChatHistoryCard::handle_event MouseDown: chat_id={:?}, \
-                 self_area_valid={}, children_count={}",
-                self.chat_id,
-                self_area.is_valid(cx),
-                self.view.children.len(),
-            );
-            for (id, child) in &self.view.children {
-                let child_area = child.area();
-                log!("  child {:?}: area_valid={}", id, child_area.is_valid(cx),);
-            }
-        }
         self.view.handle_event(cx, event, scope);
         self.widget_match_event(cx, event, scope);
     }
@@ -350,36 +335,12 @@ impl Widget for ChatHistoryCard {
         );
         self.update_title_visibility(cx);
 
-        let result = self.view.draw_walk(cx, scope, walk);
-
-        // DEBUG: Check area after draw
-        let self_area = self.area();
-        log!(
-            "ChatHistoryCard::draw_walk DONE: chat_id={:?}, \
-             self_area={:?}, area_valid={}",
-            self.chat_id,
-            self_area,
-            self_area.is_valid(cx.cx),
-        );
-        // Check content view via widget query
-        let content_ref = self.view(cx.cx, ids!(content));
-        let content_area = content_ref.area();
-        log!(
-            "  content via query: area={:?}, area_valid={}",
-            content_area,
-            content_area.is_valid(cx.cx),
-        );
-
-        result
+        self.view.draw_walk(cx, scope, walk)
     }
 }
 
 impl WidgetMatchEvent for ChatHistoryCard {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
-        log!(
-            "ChatHistoryCard::handle_actions CALLED, actions_len={}",
-            actions.len()
-        );
         match self.title_edition_state {
             TitleState::Editable => self.handle_title_editable_actions(cx, actions, scope),
             TitleState::OnEdit => self.handle_title_on_edit_actions(cx, actions, scope),
@@ -401,67 +362,34 @@ impl WidgetMatchEvent for ChatHistoryCard {
             return;
         }
 
-        let content_ref = self.view(cx, ids!(content));
-        let content_uid = content_ref.widget_uid();
-        let content_area = content_ref.area();
-        let content_rect = content_area.rect(cx);
-        log!(
-            "ChatHistoryCard handle_actions: chat_id={:?}, content_uid={:?}, \
-             content_is_empty={}, area_valid={}, rect={:?}",
-            self.chat_id,
-            content_uid,
-            content_ref.is_empty(),
-            content_area.is_valid(cx),
-            content_rect,
-        );
+        // The `content` child View (which has cursor: Hand and an animator)
+        // emits ViewAction::FingerDown with its own UID, not the outer
+        // ChatHistoryCard View's UID. We find the content child directly
+        // in `self.view.children` to get its actual UID for action lookup.
+        let content_uid = self
+            .view
+            .children
+            .iter()
+            .find(|(id, _)| *id == id!(content))
+            .map(|(_, widget_ref)| widget_ref.widget_uid());
 
-        // Check if there's any ViewAction::FingerDown in actions for our own uid
-        let self_uid = self.widget_uid();
-        if let Some(action) = actions.find_widget_action(self_uid) {
-            log!(
-                "ChatHistoryCard: found action on SELF uid={:?}: {:?}",
-                self_uid,
-                std::any::type_name_of_val(&*action.action),
-            );
-            if let ViewAction::FingerDown(fe) = action.cast() {
-                log!(
-                    "ChatHistoryCard: SELF finger_down detected! tap_count={}",
-                    fe.tap_count
-                );
-            }
-        }
+        if let Some(uid) = content_uid {
+            if let Some(item) = actions.find_widget_action(uid) {
+                if let ViewAction::FingerDown(fe) = item.cast() {
+                    if fe.tap_count == 1 {
+                        let store = scope.data.get_mut::<Store>().unwrap();
+                        store.chats.set_current_chat(Some(self.chat_id));
 
-        // Also dump all ViewAction::FingerDown actions to see which widget got it
-        for action in actions.iter() {
-            if let Some(wa) = action.downcast_ref::<WidgetAction>() {
-                if let ViewAction::FingerDown(fe) = wa.cast() {
-                    log!(
-                        "ChatHistoryCard: FOUND FingerDown in actions for uid={:?}, \
-                         tap_count={}",
-                        wa.widget_uid,
-                        fe.tap_count
-                    );
+                        if let Some(chat) = store.chats.get_chat_by_id(self.chat_id) {
+                            chat.borrow_mut().has_unread_messages = false;
+                            self.view(cx, ids!(unread_message_badge))
+                                .set_visible(cx, false);
+                        }
+
+                        cx.action(ChatAction::ChatSelected(self.chat_id));
+                        self.redraw(cx);
+                    }
                 }
-            }
-        }
-
-        if let Some(fe) = content_ref.finger_down(actions) {
-            log!(
-                "ChatHistoryCard: content finger_down detected! tap_count={}",
-                fe.tap_count
-            );
-            if fe.tap_count == 1 {
-                let store = scope.data.get_mut::<Store>().unwrap();
-                store.chats.set_current_chat(Some(self.chat_id));
-
-                if let Some(chat) = store.chats.get_chat_by_id(self.chat_id) {
-                    chat.borrow_mut().has_unread_messages = false;
-                    self.view(cx, ids!(unread_message_badge))
-                        .set_visible(cx, false);
-                }
-
-                cx.action(ChatAction::ChatSelected(self.chat_id));
-                self.redraw(cx);
             }
         }
 
