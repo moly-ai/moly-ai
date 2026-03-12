@@ -89,7 +89,7 @@ script_mod! {
             }
         }
 
-        card_content := RoundedView {
+        content := RoundedView {
             width: Fill
             height: Fill
             flow: Right
@@ -362,19 +362,27 @@ impl WidgetMatchEvent for ChatHistoryCard {
             return;
         }
 
-        if let Some(fe) = self.view(cx, ids!(card_content)).finger_down(actions) {
-            if fe.tap_count == 1 {
-                let store = scope.data.get_mut::<Store>().unwrap();
-                store.chats.set_current_chat(Some(self.chat_id));
+        // Use `child()` for direct-child-only lookup instead of
+        // `self.view(cx, ids!(content))`. The widget tree query (`find_within`)
+        // returns the last/deepest match when multiple descendants share the
+        // same name. Here, MolyModal children also have a `content` child, so
+        // the query returns the modal's `content` instead of our direct child.
+        let content = self.view.child(id!(content));
+        if let Some(item) = actions.find_widget_action(content.widget_uid()) {
+            if let ViewAction::FingerDown(fe) = item.cast() {
+                if fe.tap_count == 1 {
+                    let store = scope.data.get_mut::<Store>().unwrap();
+                    store.chats.set_current_chat(Some(self.chat_id));
 
-                if let Some(chat) = store.chats.get_chat_by_id(self.chat_id) {
-                    chat.borrow_mut().has_unread_messages = false;
-                    self.view(cx, ids!(unread_message_badge))
-                        .set_visible(cx, false);
+                    if let Some(chat) = store.chats.get_chat_by_id(self.chat_id) {
+                        chat.borrow_mut().has_unread_messages = false;
+                        self.view(cx, ids!(unread_message_badge))
+                            .set_visible(cx, false);
+                    }
+
+                    cx.action(ChatAction::ChatSelected(self.chat_id));
+                    self.redraw(cx);
                 }
-
-                cx.action(ChatAction::ChatSelected(self.chat_id));
-                self.redraw(cx);
             }
         }
 
