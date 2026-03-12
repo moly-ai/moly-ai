@@ -89,7 +89,7 @@ script_mod! {
             }
         }
 
-        content := RoundedView {
+        card_content := RoundedView {
             width: Fill
             height: Fill
             flow: Right
@@ -362,34 +362,36 @@ impl WidgetMatchEvent for ChatHistoryCard {
             return;
         }
 
-        // The widget tree query (`self.view(cx, ids!(content))`) returns
-        // a wrong WidgetRef for PortalList item children — it finds a
-        // different instance with a mismatched UID. We access the content
-        // child directly from `self.view.children` to get the real UID.
-        let content_uid = self
+        // DEBUG: test name collision hypothesis — card_content should
+        // now be unique (no collision with MolyModal's content)
+        let query_ref = self.view(cx, ids!(card_content));
+        let query_uid = query_ref.widget_uid();
+        let direct_uid = self
             .view
             .children
             .iter()
-            .find(|(id, _)| *id == id!(content))
+            .find(|(id, _)| *id == id!(card_content))
             .map(|(_, widget_ref)| widget_ref.widget_uid());
+        log!(
+            "CARD renamed: query_uid={:?}, direct_uid={:?}, match={}",
+            query_uid,
+            direct_uid,
+            direct_uid == Some(query_uid),
+        );
 
-        if let Some(uid) = content_uid {
-            if let Some(item) = actions.find_widget_action(uid) {
-                if let ViewAction::FingerDown(fe) = item.cast() {
-                    if fe.tap_count == 1 {
-                        let store = scope.data.get_mut::<Store>().unwrap();
-                        store.chats.set_current_chat(Some(self.chat_id));
+        if let Some(fe) = self.view(cx, ids!(card_content)).finger_down(actions) {
+            if fe.tap_count == 1 {
+                let store = scope.data.get_mut::<Store>().unwrap();
+                store.chats.set_current_chat(Some(self.chat_id));
 
-                        if let Some(chat) = store.chats.get_chat_by_id(self.chat_id) {
-                            chat.borrow_mut().has_unread_messages = false;
-                            self.view(cx, ids!(unread_message_badge))
-                                .set_visible(cx, false);
-                        }
-
-                        cx.action(ChatAction::ChatSelected(self.chat_id));
-                        self.redraw(cx);
-                    }
+                if let Some(chat) = store.chats.get_chat_by_id(self.chat_id) {
+                    chat.borrow_mut().has_unread_messages = false;
+                    self.view(cx, ids!(unread_message_badge))
+                        .set_visible(cx, false);
                 }
+
+                cx.action(ChatAction::ChatSelected(self.chat_id));
+                self.redraw(cx);
             }
         }
 
