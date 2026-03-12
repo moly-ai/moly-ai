@@ -362,10 +362,10 @@ impl WidgetMatchEvent for ChatHistoryCard {
             return;
         }
 
-        // The `content` child View (which has cursor: Hand and an animator)
-        // emits ViewAction::FingerDown with its own UID, not the outer
-        // ChatHistoryCard View's UID. We find the content child directly
-        // in `self.view.children` to get its actual UID for action lookup.
+        // The widget tree query (`self.view(cx, ids!(content))`) returns
+        // a wrong WidgetRef for PortalList item children — it finds a
+        // different instance with a mismatched UID. We access the content
+        // child directly from `self.view.children` to get the real UID.
         let content_uid = self
             .view
             .children
