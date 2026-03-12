@@ -362,23 +362,6 @@ impl WidgetMatchEvent for ChatHistoryCard {
             return;
         }
 
-        // DEBUG: test name collision hypothesis — card_content should
-        // now be unique (no collision with MolyModal's content)
-        let query_ref = self.view(cx, ids!(card_content));
-        let query_uid = query_ref.widget_uid();
-        let direct_uid = self
-            .view
-            .children
-            .iter()
-            .find(|(id, _)| *id == id!(card_content))
-            .map(|(_, widget_ref)| widget_ref.widget_uid());
-        log!(
-            "CARD renamed: query_uid={:?}, direct_uid={:?}, match={}",
-            query_uid,
-            direct_uid,
-            direct_uid == Some(query_uid),
-        );
-
         if let Some(fe) = self.view(cx, ids!(card_content)).finger_down(actions) {
             if fe.tap_count == 1 {
                 let store = scope.data.get_mut::<Store>().unwrap();
