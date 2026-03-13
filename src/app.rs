@@ -81,7 +81,6 @@ script_mod! {
         }
 
         chat_tab := SidebarMenuButton {
-            animator +: {active: {default: @on}}
             text: "Chat"
             draw_icon +: {
                 svg: (ICON_CHAT)
@@ -264,6 +263,10 @@ impl AppMain for App {
             }
 
             Store::load_into_app();
+
+            self.ui
+                .radio_button(cx, ids!(sidebar_menu.chat_tab))
+                .select(cx, &mut Scope::empty());
         }
 
         // If the store is not loaded, do not continue with
