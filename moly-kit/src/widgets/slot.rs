@@ -34,11 +34,6 @@ impl Widget for Slot {
 
 impl ScriptHook for Slot {
     fn on_after_new(&mut self, _vm: &mut ScriptVm) {
-        log!(
-            "DEBUG Slot on_after_new: default_empty={}, wrap_empty={}",
-            self.default.is_empty(),
-            self.wrap.is_empty(),
-        );
         self.wrap = self.default.clone();
     }
 }
@@ -58,11 +53,6 @@ impl Slot {
 
     /// Get the current widget.
     pub fn current(&self) -> WidgetRef {
-        log!(
-            "DEBUG Slot::current: wrap_empty={}, default_empty={}",
-            self.wrap.is_empty(),
-            self.default.is_empty(),
-        );
         self.wrap.clone()
     }
 
@@ -94,10 +84,6 @@ impl SlotRef {
     /// See [Slot::current].
     pub fn current(&self) -> WidgetRef {
         let Some(inner) = self.borrow() else {
-            log!(
-                "DEBUG SlotRef::current: borrow FAILED, self_empty={}",
-                self.is_empty()
-            );
             return WidgetRef::empty();
         };
 
