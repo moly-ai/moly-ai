@@ -96,6 +96,13 @@ impl StandardMessageContent {
 
         let markdown = self.label(cx, ids!(markdown));
 
+        log!("DEBUG SMC set_content_impl: text={:?}, is_writing={}, tool_calls={}, markdown_is_empty={}",
+            &content.text[..content.text.len().min(80)],
+            metadata.is_writing(),
+            content.tool_calls.len(),
+            markdown.is_empty(),
+        );
+
         if metadata.is_writing() {
             let text_with_typing = format!("{} {}", content.text, TYPING_INDICATOR);
             markdown.set_text(cx, &convert_math_delimiters(&text_with_typing));
@@ -105,6 +112,11 @@ impl StandardMessageContent {
         } else {
             markdown.set_text(cx, &convert_math_delimiters(&content.text));
         }
+
+        log!(
+            "DEBUG SMC after set_text: markdown text={:?}",
+            &markdown.text()[..markdown.text().len().min(80)]
+        );
     }
 
     fn generate_tool_calls_text(content: &MessageContent) -> String {
@@ -179,6 +191,7 @@ impl StandardMessageContentRef {
     /// See [`StandardMessageContent::set_content`].
     pub fn set_content(&mut self, cx: &mut Cx, content: &MessageContent) {
         let Some(mut inner) = self.borrow_mut() else {
+            log!("DEBUG SMC Ref::set_content: borrow_mut FAILED");
             return;
         };
 
@@ -193,6 +206,7 @@ impl StandardMessageContentRef {
         metadata: &MessageMetadata,
     ) {
         let Some(mut inner) = self.borrow_mut() else {
+            log!("DEBUG SMC Ref::set_content_with_metadata: borrow_mut FAILED");
             return;
         };
 

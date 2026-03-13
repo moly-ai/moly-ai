@@ -19,7 +19,8 @@ use makepad_code_editor::code_view::CodeViewWidgetRefExt;
 use makepad_widgets::*;
 
 use super::{
-    citation::CitationAction, slot::SlotWidgetRefExt,
+    citation::CitationAction,
+    slot::{Slot, SlotWidgetRefExt},
     standard_message_content::StandardMessageContentWidgetRefExt,
 };
 
@@ -578,10 +579,21 @@ impl Messages {
                     item.label(cx, ids!(name))
                         .set_text(cx, "You");
 
-                    item.slot(cx, ids!(content))
-                        .current()
-                        .as_standard_message_content()
-                        .set_content(cx, &message.content);
+                    let slot_widget = item.widget(cx, &[id!(message_content)]);
+                    let can_borrow_slot = slot_widget.borrow::<Slot>().is_some();
+                    let can_borrow_view = slot_widget.borrow::<View>().is_some();
+                    log!("DEBUG MSG User: widget_empty={}, can_borrow_slot={}, can_borrow_view={}, uid={:?}, text={:?}",
+                        slot_widget.is_empty(),
+                        can_borrow_slot,
+                        can_borrow_view,
+                        slot_widget.widget_uid(),
+                        &message.content.text[..message.content.text.len().min(60)],
+                    );
+                    let slot_ref = item.slot(cx, ids!(content));
+                    let current = slot_ref.current();
+                    let mut smc = current
+                        .as_standard_message_content();
+                    smc.set_content(cx, &message.content);
 
                     self.apply_editor_visibility(
                         cx, &item, index,
