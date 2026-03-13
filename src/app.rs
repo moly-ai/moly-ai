@@ -81,7 +81,7 @@ script_mod! {
         }
 
         chat_tab := SidebarMenuButton {
-            animator: Animator {active: {default: @on}}
+            animator +: {active: {default: @on}}
             text: "Chat"
             draw_icon +: {
                 svg: (ICON_CHAT)
