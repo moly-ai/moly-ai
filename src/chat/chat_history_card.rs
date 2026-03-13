@@ -362,12 +362,7 @@ impl WidgetMatchEvent for ChatHistoryCard {
             return;
         }
 
-        // Use `child()` for direct-child-only lookup instead of
-        // `self.view(cx, ids!(content))`. The widget tree query (`find_within`)
-        // returns the last/deepest match when multiple descendants share the
-        // same name. Here, MolyModal children also have a `content` child, so
-        // the query returns the modal's `content` instead of our direct child.
-        let content = self.view.child(id!(content));
+        let content = self.view(cx, ids!(content));
         if let Some(item) = actions.find_widget_action(content.widget_uid()) {
             if let ViewAction::FingerDown(fe) = item.cast() {
                 if fe.tap_count == 1 {
