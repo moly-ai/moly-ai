@@ -181,3 +181,7 @@ strip = true
 
 # [patch.'https://github.com/moly-ai/aitk']
 # aitk = { path = "../aitk" }
+
+[patch.'https://github.com/makepad/makepad']
+makepad-widgets = { path = "../makepad/widgets" }
+makepad-code-editor = { path = "../makepad/code_editor" }
