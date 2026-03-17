@@ -244,7 +244,13 @@ impl Widget for PromptInput {
     }
 
     fn text(&self) -> String {
-        self.child_by_path(&[id!(text_input)]).text()
+        self.child_by_path(&[id!(text_input)])
+            .borrow::<TextInput>()
+            .map(|ti| ti.text())
+            .unwrap_or_else(|| {
+                error!("PromptInput::text(): text_input child not found or wrong type");
+                String::new()
+            })
     }
 
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
