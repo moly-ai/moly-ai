@@ -244,9 +244,7 @@ impl Widget for PromptInput {
     }
 
     fn text(&self) -> String {
-        // Text is stored in the child TextInput; callers with cx should
-        // use text_input_ref(cx).text() instead.
-        String::new()
+        self.child_by_path(&[id!(text_input)]).text()
     }
 
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {

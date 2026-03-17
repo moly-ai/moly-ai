@@ -150,8 +150,7 @@ impl Chat {
             self.stt_input_ref(cx).set_visible(cx, false);
             self.prompt_input_ref(cx).set_visible(cx, true);
 
-            let mut text =
-                self.prompt_input_ref(cx).read().text_input_ref(cx).text();
+            let mut text = self.prompt_input_ref(cx).text();
             if let Some(last) = text.as_bytes().last()
                 && *last != b' '
             {
@@ -459,7 +458,7 @@ impl Chat {
                 })
                 .unwrap_or(false)
         {
-            let text = prompt.read().text_input_ref(cx).text();
+            let text = prompt.text();
             let attachments = prompt
                 .read()
                 .attachment_list_ref(cx)
