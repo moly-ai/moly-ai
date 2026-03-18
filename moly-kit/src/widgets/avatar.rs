@@ -76,11 +76,7 @@ impl Widget for Avatar {
                     self.view(cx, ids!(grapheme)).set_visible(cx, false);
                     let _ = self
                         .image(cx, ids!(image))
-                        .load_image_dep_by_path(cx, path)
-                        .or_else(|_| {
-                            self.image(cx, ids!(image))
-                                .load_image_file_by_path(cx, path.as_ref())
-                        });
+                        .load_image_file_by_path(cx, path.as_ref());
                 }
             }
         }

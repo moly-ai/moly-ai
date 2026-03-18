@@ -302,17 +302,20 @@ impl ScriptHook for Providers {
         _scope: &mut Scope,
         _value: ScriptValue,
     ) {
-        self.provider_icon_paths = vec![
-            "resources/images/providers/openai.png".to_string(),
-            "resources/images/providers/gemini.png".to_string(),
-            "resources/images/providers/siliconflow.png".to_string(),
-            "resources/images/providers/openrouter.png".to_string(),
-            "resources/images/providers/molyserver.png".to_string(),
-            "resources/images/providers/deepseek.png".to_string(),
-            "resources/images/providers/ollama.png".to_string(),
-            "resources/images/providers/anthropic.png".to_string(),
-            "resources/images/providers/openclaw.png".to_string(),
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let names = [
+            "openai", "gemini", "siliconflow", "openrouter",
+            "molyserver", "deepseek", "ollama", "anthropic", "openclaw",
         ];
+        self.provider_icon_paths = names
+            .iter()
+            .map(|name| {
+                format!(
+                    "{}/resources/images/providers/{}.png",
+                    manifest_dir, name
+                )
+            })
+            .collect();
     }
 }
 
@@ -610,8 +613,8 @@ impl ProviderItemRef {
         if let Some(icon) = icon_path {
             inner.view(cx, ids!(image_wrapper)).set_visible(cx, true);
             let image = inner.image(cx, ids!(provider_icon_image));
-            let _ =
-                image.load_image_dep_by_path(cx, icon.as_str());
+            let _ = image
+                .load_image_file_by_path(cx, icon.as_ref());
 
             let label_view =
                 inner.view(cx, ids!(provider_icon_label));
