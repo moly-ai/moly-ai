@@ -143,17 +143,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
-name = "approx"
-version = "0.5.1"
-dependencies = [
- "num-traits 0.2.20",
-]
-
-[[package]]
-name = "arrayvec"
-version = "0.7.6"
-
-[[package]]
 name = "arrayvec"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -568,7 +557,7 @@ checksum = "145052bdd345b87320e369255277e3fb5152762ad123a901ef5c262dd38fe8d2"
 dependencies = [
  "iana-time-zone",
  "js-sys",
- "num-traits 0.2.19",
+ "num-traits",
  "serde",
  "wasm-bindgen",
  "windows-link 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -840,10 +829,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
 
 [[package]]
-name = "downcast-rs"
-version = "2.0.2"
-
-[[package]]
 name = "dtoa"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -869,17 +854,6 @@ name = "ego-tree"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b2972feb8dffe7bc8c5463b1dacda1b0dfbed3710e50f977d965429692d74cd8"
-
-[[package]]
-name = "either"
-version = "1.15.0"
-
-[[package]]
-name = "ena"
-version = "0.14.4"
-dependencies = [
- "makepad-error-log",
-]
 
 [[package]]
 name = "endi"
@@ -985,10 +959,6 @@ name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
-
-[[package]]
-name = "foldhash"
-version = "0.2.0"
 
 [[package]]
 name = "foldhash"
@@ -1181,24 +1151,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "glam"
-version = "0.30.10"
-dependencies = [
- "approx",
- "libm 0.2.16",
-]
-
-[[package]]
-name = "glamx"
-version = "0.1.3"
-dependencies = [
- "approx",
- "glam",
- "num-traits 0.2.20",
- "simba",
-]
-
-[[package]]
 name = "half"
 version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1206,15 +1158,8 @@ checksum = "6ea2d84b969582b4b1864a92dc5d27cd2b77b622a8d79306834f1be5ba20d84b"
 dependencies = [
  "cfg-if",
  "crunchy",
- "num-traits 0.2.19",
+ "num-traits",
  "zerocopy",
-]
-
-[[package]]
-name = "hashbrown"
-version = "0.16.1"
-dependencies = [
- "foldhash 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1223,7 +1168,7 @@ version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100"
 dependencies = [
- "foldhash 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "foldhash",
 ]
 
 [[package]]
@@ -1516,17 +1461,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ad4bb2b565bca0645f4d68c5c9af97fba094e9791da685bf83cb5f3ce74acf2"
 dependencies = [
  "equivalent",
- "hashbrown 0.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hashbrown",
  "serde",
  "serde_core",
-]
-
-[[package]]
-name = "indexmap"
-version = "2.13.0"
-dependencies = [
- "equivalent",
- "hashbrown 0.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1643,10 +1580,6 @@ name = "libm"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9fbbcab51052fe104eb5e5d351cf728d30a5be1fe14d9be8a3b097481fb97de"
-
-[[package]]
-name = "libm"
-version = "0.2.16"
 
 [[package]]
 name = "libredox"
@@ -1879,7 +1812,6 @@ dependencies = [
  "makepad-script",
  "makepad-script-std",
  "makepad-shared-bytes",
- "makepad-sparse-voxels",
  "makepad-studio-protocol",
  "makepad-wasm-bridge",
  "makepad-zune-png",
@@ -1887,7 +1819,6 @@ dependencies = [
  "napi-derive-ohos",
  "napi-ohos",
  "ohos-sys",
- "parry3d",
  "smallvec 1.15.1",
  "wayland-client 0.31.12",
  "wayland-egl",
@@ -1932,15 +1863,6 @@ dependencies = [
 [[package]]
 name = "makepad-shared-bytes"
 version = "1.0.0"
-
-[[package]]
-name = "makepad-sparse-voxels"
-version = "0.1.0"
-dependencies = [
- "foldhash 0.2.0",
- "hashbrown 0.16.1",
- "indexmap 2.13.0",
-]
 
 [[package]]
 name = "makepad-studio-protocol"
@@ -2090,7 +2012,7 @@ dependencies = [
  "directories",
  "env_logger",
  "futures",
- "indexmap 2.12.1",
+ "indexmap",
  "log",
  "makepad-code-editor",
  "makepad-widgets",
@@ -2185,19 +2107,19 @@ version = "27.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "066cf25f0e8b11ee0df221219010f213ad429855f57c494f995590c861a9a7d8"
 dependencies = [
- "arrayvec 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arrayvec",
  "bit-set",
  "bitflags 2.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "cfg-if",
  "cfg_aliases",
  "codespan-reporting",
  "half",
- "hashbrown 0.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hashbrown",
  "hexf-parse",
- "indexmap 2.12.1",
- "libm 0.2.15",
+ "indexmap",
+ "libm",
  "log",
- "num-traits 0.2.19",
+ "num-traits",
  "once_cell",
  "rustc-hash 1.1.0",
  "spirv",
@@ -2280,27 +2202,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "num-complex"
-version = "0.4.6"
-dependencies = [
- "num-traits 0.2.20",
-]
-
-[[package]]
 name = "num-traits"
 version = "0.2.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
- "libm 0.2.15",
-]
-
-[[package]]
-name = "num-traits"
-version = "0.2.20"
-dependencies = [
- "libm 0.2.16",
+ "libm",
 ]
 
 [[package]]
@@ -2459,26 +2367,6 @@ dependencies = [
  "redox_syscall",
  "smallvec 1.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "windows-link 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "parry3d"
-version = "0.26.0"
-dependencies = [
- "approx",
- "arrayvec 0.7.6",
- "bitflags 2.10.0",
- "downcast-rs 2.0.2",
- "either",
- "ena",
- "glamx",
- "indexmap 2.13.0",
- "makepad-error-log",
- "makepad-sparse-voxels",
- "num-traits 0.2.20",
- "simba",
- "smallvec 1.15.1",
- "static_assertions 1.1.0",
 ]
 
 [[package]]
@@ -2681,7 +2569,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3ef4f2f0422f23a82ec9f628ea2acd12871c81a9362b02c43c1aa86acfc3ba1"
 dependencies = [
  "futures",
- "indexmap 2.12.1",
+ "indexmap",
  "nix",
  "tokio",
  "tracing",
@@ -3384,16 +3272,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "simba"
-version = "0.9.1"
-dependencies = [
- "approx",
- "libm 0.2.16",
- "num-complex",
- "num-traits 0.2.20",
-]
-
-[[package]]
 name = "simd-adler32"
 version = "0.3.8"
 
@@ -3466,10 +3344,6 @@ name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
-
-[[package]]
-name = "static_assertions"
-version = "1.1.0"
 
 [[package]]
 name = "static_assertions"
@@ -3743,7 +3617,7 @@ version = "0.23.10+spec-1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84c8b9f757e028cee9fa244aea147aab2a9ec09d5325a9b01e0a49730c2b5269"
 dependencies = [
- "indexmap 2.12.1",
+ "indexmap",
  "toml_datetime",
  "toml_parser",
  "winnow",
@@ -4154,7 +4028,7 @@ dependencies = [
 name = "wayland-backend"
 version = "0.3.12"
 dependencies = [
- "downcast-rs 1.2.1",
+ "downcast-rs",
  "libc",
  "scoped-tls",
  "smallvec 1.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4168,7 +4042,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fee64194ccd96bf648f42a65a7e589547096dfa702f7cadef84347b66ad164f9"
 dependencies = [
  "cc",
- "downcast-rs 1.2.1",
+ "downcast-rs",
  "rustix",
  "scoped-tls",
  "smallvec 1.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4975,7 +4849,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7be68e64bf6ce8db94f63e72f0c7eb9a60d733f7e0499e628dfab0f84d6bcb97"
 dependencies = [
  "serde",
- "static_assertions 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "static_assertions",
  "winnow",
  "zvariant",
 ]
