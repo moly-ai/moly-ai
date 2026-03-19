@@ -101,7 +101,7 @@ script_mod! {
                 border_radius: 4.5
                 shadow_color: uniform(#0001)
                 shadow_radius: 9.0
-                shadow_offset: vec2(0.0 -1.0)
+                shadow_offset: vec2(0.0, -1.0)
             }
             collapse := Collapse {}
             content := Content {}

@@ -204,7 +204,7 @@ script_mod! {
                 border_radius: 4.5
                 shadow_color: uniform(#0002)
                 shadow_radius: 8.0
-                shadow_offset: vec2(0.0 -1.5)
+                shadow_offset: vec2(0.0, -1.5)
             }
             Label {
                 text: "+ Add a Custom Provider"
@@ -229,7 +229,7 @@ script_mod! {
                 border_radius: 4.5
                 shadow_color: uniform(#0002)
                 shadow_radius: 8.0
-                shadow_offset: vec2(0.0 -1.5)
+                shadow_offset: vec2(0.0, -1.5)
             }
             Label {
                 text: "Sync Settings"
@@ -254,7 +254,7 @@ script_mod! {
                 border_radius: 4.5
                 shadow_color: uniform(#0002)
                 shadow_radius: 8.0
-                shadow_offset: vec2(0.0 -1.5)
+                shadow_offset: vec2(0.0, -1.5)
             }
             Label {
                 text: "Utilities"

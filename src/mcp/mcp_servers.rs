@@ -14,7 +14,7 @@ script_mod! {
     mod.widgets.MolyCodeViewBase = #(MolyCodeView::register_widget(vm))
     let MolyCodeView = mod.widgets.MolyCodeViewBase {
         editor := CodeEditor {
-            pad_left_top: vec2(0.0 -0.0)
+            pad_left_top: vec2(0.0, -0.0)
             height: Fit
             empty_page_at_end: false
             read_only: true
@@ -104,7 +104,7 @@ script_mod! {
                     border_radius: 4.5
                     shadow_color: uniform(#0002)
                     shadow_radius: 8.0
-                    shadow_offset: vec2(0.0 -1.5)
+                    shadow_offset: vec2(0.0, -1.5)
                 }
                 Label {
                     text: "Save and restart servers"

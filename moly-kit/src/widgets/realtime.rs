@@ -73,7 +73,7 @@ script_mod! {
                 let radius = 0.3 + sin(self.time * 0.5) * 0.02
                 let d = length(uv)
 
-                let angle = atan(uv.y uv.x)
+                let angle = atan2(uv.y, uv.x)
                 let wave = sin(angle * 3.0 + self.time) * 0.1
                 let wave2 = cos(angle * 5.0 - self.time * 1.3) * 0.08
 
@@ -423,7 +423,7 @@ script_mod! {
                 border_radius: 4.5,
                 shadow_color: uniform(#0002)
                 shadow_radius: 8.0,
-                shadow_offset: vec2(0.0 -1.5)
+                shadow_offset: vec2(0.0, -1.5)
             }
             Label {
                 text: "Request microphone permission"
@@ -454,7 +454,7 @@ script_mod! {
                 border_radius: 4.5,
                 shadow_color: uniform(#0002)
                 shadow_radius: 8.0,
-                shadow_offset: vec2(0.0 -1.5)
+                shadow_offset: vec2(0.0, -1.5)
             }
             stop_start_label := Label {
                 text: "Start"

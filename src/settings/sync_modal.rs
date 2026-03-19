@@ -26,7 +26,7 @@ script_mod! {
             border_radius: 4.5
             shadow_color: uniform(#0002)
             shadow_radius: 8.0
-            shadow_offset: vec2(0.0 -2.0)
+            shadow_offset: vec2(0.0, -2.0)
         }
         label := Label {
             draw_text +: {

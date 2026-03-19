@@ -151,7 +151,7 @@ script_mod! {
                         border_radius: instance(11.0)
                         shadow_color: uniform(#x0001)
                         shadow_radius: instance(8.0)
-                        shadow_offset: instance(vec2(0.0 -2.0))
+                        shadow_offset: instance(vec2(0.0, -2.0))
                         border_size: instance(0.0)
                         border_color: instance(#x1A2533)
                     }
@@ -217,7 +217,7 @@ script_mod! {
                         wrapper: {
                             header: {
                                 stage_toggle: { draw_bg: {
-                                    shadow_offset: vec2(0.0 -2.0)
+                                     shadow_offset: vec2(0.0, -2.0)
                                     shadow_color: #x0001
                                 } }
                             }
@@ -231,7 +231,7 @@ script_mod! {
                         wrapper: {
                             header: {
                                 stage_toggle: { draw_bg: {
-                                    shadow_offset: vec2(0.0 -4.0)
+                                    shadow_offset: vec2(0.0, -4.0)
                                     shadow_color: #x0002
                                 } }
                             }
@@ -245,7 +245,7 @@ script_mod! {
                         wrapper: {
                             header: {
                                 stage_toggle: { draw_bg: {
-                                    shadow_offset: vec2(3.0 -2.0)
+                                    shadow_offset: vec2(3.0, -2.0)
                                     shadow_color: #x0002
                                 } }
                             }
@@ -259,7 +259,7 @@ script_mod! {
                         wrapper: {
                             header: {
                                 stage_toggle: { draw_bg: {
-                                    shadow_offset: vec2(0.0 1.0)
+                                    shadow_offset: vec2(0.0, 1.0)
                                     shadow_color: #x0002
                                 } }
                             }
@@ -273,7 +273,7 @@ script_mod! {
                         wrapper: {
                             header: {
                                 stage_toggle: { draw_bg: {
-                                    shadow_offset: vec2(-3.0 -2.0)
+                                    shadow_offset: vec2(-3.0, -2.0)
                                     shadow_color: #x0002
                                 } }
                             }

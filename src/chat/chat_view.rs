@@ -27,7 +27,7 @@ script_mod! {
         border_color: uniform(#0000)
         shadow_color: uniform(#0001)
         shadow_radius: uniform(9.0)
-        shadow_offset: uniform(vec2(0.0 -2.5))
+        shadow_offset: uniform(vec2(0.0, -2.5))
 
         rect_size2: varying(vec2(0))
         rect_size3: varying(vec2(0))

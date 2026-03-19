@@ -64,7 +64,7 @@ script_mod! {
                 border_radius: 8.5
                 shadow_color: uniform(#x0001)
                 shadow_radius: 8.0
-                shadow_offset: vec2(0.0 -2.0)
+                shadow_offset: vec2(0.0, -2.0)
             }
 
             padding: Inset {top: 3 bottom: 3 left: 20 right: 20}

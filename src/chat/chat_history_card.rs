@@ -84,7 +84,7 @@ script_mod! {
                 border_radius: 5.0
                 shadow_color: #x47546722
                 shadow_radius: 25.0
-                shadow_offset: vec2(-2.0 1.0)
+                shadow_offset: vec2(-2.0, 1.0)
                 border_color: #xD0D5DD
             }
         }

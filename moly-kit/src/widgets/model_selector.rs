@@ -53,7 +53,7 @@ script_mod! {
             border_radius: 6.0
             shadow_color: uniform(#0002)
             shadow_radius: 9.0
-            shadow_offset: vec2(0.0 -2.0)
+            shadow_offset: vec2(0.0, -2.0)
         }
 
         search_container := RoundedView {

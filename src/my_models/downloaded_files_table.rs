@@ -60,7 +60,7 @@ script_mod! {
             border_radius: 5
             shadow_color: uniform(#0001)
             shadow_radius: 12.0
-            shadow_offset: vec2(0.0 -1.5)
+            shadow_offset: vec2(0.0, -1.5)
         }
 
         list := PortalList {

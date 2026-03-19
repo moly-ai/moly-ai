@@ -40,7 +40,7 @@ script_mod! {
             border_radius: instance(4.5)
             shadow_color: uniform(#x0003)
             shadow_radius: 15.0
-            shadow_offset: vec2(0.0 -1.5)
+            shadow_offset: vec2(0.0, -1.5)
         }
 
         chat_frame := ChatScreen {visible: true}
