@@ -9,8 +9,7 @@ use makepad_widgets::*;
 use moly_kit::prelude::*;
 
 use super::{
-    add_provider_modal::AddProviderModalAction,
-    provider_view::ProviderViewAction,
+    add_provider_modal::AddProviderModalAction, provider_view::ProviderViewAction,
     utilities_modal::UtilitiesModalAction,
 };
 
@@ -299,7 +298,7 @@ struct Providers {
 
     /// Splash array of resource handles for provider icons.
     /// Resolved to absolute paths in `on_after_apply`.
-    /// 
+    ///
     /// Better than doing something like:
     /// ```
     /// #[live]
@@ -330,22 +329,14 @@ impl ScriptHook for Providers {
         self.provider_icon_paths = vm.with_cx(|cx| {
             self.provider_icon_handles
                 .iter()
-                .filter_map(|val| {
-                    val.as_handle()
-                        .and_then(|h| cx.get_resource_abs_path(h))
-                })
+                .filter_map(|val| val.as_handle().and_then(|h| cx.get_resource_abs_path(h)))
                 .collect()
         });
     }
 }
 
 impl Widget for Providers {
-    fn handle_event(
-        &mut self,
-        cx: &mut Cx,
-        event: &Event,
-        scope: &mut Scope,
-    ) {
+    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.view.handle_event(cx, event, scope);
         self.widget_match_event(cx, event, scope);
 
@@ -353,14 +344,11 @@ impl Widget for Providers {
             if cx.display_context.is_desktop() {
                 self.initialized = true;
                 let default_provider_id = "anthropic".to_string();
-                self.selected_provider_id =
-                    Some(default_provider_id.clone());
+                self.selected_provider_id = Some(default_provider_id.clone());
 
-                cx.action(
-                    ConnectionSettingsAction::ProviderSelected(
-                        default_provider_id,
-                    ),
-                );
+                cx.action(ConnectionSettingsAction::ProviderSelected(
+                    default_provider_id,
+                ));
             }
         }
 
@@ -370,51 +358,31 @@ impl Widget for Providers {
         }
     }
 
-    fn draw_walk(
-        &mut self,
-        cx: &mut Cx2d,
-        scope: &mut Scope,
-        walk: Walk,
-    ) -> DrawStep {
+    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         let store = scope.data.get::<Store>().unwrap();
 
-        let mut all_providers: Vec<Provider> =
-            store.chats.providers.values().cloned().collect();
+        let mut all_providers: Vec<Provider> = store.chats.providers.values().cloned().collect();
         all_providers.sort_by(|a, b| a.name.cmp(&b.name));
 
         let entries_count = all_providers.len();
 
-        while let Some(item) =
-            self.view.draw_walk(cx, scope, walk).step()
-        {
-            if let Some(mut list) = item.as_portal_list().borrow_mut()
-            {
+        while let Some(item) = self.view.draw_walk(cx, scope, walk).step() {
+            if let Some(mut list) = item.as_portal_list().borrow_mut() {
                 list.set_item_range(cx, 0, entries_count);
-                while let Some(item_id) =
-                    list.next_visible_item(cx)
-                {
+                while let Some(item_id) = list.next_visible_item(cx) {
                     if item_id < entries_count {
                         let template = live_id!(provider_item);
                         let item = list.item(cx, item_id, template);
 
                         if item_id == 0 {
-                            item.view(cx, ids!(separator))
-                                .set_visible(cx, false);
+                            item.view(cx, ids!(separator)).set_visible(cx, false);
                         }
 
-                        let provider =
-                            all_providers[item_id].clone();
-                        let icon =
-                            self.get_provider_icon(cx, &provider);
-                        let is_selected =
-                            self.selected_provider_id
-                                == Some(provider.id.clone());
-                        item.as_provider_item().set_provider(
-                            cx,
-                            provider,
-                            icon,
-                            is_selected,
-                        );
+                        let provider = all_providers[item_id].clone();
+                        let icon = self.get_provider_icon(cx, &provider);
+                        let is_selected = self.selected_provider_id == Some(provider.id.clone());
+                        item.as_provider_item()
+                            .set_provider(cx, provider, icon, is_selected);
                         item.draw_all(cx, scope);
                     }
                 }
@@ -425,48 +393,33 @@ impl Widget for Providers {
 }
 
 impl Providers {
-    fn get_provider_icon(
-        &self,
-        _cx: &Cx,
-        provider: &Provider,
-    ) -> Option<String> {
+    fn get_provider_icon(&self, _cx: &Cx, provider: &Provider) -> Option<String> {
         let base_name = normalize_provider_name(&provider.name);
 
         self.provider_icon_paths
             .iter()
-            .find(|path| {
-                path.to_lowercase()
-                    .contains(&base_name.to_lowercase())
-            })
+            .find(|path| path.to_lowercase().contains(&base_name.to_lowercase()))
             .cloned()
     }
 }
 
 impl WidgetMatchEvent for Providers {
-    fn handle_actions(
-        &mut self,
-        cx: &mut Cx,
-        actions: &Actions,
-        scope: &mut Scope,
-    ) {
-        if let Some(fu) =
-            self.view(cx, ids!(add_provider_button)).finger_up(actions)
+    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
+        if let Some(fu) = self.view(cx, ids!(add_provider_button)).finger_up(actions)
             && fu.was_tap()
         {
             let modal = self.moly_modal(cx, ids!(add_provider_modal));
             modal.open_as_dialog(cx);
         }
 
-        if let Some(fu) =
-            self.view(cx, ids!(open_sync_button)).finger_up(actions)
+        if let Some(fu) = self.view(cx, ids!(open_sync_button)).finger_up(actions)
             && fu.was_tap()
         {
             let modal = self.moly_modal(cx, ids!(sync_modal));
             modal.open_as_dialog(cx);
         }
 
-        if let Some(fu) =
-            self.view(cx, ids!(utilities_button)).finger_up(actions)
+        if let Some(fu) = self.view(cx, ids!(utilities_button)).finger_up(actions)
             && fu.was_tap()
         {
             let modal = self.moly_modal(cx, ids!(utilities_modal));
@@ -474,16 +427,11 @@ impl WidgetMatchEvent for Providers {
         }
 
         for action in actions {
-            if let ConnectionSettingsAction::ProviderSelected(
-                provider_id,
-            ) = action.cast()
-            {
+            if let ConnectionSettingsAction::ProviderSelected(provider_id) = action.cast() {
                 self.selected_provider_id = Some(provider_id);
             }
 
-            if let AddProviderModalAction::ModalDismissed =
-                action.cast()
-            {
+            if let AddProviderModalAction::ModalDismissed = action.cast() {
                 self.moly_modal(cx, ids!(add_provider_modal)).close(cx);
                 self.redraw(cx);
             }
@@ -493,35 +441,22 @@ impl WidgetMatchEvent for Providers {
                 self.redraw(cx);
             }
 
-            if let UtilitiesModalAction::ModalDismissed =
-                action.cast()
-            {
+            if let UtilitiesModalAction::ModalDismissed = action.cast() {
                 self.moly_modal(cx, ids!(utilities_modal)).close(cx);
                 self.redraw(cx);
             }
 
-            if self
-                .moly_modal(cx, ids!(sync_modal))
-                .dismissed(actions)
-            {
-                self.sync_modal(cx, ids!(sync_modal_inner))
-                    .reset_state(cx);
+            if self.moly_modal(cx, ids!(sync_modal)).dismissed(actions) {
+                self.sync_modal(cx, ids!(sync_modal_inner)).reset_state(cx);
             }
 
-            if let ProviderViewAction::ProviderRemoved =
-                action.cast()
-            {
+            if let ProviderViewAction::ProviderRemoved = action.cast() {
                 let store = scope.data.get::<Store>().unwrap();
-                if let Some(first_provider) =
-                    store.chats.providers.values().next()
-                {
-                    self.selected_provider_id =
-                        Some(first_provider.id.clone());
-                    cx.action(
-                        ConnectionSettingsAction::ProviderSelected(
-                            first_provider.id.clone(),
-                        ),
-                    );
+                if let Some(first_provider) = store.chats.providers.values().next() {
+                    self.selected_provider_id = Some(first_provider.id.clone());
+                    cx.action(ConnectionSettingsAction::ProviderSelected(
+                        first_provider.id.clone(),
+                    ));
                 }
                 self.redraw(cx);
             }
@@ -539,22 +474,12 @@ struct ProviderItem {
 }
 
 impl Widget for ProviderItem {
-    fn handle_event(
-        &mut self,
-        cx: &mut Cx,
-        event: &Event,
-        scope: &mut Scope,
-    ) {
+    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.view.handle_event(cx, event, scope);
         self.widget_match_event(cx, event, scope);
     }
 
-    fn draw_walk(
-        &mut self,
-        cx: &mut Cx2d,
-        scope: &mut Scope,
-        walk: Walk,
-    ) -> DrawStep {
+    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         self.label(cx, ids!(provider_name_label))
             .set_text(cx, &self.provider.name);
 
@@ -563,9 +488,7 @@ impl Widget for ProviderItem {
 
         self.view(cx, ids!(status_view)).set_visible(
             cx,
-            connection_status
-                == ProviderConnectionStatus::Connected
-                && self.provider.enabled,
+            connection_status == ProviderConnectionStatus::Connected && self.provider.enabled,
         );
 
         self.view.draw_walk(cx, scope, walk)
@@ -573,21 +496,12 @@ impl Widget for ProviderItem {
 }
 
 impl WidgetMatchEvent for ProviderItem {
-    fn handle_actions(
-        &mut self,
-        cx: &mut Cx,
-        actions: &Actions,
-        _scope: &mut Scope,
-    ) {
-        if let Some(finger_up) =
-            self.view(cx, ids!(main_view)).finger_up(actions)
-        {
+    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
+        if let Some(finger_up) = self.view(cx, ids!(main_view)).finger_up(actions) {
             if finger_up.was_tap() {
-                cx.action(
-                    ConnectionSettingsAction::ProviderSelected(
-                        self.provider.id.clone(),
-                    ),
-                );
+                cx.action(ConnectionSettingsAction::ProviderSelected(
+                    self.provider.id.clone(),
+                ));
             }
         }
     }
@@ -601,18 +515,15 @@ impl ProviderItem {
     ) {
         self.view(cx, ids!(connection_status_success)).set_visible(
             cx,
-            *connection_status
-                == ProviderConnectionStatus::Connected,
+            *connection_status == ProviderConnectionStatus::Connected,
         );
         self.view(cx, ids!(connection_status_failure)).set_visible(
             cx,
-            *connection_status
-                == ProviderConnectionStatus::Disconnected,
+            *connection_status == ProviderConnectionStatus::Disconnected,
         );
         self.view(cx, ids!(connection_status_loading)).set_visible(
             cx,
-            *connection_status
-                == ProviderConnectionStatus::Connecting,
+            *connection_status == ProviderConnectionStatus::Connecting,
         );
     }
 }
@@ -633,11 +544,9 @@ impl ProviderItemRef {
         if let Some(icon) = icon_path {
             inner.view(cx, ids!(image_wrapper)).set_visible(cx, true);
             let image = inner.image(cx, ids!(provider_icon_image));
-            let _ = image
-                .load_image_file_by_path(cx, icon.as_ref());
+            let _ = image.load_image_file_by_path(cx, icon.as_ref());
 
-            let label_view =
-                inner.view(cx, ids!(provider_icon_label));
+            let label_view = inner.view(cx, ids!(provider_icon_label));
             label_view.set_visible(cx, false);
         } else {
             inner.view(cx, ids!(image_wrapper)).set_visible(cx, false);
