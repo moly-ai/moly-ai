@@ -336,7 +336,7 @@ impl ScriptHook for Providers {
         _scope: &mut Scope,
         _value: ScriptValue,
     ) {
-        self.provider_icon_paths.clear();
+        let mut paths = Vec::new();
         let Some(arr) = self.provider_icon_handles.as_array() else {
             return;
         };
@@ -345,9 +345,10 @@ impl ScriptHook for Providers {
             let elem = vm.bx.heap.array_index_unchecked(arr, i);
             let handle = elem.as_handle();
             if let Some(path) = handle.and_then(|h| vm.with_cx(|cx| cx.get_resource_abs_path(h))) {
-                self.provider_icon_paths.push(path);
+                paths.push(path);
             }
         }
+        self.provider_icon_paths = paths;
     }
 }
 
