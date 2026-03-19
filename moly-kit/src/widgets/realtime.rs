@@ -21,23 +21,24 @@ script_mod! {
         show_bg: true
         draw_bg +: {
             hash21: fn(p: vec2) -> float {
-                let mut p = fract(p * vec2(234.34 435.345))
-                p += dot(p p + 34.23)
-                return fract(p.x * p.y)
+                let px = fract(p.x * 234.34)
+                let py = fract(p.y * 435.345)
+                let d = dot(vec2(px, py), vec2(py + 34.23, px + 34.23))
+                return fract((px + d) * (py + d))
             }
 
             noise: fn(p: vec2) -> float {
                 let i = floor(p)
                 let f = fract(p)
-                let f_smooth = f * f * (3.0 - 2.0 * f)
+                let fs = f * f * (3.0 - 2.0 * f)
                 let a = self.hash21(i)
-                let b = self.hash21(i + vec2(1.0 0.0))
-                let c = self.hash21(i + vec2(0.0 1.0))
-                let d = self.hash21(i + vec2(1.0 1.0))
+                let b = self.hash21(i + vec2(1.0, 0.0))
+                let c = self.hash21(i + vec2(0.0, 1.0))
+                let d = self.hash21(i + vec2(1.0, 1.0))
                 return mix(
-                    mix(a b f_smooth.x)
-                    mix(c d f_smooth.x)
-                    f_smooth.y
+                    mix(a, b, fs.x),
+                    mix(c, d, fs.x),
+                    fs.y
                 )
             }
 
@@ -68,70 +69,70 @@ script_mod! {
             pixel: fn() -> vec4 {
                 let uv = (self.pos - 0.5) * 2.0
 
-                let mut col = vec3(0.1 0.1 0.1)
+                let mut col = vec3(0.1, 0.1, 0.1)
 
-                let radius = 0.3 + sin(self.time * 0.5) * 0.02
+                let radius = 0.3 + sin(self.draw_pass.time * 0.5) * 0.02
                 let d = length(uv)
 
                 let angle = atan2(uv.y, uv.x)
-                let wave = sin(angle * 3.0 + self.time) * 0.1
-                let wave2 = cos(angle * 5.0 - self.time * 1.3) * 0.08
+                let wave = sin(angle * 3.0 + self.draw_pass.time) * 0.1
+                let wave2 = cos(angle * 5.0 - self.draw_pass.time * 1.3) * 0.08
 
-                let noise1 = self.fbm(uv * 3.0 + self.time * 0.1)
-                let noise2 = self.fbm(uv * 5.0 - self.time * 0.2)
+                let noise1 = self.fbm(uv * 3.0 + self.draw_pass.time * 0.1)
+                let noise2 = self.fbm(uv * 5.0 - self.draw_pass.time * 0.2)
 
-                let orb_color = vec3(0.2 0.6 1.0)
+                let orb_color = vec3(0.2, 0.6, 1.0)
                 let orb = smoothstep(
-                    radius + wave + wave2
-                    radius - 0.1 + wave + wave2
+                    radius + wave + wave2,
+                    radius - 0.1 + wave + wave2,
                     d
                 )
 
-                let gradient1 = vec3(0.8 0.2 0.5) * sin(angle + self.time)
-                let gradient2 = vec3(0.2 0.5 1.0) * cos(
-                    angle - self.time * 0.7
+                let gradient1 = vec3(0.8, 0.2, 0.5) * sin(angle + self.draw_pass.time)
+                let gradient2 = vec3(0.2, 0.5, 1.0) * cos(
+                    angle - self.draw_pass.time * 0.7
                 )
 
                 let mut particles = 0.0
 
                 let particle_pos1 = vec2(
-                    sin(self.time * 0.5) * 0.5
-                    cos(self.time * 0.3) * 0.5
+                    sin(self.draw_pass.time * 0.5) * 0.5,
+                    cos(self.draw_pass.time * 0.3) * 0.5
                 )
                 particles += smoothstep(
-                    0.05 0.0 length(uv - particle_pos1)
+                    0.05, 0.0, length(uv - particle_pos1)
                 )
 
                 let particle_pos2 = vec2(
-                    sin(self.time * 0.7) * 0.5
-                    cos(self.time * 0.5) * 0.5
+                    sin(self.draw_pass.time * 0.7) * 0.5,
+                    cos(self.draw_pass.time * 0.5) * 0.5
                 )
                 particles += smoothstep(
-                    0.05 0.0 length(uv - particle_pos2)
+                    0.05, 0.0, length(uv - particle_pos2)
                 )
 
                 let particle_pos3 = vec2(
-                    sin(self.time * 0.9) * 0.5
-                    cos(self.time * 0.7) * 0.5
+                    sin(self.draw_pass.time * 0.9) * 0.5,
+                    cos(self.draw_pass.time * 0.7) * 0.5
                 )
                 particles += smoothstep(
-                    0.05 0.0 length(uv - particle_pos3)
+                    0.05, 0.0, length(uv - particle_pos3)
                 )
 
-                col += orb * mix(orb_color gradient1 noise1)
-                col += orb * mix(gradient2 orb_color noise2) * 0.5
-                col += particles * vec3(0.5 0.8 1.0)
-                col += exp(-d * 4.0) * vec3(0.2 0.4 0.8) * 0.5
+                col += orb * mix(orb_color, gradient1, noise1)
+                col += orb * mix(gradient2, orb_color, noise2) * 0.5
+                col += particles * vec3(0.5, 0.8, 1.0)
+                col += exp(-d * 4.0) * vec3(0.2, 0.4, 0.8) * 0.5
 
                 let sdf = Sdf2d.viewport(self.pos * self.rect_size)
-                let radius = min(self.rect_size.x self.rect_size.y) * 0.5
+                let r = min(self.rect_size.x, self.rect_size.y) * 0.5
                 sdf.circle(
-                    self.rect_size.x * 0.5
-                    self.rect_size.y * 0.5
-                    radius
+                    self.rect_size.x * 0.5,
+                    self.rect_size.y * 0.5,
+                    r
                 )
 
-                sdf.fill_keep(vec4(col 1.0))
+                sdf.fill_keep(vec4(col, 1.0))
 
                 return sdf.result
             }
