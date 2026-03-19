@@ -41,3 +41,17 @@ La gran mayoría del contenido está bien:
 - Multi-module registration order
 - App bootstrapping pattern, `load_all_resources()`
 - Cross-module sharing via `mod.*`
+
+## Auditoría realizada (13 checks)
+Sin problemas (11/13):
+- #[source] fields -- no hacen falta en structs con #[deref] view: View (View ya lo provee). Los 7 structs standalone tampoco lo necesitan (el proc macro lo maneja internamente).
+- #[repr(C)] draw shader ordering -- Moly no define custom draw shaders. N/A.
+- script_component vs register_widget -- correcto como está.
+- use crate.module.* -- ninguno encontrado, todos usan mod.*.
+- pub en script_mod -- ninguno.
+- let bindings sin {} -- todos correctos.
+- Comentarios/líneas en blanco antes del primer código -- todo limpio.
+- texture2d vs texture_2d -- no se usa ninguna.
+- DefaultNone -- ya migrado completamente.
+- as_portal_list().borrow_mut() -- válido, generado por el macro #[derive(WidgetRef)].
+- Shader arg separators (commas vs spaces) -- dentro de shaders, los espacios son correctos en Splash.
