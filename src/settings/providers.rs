@@ -6,7 +6,6 @@ use crate::{
     settings::sync_modal::{SyncModalAction, SyncModalWidgetExt},
 };
 use makepad_widgets::*;
-use makepad_widgets::makepad_platform::script::vm::ScriptVmCx;
 use moly_kit::prelude::*;
 
 use super::{
@@ -167,15 +166,17 @@ script_mod! {
     mod.widgets.ProvidersBase = #(Providers::register_widget(vm))
     mod.widgets.Providers =
         set_type_default() do mod.widgets.ProvidersBase {
-        icon_openai: (ICON_OPENAI)
-        icon_gemini: (ICON_GEMINI)
-        icon_siliconflow: (ICON_SILICONFLOW)
-        icon_openrouter: (ICON_OPENROUTER)
-        icon_molyserver: (ICON_MOLYSERVER)
-        icon_deepseek: (ICON_DEEPSEEK)
-        icon_ollama: (ICON_OLLAMA)
-        icon_anthropic: (ICON_ANTHROPIC)
-        icon_openclaw: (ICON_OPENCLAW)
+        provider_icon_handles: [
+            ICON_ANTHROPIC
+            ICON_DEEPSEEK
+            ICON_GEMINI
+            ICON_MOLYSERVER
+            ICON_OLLAMA
+            ICON_OPENCLAW
+            ICON_OPENAI
+            ICON_OPENROUTER
+            ICON_SILICONFLOW
+        ]
 
         width: 300
         height: Fill
@@ -296,24 +297,18 @@ struct Providers {
     #[deref]
     view: View,
 
-    #[live]
-    icon_openai: Option<ScriptHandleRef>,
-    #[live]
-    icon_gemini: Option<ScriptHandleRef>,
-    #[live]
-    icon_siliconflow: Option<ScriptHandleRef>,
-    #[live]
-    icon_openrouter: Option<ScriptHandleRef>,
-    #[live]
-    icon_molyserver: Option<ScriptHandleRef>,
-    #[live]
-    icon_deepseek: Option<ScriptHandleRef>,
-    #[live]
-    icon_ollama: Option<ScriptHandleRef>,
-    #[live]
-    icon_anthropic: Option<ScriptHandleRef>,
-    #[live]
-    icon_openclaw: Option<ScriptHandleRef>,
+    /// Splash array of resource handles for provider icons.
+    /// Resolved to absolute paths in `on_after_apply`.
+    /// 
+    /// Better than doing something like:
+    /// ```
+    /// #[live]
+    /// icon_openai: Option<ScriptHandleRef>,
+    /// #[live]
+    /// icon_gemini: Option<ScriptHandleRef>,
+    /// ... etc ...
+    /// ```
+    provider_icon_handles: Vec<ScriptValue>,
 
     #[rust]
     provider_icon_paths: Vec<String>,
@@ -332,24 +327,12 @@ impl ScriptHook for Providers {
         _scope: &mut Scope,
         _value: ScriptValue,
     ) {
-        let icons: [&Option<ScriptHandleRef>; 9] = [
-            &self.icon_openai,
-            &self.icon_gemini,
-            &self.icon_siliconflow,
-            &self.icon_openrouter,
-            &self.icon_molyserver,
-            &self.icon_deepseek,
-            &self.icon_ollama,
-            &self.icon_anthropic,
-            &self.icon_openclaw,
-        ];
         self.provider_icon_paths = vm.with_cx(|cx| {
-            icons
+            self.provider_icon_handles
                 .iter()
-                .filter_map(|handle_ref| {
-                    handle_ref.as_ref().and_then(|h| {
-                        cx.get_resource_abs_path(h.as_handle())
-                    })
+                .filter_map(|val| {
+                    val.as_handle()
+                        .and_then(|h| cx.get_resource_abs_path(h))
                 })
                 .collect()
         });
