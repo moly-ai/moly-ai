@@ -300,6 +300,7 @@ struct Providers {
     /// Resolved to absolute paths in `on_after_apply`.
     ///
     /// Better than doing something like:
+    ///
     /// ```
     /// #[live]
     /// icon_openai: Option<ScriptHandleRef>,
@@ -307,7 +308,16 @@ struct Providers {
     /// icon_gemini: Option<ScriptHandleRef>,
     /// ... etc ...
     /// ```
-    provider_icon_handles: Vec<ScriptValue>,
+    ///
+    /// Could also be an automatic:
+    ///
+    /// ```
+    /// provider_icon_handles: Vec<ScriptValue>,
+    /// ```
+    ///
+    /// But that would allocate an extra vec and still have GC values (the handles).
+    #[live]
+    provider_icon_handles: ScriptValue,
 
     #[rust]
     provider_icon_paths: Vec<String>,
@@ -326,12 +336,18 @@ impl ScriptHook for Providers {
         _scope: &mut Scope,
         _value: ScriptValue,
     ) {
-        self.provider_icon_paths = vm.with_cx(|cx| {
-            self.provider_icon_handles
-                .iter()
-                .filter_map(|val| val.as_handle().and_then(|h| cx.get_resource_abs_path(h)))
-                .collect()
-        });
+        self.provider_icon_paths.clear();
+        let Some(arr) = self.provider_icon_handles.as_array() else {
+            return;
+        };
+        let len = vm.bx.heap.array_len(arr);
+        for i in 0..len {
+            let elem = vm.bx.heap.array_index_unchecked(arr, i);
+            let handle = elem.as_handle();
+            if let Some(path) = handle.and_then(|h| vm.with_cx(|cx| cx.get_resource_abs_path(h))) {
+                self.provider_icon_paths.push(path);
+            }
+        }
     }
 }
 
