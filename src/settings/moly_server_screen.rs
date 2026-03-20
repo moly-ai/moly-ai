@@ -164,7 +164,6 @@ script_mod! {
                 }
 
                 discover_tab := SubSidebarMenuButton {
-                    animator: Animator { active: { default: @on } }
                     text: "Discover"
                     draw_icon +: {
                         svg: ICON_DISCOVER
@@ -204,10 +203,24 @@ script_mod! {
     }
 }
 
-#[derive(Widget, ScriptHook, Script)]
+#[derive(Widget, Script)]
 pub struct MolyServerScreen {
     #[deref]
     view: View,
+}
+
+impl ScriptHook for MolyServerScreen {
+    fn on_after_new(&mut self, vm: &mut ScriptVm) {
+        vm.with_cx_mut(|cx| {
+            if let Some(mut rb) = self
+                .view
+                .radio_button(cx, ids!(menu.discover_tab))
+                .borrow_mut()
+            {
+                rb.animator_play(cx, ids!(active.on));
+            }
+        });
+    }
 }
 
 impl Widget for MolyServerScreen {
