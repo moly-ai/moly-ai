@@ -135,13 +135,7 @@ script_mod! {
                     }
                 }
 
-                enabled_toggle := MolySwitch {
-                    animator: Animator {
-                        selected: {
-                            default: @off
-                        }
-                    }
-                }
+                enabled_toggle := MolySwitch {}
             }
 
             url_group := FormGroup {

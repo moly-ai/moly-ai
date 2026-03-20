@@ -58,7 +58,7 @@ script_mod! {
             }
 
             show_all_button := ActionToggleButton {
-                animator: Animator {selected: {default: @on}}
+                active: true
             }
             only_recommended_button := ActionToggleButton {}
         }

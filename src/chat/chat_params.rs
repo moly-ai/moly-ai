@@ -124,11 +124,7 @@ script_mod! {
                     hover_actions_enabled: true
                 }
                 stream := MolySwitch {
-                    animator: Animator {
-                        selected: {
-                            default: @on
-                        }
-                    }
+                    active: true
                 }
             }
 

@@ -75,13 +75,7 @@ script_mod! {
                 width: Fill
                 align: Align { x: 1.0 y: 0.5 }
                 spacing: 20
-                enabled_switch := MolySwitch {
-                    animator: Animator {
-                        selected: {
-                            default: @on
-                        }
-                    }
-                }
+                enabled_switch := MolySwitch {}
             }
         }
     }
@@ -194,11 +188,6 @@ script_mod! {
                     }
                     provider_enabled_switch := MolySwitch {
                         margin: Inset { left: 10 }
-                        animator: Animator {
-                            selected: {
-                                default: @on
-                            }
-                        }
                     }
                 }
             }
@@ -383,11 +372,6 @@ script_mod! {
 
                         provider_tools_switch := MolySwitch {
                             margin: Inset { left: 10 }
-                            animator: Animator {
-                                selected: {
-                                    default: @on
-                                }
-                            }
                         }
                     }
 

@@ -154,13 +154,7 @@ You can also add an \"enabled\": false flag to disable a specific server."
             }
         }
 
-        servers_enabled_switch := MolySwitch {
-            animator: Animator {
-                selected: {
-                    default: @on
-                }
-            }
-        }
+        servers_enabled_switch := MolySwitch {}
     }
 
     let DangerousModeWrapper = View {
@@ -181,13 +175,7 @@ You can also add an \"enabled\": false flag to disable a specific server."
                 }
             }
 
-            dangerous_mode_switch := MolySwitch {
-                animator: Animator {
-                    selected: {
-                        default: @off
-                    }
-                }
-            }
+            dangerous_mode_switch := MolySwitch {}
         }
 
         Label {
