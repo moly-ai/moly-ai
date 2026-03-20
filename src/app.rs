@@ -160,14 +160,12 @@ script_mod! {
                     }
 
                     root := #(MolyRoot::register_widget(vm)) {
+                        ..mod.widgets.SolidView
                         width: Fill
                         height: Fill
                         show_bg: true
                         draw_bg +: {
                             color: (MAIN_BG_COLOR_DARK)
-                            pixel: fn() {
-                                return Pal.premul(self.color)
-                            }
                         }
 
                         root_adaptive_view := AdaptiveView {

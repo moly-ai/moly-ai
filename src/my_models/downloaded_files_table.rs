@@ -50,6 +50,7 @@ script_mod! {
     mod.widgets.DownloadedFilesTableBase = #(DownloadedFilesTable::register_widget(vm))
     mod.widgets.DownloadedFilesTable =
         set_type_default() do mod.widgets.DownloadedFilesTableBase {
+        ..mod.widgets.RoundedShadowView
         width: Fill
         height: Fill
         align: Align { x: 0.5 y: 0.5 }
@@ -57,17 +58,9 @@ script_mod! {
         draw_bg +: {
             color: (MAIN_BG_COLOR)
             border_radius: 5
-            pixel: fn() {
-                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
-                sdf.box(
-                    0.0, 0.0,
-                    self.rect_size.x,
-                    self.rect_size.y,
-                    max(1.0, self.border_radius)
-                )
-                sdf.fill(Pal.premul(self.color))
-                return sdf.result
-            }
+            shadow_color: uniform(#x0001)
+            shadow_radius: 12.0
+            shadow_offset: vec2(0.0, -1.5)
         }
 
         list := PortalList {

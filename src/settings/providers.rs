@@ -69,6 +69,7 @@ script_mod! {
     mod.widgets.ProviderItemBase = #(ProviderItem::register_widget(vm))
     let ProviderItem =
         mod.widgets.ProviderItemBase {
+        ..mod.widgets.RoundedView
         width: Fill
         height: 40
         flow: Overlay
@@ -76,17 +77,6 @@ script_mod! {
         draw_bg +: {
             border_radius: 5
             color: instance(#0000)
-            pixel: fn() {
-                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
-                sdf.box(
-                    0.0, 0.0,
-                    self.rect_size.x,
-                    self.rect_size.y,
-                    max(1.0, self.border_radius)
-                )
-                sdf.fill(Pal.premul(self.color))
-                return sdf.result
-            }
         }
         padding: Inset { left: 20 }
         align: Align { x: 0.0 y: 0.5 }

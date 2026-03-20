@@ -104,23 +104,16 @@ script_mod! {
     mod.widgets.ProviderViewBase = #(ProviderView::register_widget(vm))
     mod.widgets.ProviderView =
         set_type_default() do mod.widgets.ProviderViewBase {
+        ..mod.widgets.RoundedShadowView
         width: Fill
         height: Fill
         show_bg: true
         draw_bg +: {
             color: (MAIN_BG_COLOR_DARK)
-            border_radius: 4.5
-            pixel: fn() {
-                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
-                sdf.box(
-                    0.0, 0.0,
-                    self.rect_size.x,
-                    self.rect_size.y,
-                    max(1.0, self.border_radius)
-                )
-                sdf.fill(Pal.premul(self.color))
-                return sdf.result
-            }
+            border_radius: instance(4.5)
+            shadow_color: uniform(#x0002)
+            shadow_radius: 8.0
+            shadow_offset: vec2(0.0, -1.5)
         }
 
         content := ScrollYView {

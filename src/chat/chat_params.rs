@@ -32,6 +32,7 @@ script_mod! {
     // replacement that just shows the params content directly in a View.
     mod.widgets.ChatParamsBase = #(ChatParams::register_widget(vm))
     mod.widgets.ChatParams = set_type_default() do mod.widgets.ChatParamsBase {
+        ..mod.widgets.SolidView
         width: Fill height: Fill
         padding: Inset {top: 70 left: 25.0 right: 25.0}
         spacing: 35
@@ -39,9 +40,6 @@ script_mod! {
         show_bg: true
         draw_bg +: {
             color: #F2F4F7
-            pixel: fn() {
-                return Pal.premul(self.color)
-            }
         }
 
         label := Label {

@@ -10,6 +10,7 @@ script_mod! {
 
     mod.widgets.EntityButtonBase = #(EntityButton::register_widget(vm))
     mod.widgets.EntityButton = set_type_default() do mod.widgets.EntityButtonBase {
+        ..mod.widgets.SolidView
         flow: Right
         width: Fill
         visible: false
@@ -22,11 +23,7 @@ script_mod! {
         cursor: MouseCursor.Hand
         show_bg: true
         draw_bg +: {
-            border_radius: 0
             color: #0000
-            pixel: fn() {
-                return Pal.premul(self.color)
-            }
         }
 
         agent_avatar := mod.widgets.ChatAgentAvatar {}

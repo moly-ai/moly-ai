@@ -145,12 +145,11 @@ script_mod! {
 
     mod.widgets.ModelFilesItemBase = #(ModelFilesItem::register_widget(vm))
     mod.widgets.ModelFilesItem = set_type_default() do mod.widgets.ModelFilesItemBase {
+        ..mod.widgets.SolidView
+
         show_bg: true
         draw_bg +: {
             color: #f
-            pixel: fn() {
-                return Pal.premul(self.color)
-            }
         }
 
         cell1 := View {
