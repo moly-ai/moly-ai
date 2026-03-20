@@ -40,7 +40,7 @@ script_mod! {
 
         spacing: 5
         draw_bg +: {
-            border_radius: instance(2.0)
+            border_radius: uniform(2.0)
         }
 
         attr_name := Label {
@@ -61,43 +61,29 @@ script_mod! {
         align: Align { x: 0.5 y: 0.5 }
 
         icon_walk +: { margin: 0 width: 25 height: 25 }
-        label_walk: Walk { margin: 0 }
+        label_walk: Walk { width: Fit height: Fit margin: 0 }
 
         draw_bg +: {
-            border_size: instance(0.0)
-            border_color_1: instance(#0000)
-            inset: instance(vec4(0.0 0.0 0.0 0.0))
-            border_radius: instance(3.5)
+            border_size: uniform(0.0)
+            border_radius: uniform(3.5)
 
-            get_color: fn() -> vec4 {
-                return mix(
-                    mix(
-                        #xf2f2f2
-                        #x677483
-                        self.hover
-                    )
-                    #x344054
-                    self.active
-                )
-            }
+            color: uniform(#xf2f2f2)
+            color_hover: uniform(#x677483)
+            color_active: uniform(#x344054)
 
-            get_border_color: fn() -> vec4 {
-                return self.border_color_1
-            }
-
-            pixel: fn() -> vec4 {
+            pixel: fn() {
                 let sdf = Sdf2d.viewport(self.pos * self.rect_size)
                 sdf.box(
-                    self.inset.x + self.border_size
-                    self.inset.y + self.border_size
-                    self.rect_size.x - (self.inset.x + self.inset.z + self.border_size * 2.0)
-                    self.rect_size.y - (self.inset.y + self.inset.w + self.border_size * 2.0)
-                    max(1.0 self.border_radius)
+                    self.border_size
+                    self.border_size
+                    self.rect_size.x - (self.border_size * 2.0)
+                    self.rect_size.y - (self.border_size * 2.0)
+                    max(1.0, self.border_radius)
                 )
-                sdf.fill_keep(self.get_color())
-                if self.border_size > 0.0 {
-                    sdf.stroke(self.get_border_color() self.border_size)
-                }
+                let color_fill = self.color
+                    .mix(self.color_hover, self.hover)
+                    .mix(self.color_active, self.active)
+                sdf.fill(color_fill)
                 return sdf.result
             }
         }
@@ -106,15 +92,13 @@ script_mod! {
             color: #x1A2533
             color_hover: uniform(#xF9F9F9)
             color_active: uniform(#xF9F9F9)
-            hover: instance(0.0)
-            active: instance(0.0)
 
             text_style: BOLD_FONT { font_size: 9 }
 
-            get_color: fn() -> vec4 {
+            get_color: fn() {
                 return self.color
-                    .mix(self.color_hover self.hover)
-                    .mix(self.color_active self.active)
+                    .mix(self.color_hover, self.hover)
+                    .mix(self.color_active, self.active)
             }
         }
 
@@ -122,12 +106,10 @@ script_mod! {
             color: #x1A2533
             color_hover: uniform(#xF9F9F9)
             color_active: uniform(#xF9F9F9)
-            focus: instance(0.0)
-            active: instance(0.0)
-            get_color: fn() -> vec4 {
+            get_color: fn() {
                 return self.color
-                    .mix(self.color_hover self.focus)
-                    .mix(self.color_active self.active)
+                    .mix(self.color_hover, self.focus)
+                    .mix(self.color_active, self.active)
             }
         }
     }
@@ -135,12 +117,12 @@ script_mod! {
     mod.widgets.MolyButton = Button {
         text: ""
         draw_bg +: {
-            color: instance(#0000)
-            color_hover: instance(#fff)
-            border_size: instance(1.0)
+            color: uniform(#0000)
+            color_hover: uniform(#fff)
+            border_size: uniform(1.0)
             border_color_1: instance(#0000)
-            border_color_hover: instance(#fff)
-            border_radius: instance(2.5)
+            border_color_hover: uniform(#fff)
+            border_radius: uniform(2.5)
 
             get_color: fn() -> vec4 {
                 return mix(
@@ -341,8 +323,8 @@ script_mod! {
 
         draw_bg +: {
             color: #fff
-            border_radius: instance(2.0)
-            border_size: instance(0.0)
+            border_radius: uniform(2.0)
+            border_size: uniform(0.0)
             border_color_1: instance(#3)
             inset: instance(vec4(0.0 0.0 0.0 0.0))
 

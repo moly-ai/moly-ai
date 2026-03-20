@@ -33,7 +33,7 @@ script_mod! {
 
         spacing: 5
         draw_bg +: {
-            border_radius: instance(3.0)
+            border_radius: uniform(3.0)
         }
 
         attr_name := Label {

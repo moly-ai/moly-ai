@@ -164,7 +164,7 @@ script_mod! {
                         show_bg: true
                         draw_bg +: {
                             color: #x0
-                            border_radius: instance(5.0)
+                            border_radius: uniform(5.0)
                         }
                         width: Fit height: Fit
 

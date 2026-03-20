@@ -37,8 +37,8 @@ script_mod! {
         show_bg: true
         draw_bg +: {
             color: (MAIN_BG_COLOR)
-            border_radius: instance(4.5)
-            shadow_color: uniform(#x0003)
+            border_radius: uniform(4.5)
+            shadow_color: instance(#x0003)
             shadow_radius: 15.0
             shadow_offset: vec2(0.0, -1.5)
         }
@@ -59,7 +59,7 @@ script_mod! {
         show_bg: true
         draw_bg +: {
             color: (SIDEBAR_BG_COLOR)
-            border_radius: instance(0.0)
+            border_radius: uniform(0.0)
         }
 
         logo := View {
@@ -118,6 +118,7 @@ script_mod! {
             main_window := Window {
                 window +: {inner_size: vec2(1440 1024) title: "Moly"}
                 pass +: {clear_color: #xfff}
+                show_caption_bar: false
 
                 caption_bar +: {
                     caption_label := View {}

@@ -122,7 +122,7 @@ script_mod! {
                         icon_walk +: { width: 14 height: 14 }
 
                         draw_bg +: {
-                            border_radius: instance(2.0)
+                            border_radius: uniform(2.0)
                             border_color_1: #D0D5DD
                             border_size: 1.2
                             color: #EDFCF2
@@ -144,7 +144,7 @@ script_mod! {
                         }
 
                         draw_bg +: {
-                            border_radius: instance(2.0)
+                            border_radius: uniform(2.0)
                             border_color_1: #D0D5DD
                             border_size: 1.2
                             color: #F5FEFF

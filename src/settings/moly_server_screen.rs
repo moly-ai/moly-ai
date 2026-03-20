@@ -30,24 +30,12 @@ script_mod! {
         icon_walk +: { margin: 0 width: 22 height: 22 }
 
         draw_bg +: {
-            radio_type: Tab
+            border_size: uniform(0.0)
+            border_radius: uniform(2.5)
 
-            border_size: instance(0.0)
-            border_color_1: instance(#0000)
-            inset: instance(vec4(0.0 0.0 0.0 0.0))
-            border_radius: instance(2.5)
-
-            get_color: fn() -> vec4 {
-                return mix(
-                    mix(
-                        #xf9f9f9
-                        #xebedee
-                        self.hover
-                    )
-                    #xebedee
-                    self.active
-                )
-            }
+            color: uniform(#xf9f9f9)
+            color_hover: uniform(#xebedee)
+            color_active: uniform(#xebedee)
         }
 
         draw_text +: {
@@ -159,7 +147,7 @@ script_mod! {
                 show_bg: true
                 draw_bg +: {
                     color: (SUBSIDEBAR_BG_COLOR)
-                    border_radius: instance(0.0)
+                    border_radius: uniform(0.0)
                 }
 
                 discover_tab := SubSidebarMenuButton {

@@ -182,7 +182,7 @@ script_mod! {
                 padding: Inset {top: 6 bottom: 6 left: 10 right: 10}
 
                 draw_bg +: {
-                    border_radius: instance(2.0)
+                    border_radius: uniform(2.0)
                     border_color: #B4B4B4
                     border_size: 0.5
                     color: #FFF

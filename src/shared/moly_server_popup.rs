@@ -16,7 +16,7 @@ script_mod! {
         show_bg: true
         draw_bg +: {
             color: #fff
-            border_radius: instance(4.0)
+            border_radius: uniform(4.0)
             pixel: fn() -> vec4 {
                 let border_color = #d4
                 let border_width = 1

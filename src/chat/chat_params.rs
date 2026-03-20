@@ -16,9 +16,9 @@ script_mod! {
         width: Fill
         show_bg: true
         draw_bg +: {
-            border_radius: instance(5.0)
+            border_radius: uniform(5.0)
             color: #fff
-            border_size: instance(1.0)
+            border_size: uniform(1.0)
             border_color: instance(#D9D9D9)
         }
         scrolled_content := ScrollYView {
@@ -72,9 +72,9 @@ script_mod! {
                         height: Fit
                         empty_text: "Enter a system prompt"
                         draw_bg +: {
-                            border_radius: instance(0.0)
+                            border_radius: uniform(0.0)
                             color: #0000
-                            border_size: instance(0.0)
+                            border_size: uniform(0.0)
                         }
                         draw_text +: {
                             text_style: REGULAR_FONT {font_size: 10}
@@ -159,9 +159,9 @@ script_mod! {
                             height: Fit
                             empty_text: " "
                             draw_bg +: {
-                                border_radius: instance(0.0)
+                                border_radius: uniform(0.0)
                                 color: #0000
-                                border_size: instance(0.0)
+                                border_size: uniform(0.0)
                             }
                             draw_text +: {
                                 text_style: REGULAR_FONT {font_size: 10}
