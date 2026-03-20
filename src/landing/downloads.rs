@@ -72,7 +72,7 @@ script_mod! {
             width: Fill
             height: Fill
 
-            DownloadItem = mod.widgets.DownloadItem {}
+            DownloadItem := mod.widgets.DownloadItem {}
         }
     }
 

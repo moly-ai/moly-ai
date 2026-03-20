@@ -222,10 +222,15 @@ impl SearchBarRef {
 
         let flow_right = Flow::default();
         let fill = Size::fill();
+        let align = Align { x: 0.0, y: 0.5 };
+        let padding = Inset {
+            left: 20.0,
+            ..Default::default()
+        };
         script_apply_eval!(cx, inner, {
             flow: #(flow_right)
-            align: {x: 0.0 y: 0.5}
-            padding: {left: 20}
+            align: #(align)
+            padding: #(padding)
             spacing: 80
         });
 
@@ -252,10 +257,12 @@ impl SearchBarRef {
         inner.collapsed = false;
 
         let flow_down = Flow::Down;
+        let align = Align { x: 0.5, y: 0.5 };
+        let padding = Inset::default();
         script_apply_eval!(cx, inner, {
             flow: #(flow_down)
-            align: {x: 0.5 y: 0.5}
-            padding: {left: 0}
+            align: #(align)
+            padding: #(padding)
             spacing: 50
         });
 

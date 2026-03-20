@@ -57,9 +57,7 @@ script_mod! {
                 border_radius: 7.0
             }
 
-            show_all_button := ActionToggleButton {
-                active: true
-            }
+            show_all_button := ActionToggleButton {}
             only_recommended_button := ActionToggleButton {}
         }
     }
@@ -166,7 +164,7 @@ script_mod! {
     }
 }
 
-#[derive(Animator, Script, ScriptHook, Widget)]
+#[derive(Animator, Script, Widget)]
 pub struct ModelFiles {
     #[source]
     source: ScriptObjectRef,
@@ -182,6 +180,20 @@ pub struct ModelFiles {
 
     #[rust]
     actual_height: Option<f64>,
+}
+
+impl ScriptHook for ModelFiles {
+    fn on_after_new(&mut self, vm: &mut ScriptVm) {
+        vm.with_cx_mut(|cx| {
+            if let Some(mut rb) = self
+                .view
+                .radio_button(cx, ids!(show_all_button))
+                .borrow_mut()
+            {
+                rb.animator_play(cx, ids!(active.on));
+            }
+        });
+    }
 }
 
 impl Widget for ModelFiles {

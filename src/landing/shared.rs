@@ -13,17 +13,7 @@ script_mod! {
             margin: 2
             draw_text +: {
                 text_style: theme.font_regular { font_size: 9 }
-                get_color: fn() -> vec4 {
-                    return mix(
-                        mix(
-                            MODEL_LINK_FONT_COLOR
-                            MODEL_LINK_FONT_COLOR
-                            self.hover
-                        )
-                        MODEL_LINK_FONT_COLOR
-                        self.down
-                    )
-                }
+                color: (MODEL_LINK_FONT_COLOR)
             }
         }
         underline := Line {
