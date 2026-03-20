@@ -24,6 +24,9 @@ script_mod! {
         draw_bg +: {
             border_radius: 0
             color: #0000
+            pixel: fn() {
+                return Pal.premul(self.color)
+            }
         }
 
         agent_avatar := mod.widgets.ChatAgentAvatar {}

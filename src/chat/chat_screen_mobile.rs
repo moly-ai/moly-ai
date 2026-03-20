@@ -14,7 +14,21 @@ script_mod! {
         }
         content +: {
             show_bg: true
-            draw_bg +: {border_radius: instance(5) color: #xf}
+            draw_bg +: {
+                border_radius: instance(5)
+                color: #xf
+                pixel: fn() {
+                    let sdf = Sdf2d.viewport(self.pos * self.rect_size)
+                    sdf.box(
+                        0.0, 0.0,
+                        self.rect_size.x,
+                        self.rect_size.y,
+                        max(1.0, self.border_radius)
+                    )
+                    sdf.fill(Pal.premul(self.color))
+                    return sdf.result
+                }
+            }
             width: 150 height: Fit
             align: Align {x: 0.5 y: 0.5}
             flow: Down
@@ -32,9 +46,8 @@ script_mod! {
                 }
             }
 
-            separator := View {
+            separator := SolidView {
                 width: Fill height: 0.5
-                show_bg: true
                 draw_bg +: {color: #xd3d3d3}
                 margin: Inset {left: 10 right: 10}
             }

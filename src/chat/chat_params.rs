@@ -39,6 +39,9 @@ script_mod! {
         show_bg: true
         draw_bg +: {
             color: #F2F4F7
+            pixel: fn() {
+                return Pal.premul(self.color)
+            }
         }
 
         label := Label {

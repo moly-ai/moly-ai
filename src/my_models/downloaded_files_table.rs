@@ -25,13 +25,12 @@ script_mod! {
         }
     }
 
-    let HeaderRow = View {
+    let HeaderRow = SolidView {
         align: Align { x: 0.0 y: 0.5 }
         width: Fill
         height: Fit
         padding: Inset { top: 10 bottom: 10 left: 20 right: 20 }
         spacing: 30
-        show_bg: true
         draw_bg +: {
             color: #F2F4F7
         }
@@ -58,9 +57,17 @@ script_mod! {
         draw_bg +: {
             color: (MAIN_BG_COLOR)
             border_radius: 5
-            shadow_color: uniform(#0001)
-            shadow_radius: 12.0
-            shadow_offset: vec2(0.0, -1.5)
+            pixel: fn() {
+                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
+                sdf.box(
+                    0.0, 0.0,
+                    self.rect_size.x,
+                    self.rect_size.y,
+                    max(1.0, self.border_radius)
+                )
+                sdf.fill(Pal.premul(self.color))
+                return sdf.result
+            }
         }
 
         list := PortalList {

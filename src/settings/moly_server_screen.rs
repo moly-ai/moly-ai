@@ -146,7 +146,6 @@ script_mod! {
     mod.widgets.MolyServerScreenBase = #(MolyServerScreen::register_widget(vm))
     mod.widgets.MolyServerScreen =
         set_type_default() do mod.widgets.MolyServerScreenBase {
-        show_bg: true
         main_content := View {
             visible: false
             menu := RoundedView {
@@ -177,11 +176,10 @@ script_mod! {
                 }
             }
 
-            right_border := View {
+            right_border := SolidView {
                 width: 1.6
                 height: Fill
                 margin: Inset { top: 15 bottom: 15 }
-                show_bg: true
                 draw_bg +: {
                     color: #xeaeaea
                 }

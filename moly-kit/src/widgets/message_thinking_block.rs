@@ -89,7 +89,6 @@ script_mod! {
         width: Fill
         height: Fit
         flow: Down
-        show_bg: true
         padding: Inset { top: 5, bottom: 5, left: 5, right: 5 }
 
         inner := RoundedShadowView {

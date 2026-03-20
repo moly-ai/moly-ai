@@ -62,6 +62,17 @@ script_mod! {
         draw_bg +: {
             color: #fff
             border_radius: 3.0
+            pixel: fn() {
+                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
+                sdf.box(
+                    0.0, 0.0,
+                    self.rect_size.x,
+                    self.rect_size.y,
+                    max(1.0, self.border_radius)
+                )
+                sdf.fill(Pal.premul(self.color))
+                return sdf.result
+            }
         }
 
         padding: 25

@@ -32,6 +32,9 @@ script_mod! {
         show_bg: true
         draw_bg +: {
             color: (MAIN_BG_COLOR)
+            pixel: fn() {
+                return Pal.premul(self.color)
+            }
         }
         padding: Inset {left: 10 right: 10}
 

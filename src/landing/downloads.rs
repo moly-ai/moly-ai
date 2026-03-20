@@ -85,6 +85,9 @@ script_mod! {
         show_bg: true
         draw_bg +: {
             color: #FCFCFD
+            pixel: fn() {
+                return Pal.premul(self.color)
+            }
         }
 
         // TODO there is a better way to have only top-border?

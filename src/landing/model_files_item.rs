@@ -148,6 +148,9 @@ script_mod! {
         show_bg: true
         draw_bg +: {
             color: #f
+            pixel: fn() {
+                return Pal.premul(self.color)
+            }
         }
 
         cell1 := View {

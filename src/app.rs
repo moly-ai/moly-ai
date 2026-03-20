@@ -71,10 +71,9 @@ script_mod! {
             }
         }
 
-        seprator := View {
+        seprator := SolidView {
             width: Fill height: 1.6
             margin: Inset {left: 15 right: 15 bottom: 10}
-            show_bg: true
             draw_bg +: {
                 color: #xdadada
             }
@@ -166,6 +165,9 @@ script_mod! {
                         show_bg: true
                         draw_bg +: {
                             color: (MAIN_BG_COLOR_DARK)
+                            pixel: fn() {
+                                return Pal.premul(self.color)
+                            }
                         }
 
                         root_adaptive_view := AdaptiveView {

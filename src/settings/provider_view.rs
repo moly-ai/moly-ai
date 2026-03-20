@@ -43,9 +43,8 @@ script_mod! {
         width: Fill
         height: 50
         flow: Down
-        separator := View {
+        separator := SolidView {
             height: 1
-            show_bg: true
             draw_bg +: {
                 color: #D9D9D9
             }
@@ -93,10 +92,9 @@ script_mod! {
             }
         }
 
-        separator := View {
+        separator := SolidView {
             margin: Inset { top: 10 }
             height: 1
-            show_bg: true
             draw_bg +: {
                 color: #D9D9D9
             }
@@ -112,9 +110,17 @@ script_mod! {
         draw_bg +: {
             color: (MAIN_BG_COLOR_DARK)
             border_radius: 4.5
-            shadow_color: uniform(#0002)
-            shadow_radius: 8.0
-            shadow_offset: vec2(0.0, -1.5)
+            pixel: fn() {
+                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
+                sdf.box(
+                    0.0, 0.0,
+                    self.rect_size.x,
+                    self.rect_size.y,
+                    max(1.0, self.border_radius)
+                )
+                sdf.fill(Pal.premul(self.color))
+                return sdf.result
+            }
         }
 
         content := ScrollYView {
@@ -192,10 +198,9 @@ script_mod! {
                 }
             }
 
-            separator := View {
+            separator := SolidView {
                 margin: Inset { top: 15 }
                 height: 1
-                show_bg: true
                 draw_bg +: {
                     color: #D9D9D9
                 }
@@ -337,11 +342,10 @@ script_mod! {
                     visible: false
                     height: Fit
 
-                    View {
+                    SolidView {
                         margin: Inset { top: 10 }
                         width: Fill
                         height: 1
-                        show_bg: true
                         draw_bg +: {
                             color: #D9D9D9
                         }
@@ -375,11 +379,10 @@ script_mod! {
                         }
                     }
 
-                    View {
+                    SolidView {
                         margin: Inset { top: 10 }
                         width: Fill
                         height: 1
-                        show_bg: true
                         draw_bg +: {
                             color: #D9D9D9
                         }

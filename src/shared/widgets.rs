@@ -14,10 +14,9 @@ script_mod! {
         height: Fill
     }
 
-    mod.widgets.Line = View {
+    mod.widgets.Line = SolidView {
         width: Fill
         height: 1
-        show_bg: true
         draw_bg +: {
             color: #D9D9D9
         }

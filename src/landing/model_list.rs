@@ -97,12 +97,11 @@ script_mod! {
             }
         }
 
-        loading := View {
+        loading := SolidView {
             width: Fill
             height: Fill
             visible: false
 
-            show_bg: true
             draw_bg +: {
                 color: #FFFE
             }
