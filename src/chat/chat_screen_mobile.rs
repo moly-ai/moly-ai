@@ -266,7 +266,7 @@ impl WidgetMatchEvent for ChatScreenMobile {
             stack_navigation.push(cx, id!(history_navigation_view));
         }
 
-        let mut modal = self.moly_modal(cx, ids!(settings_menu));
+        let modal = self.moly_modal(cx, ids!(settings_menu));
 
         // Settings Menu
         if let Some(_evt) = self.view(cx, ids!(settings_button)).finger_down(actions) {
@@ -283,13 +283,14 @@ impl WidgetMatchEvent for ChatScreenMobile {
                 button_rect.pos.y + button_rect.size.y,
             );
 
-            script_apply_eval!(cx, modal, {
-                content +: {
-                    margin: {
-                        left: #(coords.x) top: #(coords.y)
-                    }
-                }
-            });
+            let margin = Inset {
+                left: coords.x,
+                top: coords.y,
+                right: 0.0,
+                bottom: 0.0,
+            };
+            let mut content = self.view(cx, ids!(settings_menu.content));
+            script_apply_eval!(cx, content, { margin: #(margin) });
             modal.open(cx);
         }
 

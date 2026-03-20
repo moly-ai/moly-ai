@@ -334,30 +334,29 @@ impl ModelSelector {
             bg_view_visible = true;
         }
 
-        let mut modal = self.moly_modal(cx, ids!(modal));
         let margin = Inset {
             left: modal_x,
             top: modal_y,
             right: 0.0,
             bottom: 0.0,
         };
-        script_apply_eval!(cx, modal, {
-            bg_view +: {
-                visible: #(bg_view_visible)
-            }
-            content +: {
-                margin: #(margin)
-            }
-        });
+
+        let mut bg_view = self.view(cx, ids!(modal.bg_view));
+        script_apply_eval!(cx, bg_view, { visible: #(bg_view_visible) });
+
+        let mut content = self.view(cx, ids!(modal.content));
+        script_apply_eval!(cx, content, { margin: #(margin) });
 
         if !cx.display_context.is_desktop() {
             let fill = Size::fill();
+            let mut modal = self.moly_modal(cx, ids!(modal));
             script_apply_eval!(cx, modal, {
                 dismiss_on_focus_lost: false
-                content +: {
-                    width: #(fill)
-                    padding: 0
-                }
+            });
+            let mut content = self.view(cx, ids!(modal.content));
+            script_apply_eval!(cx, content, {
+                width: #(fill)
+                padding: 0
             });
         } else {
             let padding = Inset {
@@ -366,12 +365,15 @@ impl ModelSelector {
                 right: 10.0,
                 bottom: 20.0,
             };
-            script_apply_eval!(cx, modal, {
-                content +: { width: 400 }
+            let mut content = self.view(cx, ids!(modal.content));
+            script_apply_eval!(cx, content, {
+                width: 400
                 padding: #(padding)
             });
         }
 
+        let modal = self.moly_modal(cx, ids!(modal));
+        #[allow(deprecated)]
         modal.open(cx);
     }
 

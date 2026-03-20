@@ -232,19 +232,11 @@ impl Widget for ModelFilesItem {
         let filename = &files_info.file.name;
         let size = format_model_size(&files_info.file.size).unwrap_or("-".to_string());
         let quantization = &files_info.file.quantization;
-        script_apply_eval!(
-            cx,
-            self,
-            {
-                cell1 +: {
-                    filename +: { text: #(filename) }
-                }
-                cell2 +: { full_size +: { text: #(size) }}
-                cell3 +: {
-                    quantization_tag +: { quantization +: { text: #(quantization) }}
-                }
-            },
-        );
+
+        self.label(cx, ids!(cell1.filename)).set_text(cx, filename);
+        self.label(cx, ids!(cell2.full_size)).set_text(cx, &size);
+        self.label(cx, ids!(cell3.quantization_tag.quantization))
+            .set_text(cx, quantization);
 
         if let Some(download) = &files_info.download {
             let progress = format!("{:.1}%", download.progress);
@@ -263,70 +255,76 @@ impl Widget for ModelFilesItem {
             let status_color = match download.status {
                 PendingDownloadsStatus::Downloading | PendingDownloadsStatus::Initializing => {
                     vec3(0.035, 0.572, 0.314)
-                } // #099250
-                PendingDownloadsStatus::Paused => vec3(0.4, 0.44, 0.52), // #667085
-                PendingDownloadsStatus::Error => vec3(0.7, 0.11, 0.09),  // #B42318
+                }
+                PendingDownloadsStatus::Paused => vec3(0.4, 0.44, 0.52),
+                PendingDownloadsStatus::Error => vec3(0.7, 0.11, 0.09),
             };
 
-            script_apply_eval!(
+            let pending = ids!(cell4.download_pending_controls);
+            self.view(cx, pending).set_visible(cx, true);
+
+            let mut progress_text = self.label(
                 cx,
-                self,
-                { cell4 +: {
-                    download_pending_controls +: {
-                        visible: #(true)
-                        progress_text_layout +: {
-                            progress_text +: {
-                                text: #(progress)
-                                draw_text +: {
-                                    color: #(status_color)
-                                }
-                            }
-                        }
-                        progress_bar +: {
-                            progress_fill +: {
-                                width: #(progress_fill)
-                                draw_bg +: {
-                                    color: #(status_color)
-                                }
-                            }
-                        }
-                        resume_download_button +: {
-                            visible: #(is_resume_download_visible)
-                        }
-                        retry_download_button +: {
-                            visible: #(is_retry_download_visible)
-                        }
-                        pause_download_button +: {
-                            visible: #(is_pause_download_visible)
-                        }
-                        cancel_download_button +: {
-                            visible: #(is_cancel_download_visible)
-                        }
-                    }
-                    start_chat_button +: { visible: #(false) }
-                    download_button +: { visible: #(false) }
-                }},
+                ids!(
+                    cell4
+                        .download_pending_controls
+                        .progress_text_layout
+                        .progress_text
+                ),
             );
+            progress_text.set_text(cx, &progress);
+            script_apply_eval!(cx, progress_text, {
+                draw_text +: { color: #(status_color) }
+            });
+
+            let mut progress_fill_view = self.view(
+                cx,
+                ids!(cell4.download_pending_controls.progress_bar.progress_fill),
+            );
+            script_apply_eval!(cx, progress_fill_view, {
+                width: #(progress_fill)
+                draw_bg +: { color: #(status_color) }
+            });
+
+            self.view(
+                cx,
+                ids!(cell4.download_pending_controls.resume_download_button),
+            )
+            .set_visible(cx, is_resume_download_visible);
+            self.view(
+                cx,
+                ids!(cell4.download_pending_controls.retry_download_button),
+            )
+            .set_visible(cx, is_retry_download_visible);
+            self.view(
+                cx,
+                ids!(cell4.download_pending_controls.pause_download_button),
+            )
+            .set_visible(cx, is_pause_download_visible);
+            self.view(
+                cx,
+                ids!(cell4.download_pending_controls.cancel_download_button),
+            )
+            .set_visible(cx, is_cancel_download_visible);
+
+            self.view(cx, ids!(cell4.start_chat_button))
+                .set_visible(cx, false);
+            self.view(cx, ids!(cell4.download_button))
+                .set_visible(cx, false);
         } else if files_info.file.downloaded {
-            script_apply_eval!(
-                cx,
-                self,
-                { cell4 +: {
-                    download_pending_controls +: { visible: #(false) }
-                    start_chat_button +: { visible: #(true) }
-                    download_button +: { visible: #(false) }
-                }},
-            );
+            self.view(cx, ids!(cell4.download_pending_controls))
+                .set_visible(cx, false);
+            self.view(cx, ids!(cell4.start_chat_button))
+                .set_visible(cx, true);
+            self.view(cx, ids!(cell4.download_button))
+                .set_visible(cx, false);
         } else {
-            script_apply_eval!(
-                cx,
-                self,
-                { cell4 +: {
-                    download_pending_controls +: { visible: #(false) }
-                    start_chat_button +: { visible: #(false) }
-                    download_button +: { visible: #(true) }
-                }},
-            );
+            self.view(cx, ids!(cell4.download_pending_controls))
+                .set_visible(cx, false);
+            self.view(cx, ids!(cell4.start_chat_button))
+                .set_visible(cx, false);
+            self.view(cx, ids!(cell4.download_button))
+                .set_visible(cx, true);
         };
 
         self.view.draw_walk(cx, scope, walk)

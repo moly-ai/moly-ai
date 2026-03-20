@@ -220,17 +220,21 @@ impl SearchBarRef {
         }
         inner.collapsed = true;
 
-        let flow_right = Flow::default(); // Right is the default/pick variant
+        let flow_right = Flow::default();
         let fill = Size::fill();
         script_apply_eval!(cx, inner, {
             flow: #(flow_right)
-            title +: { visible: false }
             align: {x: 0.0 y: 0.5}
             padding: {left: 20}
             spacing: 80
-            input_container +: { width: #(fill) }
-            search_sorting +: { visible: true }
         });
+
+        inner.view(cx, ids!(title)).set_visible(cx, false);
+
+        let mut input_container = inner.view(cx, ids!(input_container));
+        script_apply_eval!(cx, input_container, { width: #(fill) });
+
+        inner.view(cx, ids!(search_sorting)).set_visible(cx, true);
 
         inner
             .sorting(cx, ids!(search_sorting))
@@ -250,13 +254,17 @@ impl SearchBarRef {
         let flow_down = Flow::Down;
         script_apply_eval!(cx, inner, {
             flow: #(flow_down)
-            title +: { visible: true }
             align: {x: 0.5 y: 0.5}
             padding: {left: 0}
             spacing: 50
-            input_container +: { width: 800 }
-            search_sorting +: { visible: false }
         });
+
+        inner.view(cx, ids!(title)).set_visible(cx, true);
+
+        let mut input_container = inner.view(cx, ids!(input_container));
+        script_apply_eval!(cx, input_container, { width: 800 });
+
+        inner.view(cx, ids!(search_sorting)).set_visible(cx, false);
 
         inner.animator_play(cx, ids!(search_bar.expanded));
     }
