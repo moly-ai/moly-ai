@@ -21,7 +21,7 @@ script_mod! {
             align: Align { x: 0.5, y: 0.5 }
             spacing: 2
             icon := Label {
-                text: ""
+                text: "\u{f15b}" // fa-file
                 draw_text +: {
                     color: #000
                     text_style: theme.font_icons { font_size: 28 }
