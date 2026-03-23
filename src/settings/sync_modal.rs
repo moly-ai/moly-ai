@@ -177,7 +177,7 @@ script_mod! {
         }
 
         import := ShadowButton {
-            label := { text: "Import" }
+            label +: { text: "Import" }
             width: Fill
         }
     }
@@ -207,7 +207,7 @@ script_mod! {
             }
         }
         stop_server := ShadowButton {
-            label := { text: "Stop sharing" }
+            label +: { text: "Stop sharing" }
             width: Fill
         }
     }
@@ -297,13 +297,13 @@ script_mod! {
                         align: Align { x: 0.5 y: 0.5 }
 
                         serve := ShadowButton {
-                            label := {
+                            label +: {
                                 text: "Share from this device"
                             }
                         }
 
                         show_import := ShadowButton {
-                            label := {
+                            label +: {
                                 text: "Import from another"
                             }
                         }
