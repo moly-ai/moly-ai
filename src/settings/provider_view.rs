@@ -258,7 +258,7 @@ script_mod! {
                     }
 
                     toggle_key_visibility := IconButton {
-                        text: "\u{f06e}"
+                        text: "\u{f06e}" // fa-eye
                     }
                 }
                 View {
@@ -761,10 +761,10 @@ impl WidgetMatchEvent for ProviderView {
             api_key_input.set_is_password(cx, !api_key_input.is_password());
             if api_key_input.is_password() {
                 self.button(cx, ids!(toggle_key_visibility))
-                    .set_text(cx, "\u{f070}");
+                    .set_text(cx, "\u{f070}"); // fa-eye-slash
             } else {
                 self.button(cx, ids!(toggle_key_visibility))
-                    .set_text(cx, "\u{f06e}");
+                    .set_text(cx, "\u{f06e}"); // fa-eye
             }
             self.redraw(cx);
         }
