@@ -50,7 +50,7 @@ script_mod! {
 
     let AttachButton = Button {
         visible: false
-        text: "",
+        text: "" // fa-paperclip
         width: Fit,
         height: Fit,
         padding: Inset { left: 8, right: 8, top: 6, bottom: 6 }
@@ -72,7 +72,7 @@ script_mod! {
     let AudioButton = Button {
         visible: false
         width: 28, height: 28
-        text: ""
+        text: "" // fa-headphones
         draw_text +: {
             text_style: theme.font_icons { font_size: 13. }
             color: #333,
@@ -90,7 +90,7 @@ script_mod! {
     let SttButton = Button {
         visible: false
         width: 28, height: 28
-        text: ""
+        text: "" // fa-microphone
         draw_text +: {
             text_style: theme.font_icons { font_size: 13. }
             color: #333,
