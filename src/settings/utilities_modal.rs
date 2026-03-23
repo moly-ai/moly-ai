@@ -140,10 +140,10 @@ script_mod! {
             }
 
             url_group := FormGroup {
-                label := {
+                label +: {
                     text: "API Host"
                 }
-                input := {
+                input +: {
                     url_input := MolyTextInput {
                         width: Fill
                         height: Fit
@@ -164,10 +164,10 @@ script_mod! {
             }
 
             api_key_group := FormGroup {
-                label := {
+                label +: {
                     text: "API Key (optional)"
                 }
-                input := {
+                input +: {
                     flow: Right
                     spacing: 5
                     align: Align { x: 0.0 y: 0.5 }
@@ -197,10 +197,10 @@ script_mod! {
             }
 
             model_group := FormGroup {
-                label := {
+                label +: {
                     text: "Model Name"
                 }
-                input := {
+                input +: {
                     model_input := MolyTextInput {
                         width: Fill
                         height: Fit
