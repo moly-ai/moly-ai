@@ -59,8 +59,8 @@ script_mod! {
 
             Mobile +: {
                 providers := Providers {
-                    providers_list := {
-                        provider_item := {
+                    providers_list +: {
+                        provider_item +: {
                             height: 45
                         }
                     }
