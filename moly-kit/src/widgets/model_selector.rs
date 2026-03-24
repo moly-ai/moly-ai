@@ -309,45 +309,28 @@ impl ModelSelector {
         self.open = true;
 
         let button_rect = self.button(cx, ids!(button)).area().rect(cx);
+        let is_desktop = cx.display_context.is_desktop();
 
-        const LIST_HEIGHT: f64 = 200.0;
-        const SEARCH_HEIGHT: f64 = 40.0;
-        const PADDING_HEIGHT: f64 = 68.0;
+        if is_desktop {
+            let padding = Inset {
+                top: 20.0,
+                left: 10.0,
+                right: 10.0,
+                bottom: 10.0,
+            };
+            let mut content = self.view(cx, ids!(modal.content));
+            script_apply_eval!(cx, content, {
+                width: 400
+                padding: #(padding)
+            });
 
-        const MODAL_CONTENT_HEIGHT: f64 =
-            LIST_HEIGHT + SEARCH_HEIGHT + PADDING_HEIGHT;
-        const GAP: f64 = 25.0;
-
-        let modal_x;
-        let modal_y;
-        let mut bg_view_visible = false;
-
-        if cx.display_context.is_desktop() {
-            modal_x = button_rect.pos.x - GAP;
-            modal_y =
-                button_rect.pos.y - MODAL_CONTENT_HEIGHT - GAP - 5.0;
+            let anchor = DVec2 {
+                x: button_rect.pos.x,
+                y: button_rect.pos.y,
+            };
+            self.moly_modal(cx, ids!(modal))
+                .open_as_popup_above(cx, anchor, 5.0);
         } else {
-            modal_x = 0.0;
-            modal_y = cx.display_context.screen_size.y
-                - MODAL_CONTENT_HEIGHT
-                - 5.0;
-            bg_view_visible = true;
-        }
-
-        let margin = Inset {
-            left: modal_x,
-            top: modal_y,
-            right: 0.0,
-            bottom: 0.0,
-        };
-
-        let mut bg_view = self.view(cx, ids!(modal.bg_view));
-        script_apply_eval!(cx, bg_view, { visible: #(bg_view_visible) });
-
-        let mut content = self.view(cx, ids!(modal.content));
-        script_apply_eval!(cx, content, { margin: #(margin) });
-
-        if !cx.display_context.is_desktop() {
             let fill = Size::fill();
             let mut modal = self.moly_modal(cx, ids!(modal));
             script_apply_eval!(cx, modal, {
@@ -358,23 +341,15 @@ impl ModelSelector {
                 width: #(fill)
                 padding: 0
             });
-        } else {
-            let padding = Inset {
-                top: 20.0,
-                left: 10.0,
-                right: 10.0,
-                bottom: 20.0,
-            };
-            let mut content = self.view(cx, ids!(modal.content));
-            script_apply_eval!(cx, content, {
-                width: 400
-                padding: #(padding)
-            });
-        }
 
-        let modal = self.moly_modal(cx, ids!(modal));
-        #[allow(deprecated)]
-        modal.open(cx);
+            let screen_size = cx.display_context.screen_size;
+            let pos = DVec2 {
+                x: 0.0,
+                y: screen_size.y,
+            };
+            self.moly_modal(cx, ids!(modal))
+                .open_as_popup(cx, pos);
+        }
     }
 
     fn close_modal(&mut self, cx: &mut Cx) {

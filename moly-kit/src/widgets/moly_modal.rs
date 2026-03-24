@@ -45,6 +45,18 @@ pub enum MolyModalAction {
     Dismissed,
 }
 
+#[derive(Clone, Copy, Debug)]
+enum PopupPlacement {
+    /// Position the popup at the given top-left coordinate, clamped to
+    /// screen bounds.
+    AtPosition(DVec2),
+    /// Position the popup above the given anchor point with a gap. The
+    /// anchor is the top-left of the reference widget (e.g., a button).
+    /// After the content is measured, `pos.y = anchor.y - content_height
+    /// - gap`.
+    Above { anchor: DVec2, gap: f64 },
+}
+
 #[derive(Script, Widget)]
 pub struct MolyModal {
     #[source]
@@ -66,7 +78,7 @@ pub struct MolyModal {
     opened: bool,
 
     #[rust]
-    desired_popup_position: Option<DVec2>,
+    desired_popup_placement: Option<PopupPlacement>,
 }
 
 impl ScriptHook for MolyModal {
@@ -137,9 +149,9 @@ impl Widget for MolyModal {
         cx.end_pass_sized_turtle();
         self.draw_list.as_mut().unwrap().end(cx);
 
-        if let Some(pos) = self.desired_popup_position.take() {
+        if let Some(placement) = self.desired_popup_placement.take() {
             self.ui_runner().defer(move |me, cx, _| {
-                me.correct_popup_position(cx, pos);
+                me.correct_popup_position(cx, placement);
             });
         }
 
@@ -171,7 +183,20 @@ impl MolyModal {
 
     /// Opens the modal as a popup at the given position.
     pub fn open_as_popup(&mut self, cx: &mut Cx, pos: DVec2) {
-        self.desired_popup_position = Some(pos);
+        self.desired_popup_placement = Some(PopupPlacement::AtPosition(pos));
+        self.open_popup_common(cx);
+    }
+
+    /// Opens the modal as a popup positioned above the given anchor
+    /// point. The anchor is typically the top-left of a button. After
+    /// the content is drawn and measured, the popup is placed so its
+    /// bottom edge is `gap` pixels above the anchor's y coordinate.
+    pub fn open_as_popup_above(&mut self, cx: &mut Cx, anchor: DVec2, gap: f64) {
+        self.desired_popup_placement = Some(PopupPlacement::Above { anchor, gap });
+        self.open_popup_common(cx);
+    }
+
+    fn open_popup_common(&mut self, cx: &mut Cx) {
         self.view.layout.align = Align { x: 0.0, y: 0.0 };
 
         let screen_size = cx.display_context.screen_size;
@@ -213,10 +238,18 @@ impl MolyModal {
         self.opened
     }
 
-    fn correct_popup_position(&mut self, cx: &mut Cx, pos: DVec2) {
+    fn correct_popup_position(&mut self, cx: &mut Cx, placement: PopupPlacement) {
         let content = self.view.widget(cx, ids!(content));
         let content_size = content.area().rect(cx).size;
         let screen_size = cx.display_context.screen_size;
+
+        let pos = match placement {
+            PopupPlacement::AtPosition(pos) => pos,
+            PopupPlacement::Above { anchor, gap } => DVec2 {
+                x: anchor.x,
+                y: anchor.y - content_size.y - gap,
+            },
+        };
 
         let pos_x = if pos.x + content_size.x > screen_size.x {
             screen_size.x - content_size.x - 10.0
@@ -226,6 +259,8 @@ impl MolyModal {
 
         let pos_y = if pos.y + content_size.y > screen_size.y {
             screen_size.y - content_size.y - 10.0
+        } else if pos.y < 0.0 {
+            10.0
         } else {
             pos.y
         };
@@ -263,6 +298,13 @@ impl MolyModalRef {
     pub fn open_as_popup(&self, cx: &mut Cx, pos: DVec2) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.open_as_popup(cx, pos);
+        }
+    }
+
+    /// Opens the modal as a popup positioned above the given anchor.
+    pub fn open_as_popup_above(&self, cx: &mut Cx, anchor: DVec2, gap: f64) {
+        if let Some(mut inner) = self.borrow_mut() {
+            inner.open_as_popup_above(cx, anchor, gap);
         }
     }
 
