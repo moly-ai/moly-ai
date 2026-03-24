@@ -134,9 +134,7 @@ script_mod! {
             }
             top := View {
                 height: Fit
-                attachments := mod.widgets.DenseAttachmentList {
-                    wrapper +: {}
-                }
+                attachments := mod.widgets.DenseAttachmentList {}
             }
             center := View {
                 height: Fit
