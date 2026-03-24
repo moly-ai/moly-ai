@@ -13,14 +13,18 @@ script_mod! {
     use mod.prelude.widgets.*
 
     let SubmitButton = Button {
-        text: ""
         width: 28,
         height: 28,
-        padding: Inset { right: 2 },
+        padding: 0
         margin: Inset { bottom: 2 },
+        align: Align { x: 0.5, y: 0.5 }
 
-        draw_icon +: {
+        draw_text +: {
+            text_style: theme.font_icons { font_size: 11. }
             color: #fff
+            color_hover: #fff
+            color_focus: #fff
+            color_down: #fff
         }
 
         draw_bg +: {
@@ -41,11 +45,6 @@ script_mod! {
 
                 return sdf.result
             }
-        }
-        icon_walk +: {
-            width: 12,
-            height: 12
-            margin: Inset { top: 0, left: 2 },
         }
     }
 
@@ -117,8 +116,6 @@ script_mod! {
 
     mod.widgets.PromptInputBase = #(PromptInput::register_widget(vm))
     mod.widgets.PromptInput = set_type_default() do mod.widgets.PromptInputBase {
-        send_icon: crate_resource("self://resources/send.svg"),
-        stop_icon: crate_resource("self://resources/stop.svg"),
         height: Fit { max: FitBound.Abs(350) }
         flow: Down
 
@@ -202,6 +199,11 @@ pub enum Interactivity {
     Disabled,
 }
 
+/// Font Awesome icon for send (fa-paper-plane).
+const FA_SEND: &str = "\u{f1d8}";
+/// Font Awesome icon for stop (fa-stop).
+const FA_STOP: &str = "\u{f04d}";
+
 /// A prepared text input for conversation with bots.
 ///
 /// This is mostly a dummy widget. Prefer using and adapting [crate::widgets::chat::Chat] instead.
@@ -209,14 +211,6 @@ pub enum Interactivity {
 pub struct PromptInput {
     #[deref]
     pub deref: View,
-
-    /// Icon used by this widget when the task is set to [Task::Send].
-    #[live]
-    pub send_icon: Option<ScriptHandleRef>,
-
-    /// Icon used by this widget when the task is set to [Task::Stop].
-    #[live]
-    pub stop_icon: Option<ScriptHandleRef>,
 
     /// If this widget should provoke sending a message or stopping the current response.
     #[rust]
@@ -278,22 +272,8 @@ impl Widget for PromptInput {
         let mut button = self.button(cx, ids!(submit));
 
         match self.task {
-            Task::Send => {
-                if let Some(icon) = &self.send_icon {
-                    let icon = icon.clone();
-                    script_apply_eval!(cx, button, {
-                        draw_icon +: { svg: #(icon) }
-                    });
-                }
-            }
-            Task::Stop => {
-                if let Some(icon) = &self.stop_icon {
-                    let icon = icon.clone();
-                    script_apply_eval!(cx, button, {
-                        draw_icon +: { svg: #(icon) }
-                    });
-                }
-            }
+            Task::Send => button.set_text(cx, FA_SEND),
+            Task::Stop => button.set_text(cx, FA_STOP),
         }
 
         match self.interactivity {
