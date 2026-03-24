@@ -51,7 +51,7 @@ script_mod! {
         draw_bg +: {
             color: #xf9
             border_radius: 6.0
-            shadow_color: uniform(#0002)
+            shadow_color: instance(#0002)
             shadow_radius: 9.0
             shadow_offset: vec2(0.0, -2.0)
         }

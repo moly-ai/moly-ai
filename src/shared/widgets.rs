@@ -220,8 +220,8 @@ script_mod! {
         draw_bg +: {
             border_radius: uniform(3.0)
             border_size: uniform(0.0)
-            color: instance(theme.color_text)
-            color_hover: instance(theme.color_text_hover)
+            color: uniform(theme.color_text)
+            color_hover: uniform(theme.color_text_hover)
 
             get_color: fn() -> vec4 {
                 return mix(
