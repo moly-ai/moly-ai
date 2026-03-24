@@ -345,7 +345,8 @@ script_mod! {
                     self.rect_size.y
                     self.border_radius
                 )
-                sdf.fill(mix(#xee #xdd self.focus))
+                let c = mix(#xee #xdd self.focus)
+                sdf.fill(vec4(c.rgb, 0.6))
                 return sdf.result
             }
         }

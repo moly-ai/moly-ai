@@ -90,9 +90,9 @@ script_mod! {
             }
 
             draw_selection +: {
-                color: uniform(#xeee)
-                color_hover: uniform(#xddd)
-                color_focus: uniform(#xddd)
+                color: uniform(#xeee9)
+                color_hover: uniform(#xddd9)
+                color_focus: uniform(#xddd9)
             }
 
             draw_text +: {

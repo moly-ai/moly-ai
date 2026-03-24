@@ -170,9 +170,9 @@ script_mod! {
                         text_style +: { font_size: 11 }
                     }
                     draw_selection +: {
-                        color: #xd9e7e9
-                        color_hover: #xd9e7e9
-                        color_focus: #xd9e7e9
+                        color: #xd9e7e999
+                        color_hover: #xd9e7e999
+                        color_focus: #xd9e7e999
                     }
                     draw_cursor +: {
                         color: #000
