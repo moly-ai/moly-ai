@@ -346,13 +346,10 @@ impl WidgetMatchEvent for ChatHistoryCard {
             TitleState::OnEdit => self.handle_title_on_edit_actions(cx, actions, scope),
         }
 
-        let chat_options_wrapper_rect = self.view(cx, ids!(chat_options_wrapper)).area().rect(cx);
-        if self.button(cx, ids!(chat_options)).clicked(actions) {
-            let wrapper_coords = chat_options_wrapper_rect.pos;
-            let coords = dvec2(
-                wrapper_coords.x - 100.,
-                wrapper_coords.y + chat_options_wrapper_rect.size.y - 12.0,
-            );
+        let chat_options_btn = self.button(cx, ids!(chat_options));
+        if chat_options_btn.clicked(actions) {
+            let btn_rect = chat_options_btn.area().rect(cx);
+            let coords = dvec2(btn_rect.pos.x - 100., btn_rect.pos.y + btn_rect.size.y + 6.0);
 
             self.chat_history_card_options(cx, ids!(chat_history_card_options))
                 .selected(cx, self.chat_id);
