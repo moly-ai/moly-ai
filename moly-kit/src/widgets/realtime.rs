@@ -178,13 +178,13 @@ script_mod! {
                 }
 
                 draw_bg +: {
-                    color: instance(#xf)
-                    color_active: instance(#xe9)
+                    color: uniform(#xf)
+                    color_active: uniform(#xe9)
                 }
             }
 
             draw_bg +: {
-                color: instance(#xf9)
+                color: uniform(#xf9)
                 border_size: 1.0
             }
         }
