@@ -103,13 +103,42 @@ script_mod! {
         }
 
         draw_icon +: {
+            hover: instance(0.0)
+            active: instance(0.0)
             color: #x1A2533
-            color_hover: uniform(#xF9F9F9)
             color_active: uniform(#xF9F9F9)
             get_color: fn() {
-                return self.color
-                    .mix(self.color_hover, self.focus)
+                let base = self.eval_gradient()
+                let tint = self.color
                     .mix(self.color_active, self.active)
+                return vec4(tint.rgb * tint.a * base.a, tint.a * base.a)
+            }
+        }
+
+        animator +: {
+            hover +: {
+                off +: {
+                    apply +: {
+                        draw_icon: { hover: 0.0 }
+                    }
+                }
+                on +: {
+                    apply +: {
+                        draw_icon: { hover: 1.0 }
+                    }
+                }
+            }
+            active +: {
+                off +: {
+                    apply +: {
+                        draw_icon: { active: 0.0 }
+                    }
+                }
+                on +: {
+                    apply +: {
+                        draw_icon: { active: 1.0 }
+                    }
+                }
             }
         }
     }
