@@ -1,6 +1,7 @@
 use makepad_widgets::*;
 
 use crate::shared::actions::ChatAction;
+use crate::shared::toggle_panel::MolyTogglePanel;
 
 script_mod! {
     use mod.prelude.widgets.*
@@ -8,39 +9,14 @@ script_mod! {
 
     let ICON_NEW_CHAT = crate_resource("self://resources/icons/new_chat.svg")
 
-    let HeadingLabel = Label {
-        margin: Inset {left: 4 bottom: 4}
-        draw_text +: {
-            text_style: theme.font_bold {font_size: 10.5}
-            color: #3
-        }
-    }
-
-    let NoAgentsWarning = Label {
-        margin: Inset {left: 4 bottom: 4}
-        width: Fill
-        draw_text +: {
-            text_style: theme.font_regular {font_size: 8.5}
-            color: #3
-        }
-    }
-
-    // TODO: TogglePanel was removed from new Makepad. This is a simplified
-    // replacement that just shows the chat history directly in a View.
     mod.widgets.ChatHistoryPanelBase = #(ChatHistoryPanel::register_widget(vm))
-    mod.widgets.ChatHistoryPanel = set_type_default() do mod.widgets.ChatHistoryPanelBase {
-        width: Fill height: Fill
-        flow: Overlay
+    mod.widgets.ChatHistoryPanel =
+        set_type_default() do mod.widgets.ChatHistoryPanelBase {
+        ..MolyTogglePanel
 
-        View {
-            width: Fill height: Fill
-            flow: Right
-
-            View {
-                width: Fill height: Fill
-                ChatHistory {
-                    margin: Inset {top: 80}
-                }
+        open_content +: {
+            ChatHistory {
+                margin: Inset {top: 80}
             }
 
             right_border := SolidView {
@@ -52,22 +28,23 @@ script_mod! {
             }
         }
 
-        View {
-            width: Fill height: Fit
-            align: Align {x: 1.0 y: 0.0}
-            padding: Inset {top: 10 right: 10}
-
-            new_chat_button := MolyButton {
-                width: Fit
-                height: Fit
-                icon_walk +: {
-                    margin: Inset {top: -1}
-                    width: 21 height: 21
-                }
-                draw_icon +: {
-                    svg: ICON_NEW_CHAT
-                    get_color: fn() -> vec4 {
-                        return #x475467
+        persistent_content +: {
+            default +: {
+                margin: Inset { left: -10 }
+                after +: {
+                    new_chat_button := MolyButton {
+                        width: Fit
+                        height: Fit
+                        icon_walk +: {
+                            margin: Inset {top: -1}
+                            width: 21 height: 21
+                        }
+                        draw_icon +: {
+                            svg: ICON_NEW_CHAT
+                            get_color: fn() -> vec4 {
+                                return #x475467
+                            }
+                        }
                     }
                 }
             }
@@ -78,7 +55,7 @@ script_mod! {
 #[derive(Script, ScriptHook, Widget)]
 pub struct ChatHistoryPanel {
     #[deref]
-    deref: View,
+    deref: MolyTogglePanel,
 }
 
 impl Widget for ChatHistoryPanel {

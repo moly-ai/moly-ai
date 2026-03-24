@@ -481,9 +481,4 @@ script_mod! {
             }
         }
     }
-
-    // TODO: TogglePanel widget was removed from new Makepad. MolyTogglePanel is
-    // temporarily stubbed as a plain View. Consumers (chat_params.rs,
-    // chat_history_panel.rs) will need to be updated to use a replacement widget.
-    mod.widgets.MolyTogglePanel = View {}
 }

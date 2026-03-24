@@ -11,6 +11,7 @@ pub mod moly_server_popup;
 pub mod popup_notification;
 pub mod resource_imports;
 pub mod styles;
+pub mod toggle_panel;
 pub mod tooltip;
 pub mod utils;
 pub mod widgets;
@@ -21,6 +22,7 @@ pub fn script_mod(vm: &mut ScriptVm) {
     styles::script_mod(vm);
     resource_imports::script_mod(vm);
     widgets::script_mod(vm);
+    toggle_panel::script_mod(vm);
     popup_notification::script_mod(vm);
     external_link::script_mod(vm);
     download_notification_popup::script_mod(vm);
