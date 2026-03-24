@@ -153,25 +153,16 @@ script_mod! {
         }
 
         FormGroup {
+            flow: Right
             padding: Inset { top: 8 bottom: 8 }
-            include_mcp_servers := Toggle {
+            align: Align { x: 0.0 y: 0.5 }
+            spacing: 10
+            include_mcp_servers := MolySwitch {}
+            Label {
                 text: "Import MCP servers (replaces existing ones)"
-                width: Fit
-                height: Fit
                 draw_text +: {
-                    get_color: fn() -> vec4 {
-                        return #222
-                    }
-                    text_style +: { font_size: 10 }
-                }
-
-                label_walk: Walk { margin: Inset { left: 50 } }
-                draw_bg +: {
-                    size: 25.
-                }
-
-                padding: Inset {
-                    left: 5 right: 5 top: 5 bottom: 5
+                    color: #222
+                    text_style: REGULAR_FONT { font_size: 10 }
                 }
             }
         }
