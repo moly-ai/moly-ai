@@ -376,26 +376,28 @@ script_mod! {
 
         TranscriptionModelSelector {}
 
-        toggle_interruptions := Toggle {
-            text: "Allow interruptions\n(requires headphones, no AEC yet)"
-            width: Fit
-            height: Fit
-            draw_text +: {
-                get_color: fn() -> vec4 {
-                    return #222
+        View {
+            width: Fit, height: Fit
+            align: Align { x: 0.0, y: 0.5 }
+            spacing: 10
+
+            toggle_interruptions := Toggle {
+                width: Fit
+                height: Fit
+                draw_bg +: {
+                    size: 25.
                 }
-                text_style +: { font_size: 10 }
+                padding: Inset {
+                    left: 5, right: 5, top: 10, bottom: 10
+                }
             }
 
-            label_walk: Walk {
-                margin: Inset { left: 50 }
-            }
-            draw_bg +: {
-                size: 25.
-            }
-
-            padding: Inset {
-                left: 5, right: 5, top: 5, bottom: 5
+            Label {
+                text: "Allow interruptions\n(requires headphones, no AEC yet)"
+                draw_text +: {
+                    color: #222
+                    text_style +: { font_size: 10 }
+                }
             }
         }
 
