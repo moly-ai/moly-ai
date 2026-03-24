@@ -48,6 +48,18 @@ script_mod! {
         }
     }
 
+    let SendButton = SubmitButton {
+        text: "\u{f062}" // fa-arrow-up
+    }
+
+    let StopButton = SubmitButton {
+        visible: false
+        text: "\u{f04d}" // fa-stop
+        draw_text +: {
+            text_style +: { font_size: 8.5 }
+        }
+    }
+
     let AttachButton = Button {
         visible: false
         text: "\u{f0c6}" // fa-paperclip
@@ -111,7 +123,8 @@ script_mod! {
         spacing: 10
         stt := SttButton {}
         audio := AudioButton {}
-        submit := SubmitButton {}
+        send := SendButton {}
+        stop := StopButton {}
     }
 
     mod.widgets.PromptInputBase = #(PromptInput::register_widget(vm))
@@ -199,11 +212,6 @@ pub enum Interactivity {
     Disabled,
 }
 
-/// Font Awesome icon for send (fa-arrow-up).
-const FA_SEND: &str = "\u{f062}";
-/// Font Awesome icon for stop (fa-stop).
-const FA_STOP: &str = "\u{f04d}";
-
 /// A prepared text input for conversation with bots.
 ///
 /// This is mostly a dummy widget. Prefer using and adapting [crate::widgets::chat::Chat] instead.
@@ -269,21 +277,78 @@ impl Widget for PromptInput {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        let mut button = self.button(cx, ids!(submit));
+        let supports_realtime = self
+            .bot_capabilities
+            .as_ref()
+            .map(|caps| caps.has_capability(&BotCapability::AudioCall))
+            .unwrap_or(false);
 
-        match self.task {
-            Task::Send => button.set_text(cx, FA_SEND),
-            Task::Stop => button.set_text(cx, FA_STOP),
+        let supports_attachments = self
+            .bot_capabilities
+            .as_ref()
+            .map(|caps| caps.has_capability(&BotCapability::AttachmentInput))
+            .unwrap_or(false);
+
+        // Attach button: only on supported platforms and if bot supports it
+        #[cfg(any(
+            target_os = "windows",
+            target_os = "macos",
+            target_os = "linux",
+            target_arch = "wasm32"
+        ))]
+        self.button(cx, ids!(attach))
+            .set_visible(cx, supports_attachments);
+
+        #[cfg(not(any(
+            target_os = "windows",
+            target_os = "macos",
+            target_os = "linux",
+            target_arch = "wasm32"
+        )))]
+        self.button(cx, ids!(attach)).set_visible(cx, false);
+
+        // Audio button: only on non-wasm and if bot supports realtime
+        #[cfg(not(target_arch = "wasm32"))]
+        self.button(cx, ids!(audio))
+            .set_visible(cx, supports_realtime);
+
+        // Send/stop buttons: hidden for realtime, toggled by task otherwise
+        let mut send = self.button(cx, ids!(send));
+        let mut stop = self.button(cx, ids!(stop));
+
+        if supports_realtime {
+            send.set_visible(cx, false);
+            stop.set_visible(cx, false);
+        } else {
+            match self.task {
+                Task::Send => {
+                    send.set_visible(cx, true);
+                    stop.set_visible(cx, false);
+                }
+                Task::Stop => {
+                    send.set_visible(cx, false);
+                    stop.set_visible(cx, true);
+                }
+            }
         }
 
-        match self.interactivity {
-            Interactivity::Enabled => {
-                button.set_enabled(cx, true);
-            }
-            Interactivity::Disabled => {
-                button.set_enabled(cx, false);
-            }
+        // Interactivity and text input state
+        let input = self.text_input(cx, ids!(text_input));
+        if supports_realtime {
+            self.interactivity = Interactivity::Disabled;
+            input.set_is_read_only(cx, true);
+            input.set_empty_text(
+                cx,
+                "For realtime models, use the audio feature ->".to_string(),
+            );
+        } else {
+            input.set_is_read_only(cx, false);
+            input.set_empty_text(cx, "Start typing...".to_string());
         }
+
+        let enabled = self.interactivity == Interactivity::Enabled;
+        send.set_enabled(cx, enabled);
+        stop.set_enabled(cx, enabled);
 
         self.deref.draw_walk(cx, scope, walk)
     }
@@ -306,9 +371,10 @@ impl PromptInput {
     /// Note: To know what the button submission means, check [Self::task] or
     /// the utility methods.
     pub fn submitted(&self, cx: &Cx, actions: &Actions) -> bool {
-        let submit = self.button(cx, ids!(submit));
+        let send = self.button(cx, ids!(send));
+        let stop = self.button(cx, ids!(stop));
         let input = self.text_input_ref(cx);
-        (submit.clicked(actions) || input.returned(actions).is_some())
+        (send.clicked(actions) || stop.clicked(actions) || input.returned(actions).is_some())
             && self.interactivity == Interactivity::Enabled
     }
 
@@ -372,66 +438,32 @@ impl PromptInput {
 
     /// Set the capabilities of the currently selected bot
     pub fn set_bot_capabilities(&mut self, cx: &mut Cx, capabilities: Option<BotCapabilities>) {
-        self.bot_capabilities = capabilities;
-        self.update_button_visibility(cx);
-    }
-
-    pub fn set_stt_visible(&mut self, cx: &mut Cx, visible: bool) {
-        self.button(cx, ids!(stt)).set_visible(cx, visible);
-    }
-
-    /// Update button visibility based on bot capabilities
-    fn update_button_visibility(&mut self, cx: &mut Cx) {
-        let supports_attachments = self
-            .bot_capabilities
-            .as_ref()
-            .map(|caps| caps.has_capability(&BotCapability::AttachmentInput))
-            .unwrap_or(false);
-
-        let supports_realtime = self
+        let was_realtime = self
             .bot_capabilities
             .as_ref()
             .map(|caps| caps.has_capability(&BotCapability::AudioCall))
             .unwrap_or(false);
 
-        #[cfg(any(
-            target_os = "windows",
-            target_os = "macos",
-            target_os = "linux",
-            target_arch = "wasm32"
-        ))]
-        self.button(cx, ids!(attach))
-            .set_visible(cx, supports_attachments);
+        let is_realtime = capabilities
+            .as_ref()
+            .map(|caps| caps.has_capability(&BotCapability::AudioCall))
+            .unwrap_or(false);
 
-        #[cfg(not(any(
-            target_os = "windows",
-            target_os = "macos",
-            target_os = "linux",
-            target_arch = "wasm32"
-        )))]
-        self.button(cx, ids!(attach)).set_visible(cx, false);
+        self.bot_capabilities = capabilities;
 
-        #[cfg(not(target_arch = "wasm32"))]
-        self.button(cx, ids!(audio))
-            .set_visible(cx, supports_realtime);
-
-        self.button(cx, ids!(submit))
-            .set_visible(cx, !supports_realtime);
-
-        if supports_realtime {
-            self.interactivity = Interactivity::Disabled;
-            self.text_input_ref(cx).set_is_read_only(cx, true);
-            self.text_input_ref(cx).set_empty_text(
-                cx,
-                "For realtime models, use the audio feature ->".to_string(),
-            );
-            self.redraw(cx);
-        } else {
+        // Reset text input state when switching away from realtime
+        if was_realtime && !is_realtime {
             self.interactivity = Interactivity::Enabled;
             self.text_input_ref(cx).set_is_read_only(cx, false);
             self.text_input_ref(cx).set_text(cx, "");
-            self.redraw(cx);
         }
+
+        self.redraw(cx);
+    }
+
+    /// Set whether the speech-to-text button is visible.
+    pub fn set_stt_visible(&mut self, cx: &mut Cx, visible: bool) {
+        self.button(cx, ids!(stt)).set_visible(cx, visible);
     }
 }
 
