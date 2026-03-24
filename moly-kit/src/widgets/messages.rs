@@ -210,6 +210,9 @@ impl Widget for Messages {
             }
         }
 
+        self.button(cx, ids!(jump_to_bottom))
+            .set_visible(cx, !self.is_at_bottom());
+
         let previous_list_height = self.list_height;
         self.list_height = list.area().rect(cx).size.y;
 
@@ -283,9 +286,8 @@ impl Messages {
         );
 
         while let Some(index) = list.next_visible_item(cx) {
-            if index
-                >= chat_controller.state().messages.len()
-            {
+            let total = chat_controller.state().messages.len();
+            if index >= total {
                 continue;
             }
 
@@ -771,9 +773,6 @@ impl Messages {
             assert!(message.from == EntityId::App);
             assert!(message.content.text.starts_with("FIL"));
         }
-
-        self.button(cx, ids!(jump_to_bottom))
-            .set_visible(cx, !self.is_at_bottom());
     }
 
     /// Check if we're at the end of the messages list.
