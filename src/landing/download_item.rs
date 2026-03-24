@@ -182,9 +182,11 @@ script_mod! {
 
     mod.widgets.DownloadItemBase = #(DownloadItem::register_widget(vm))
     mod.widgets.DownloadItem = set_type_default() do mod.widgets.DownloadItemBase {
+        ..mod.widgets.RoundedView
         width: Fill
         height: Fit
 
+        show_bg: true
         padding: 20
         margin: Inset {bottom: 16}
         spacing: 30
@@ -195,6 +197,7 @@ script_mod! {
         draw_bg +: {
             border_color: #EAECF0
             border_size: 1.0
+            border_radius: 3.0
             color: #fff
         }
 
