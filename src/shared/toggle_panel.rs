@@ -16,6 +16,8 @@ script_mod! {
         flow: Overlay
         width: 300
         height: Fill
+        clip_x: true
+        clip_y: true
 
         open_content := View {
             width: Fill
@@ -63,11 +65,13 @@ script_mod! {
             panel: {
                 default: @open
                 open: AnimatorState {
+                    redraw: true
                     from: { all: Forward { duration: 0.3 } }
                     ease: ExpDecay { d1: 0.80 d2: 0.97 }
                     apply: { panel_progress: 1.0 }
                 }
                 close: AnimatorState {
+                    redraw: true
                     from: { all: Forward { duration: 0.3 } }
                     ease: ExpDecay { d1: 0.80 d2: 0.97 }
                     apply: { panel_progress: 0.0 }
@@ -149,16 +153,16 @@ impl MolyTogglePanel {
 
     /// Toggles the panel open or closed with animation.
     pub fn set_open(&mut self, cx: &mut Cx, open: bool) {
-        let open_btn = self.button(cx, ids!(open));
-        let close_btn = self.button(cx, ids!(close));
+        let mut open_btn = self.widget(cx, ids!(open));
+        let mut close_btn = self.widget(cx, ids!(close));
 
         if open {
-            open_btn.set_visible(cx, false);
-            close_btn.set_visible(cx, true);
+            script_apply_eval!(cx, open_btn, { visible: false });
+            script_apply_eval!(cx, close_btn, { visible: true });
             self.animator_play(cx, ids!(panel.open));
         } else {
-            close_btn.set_visible(cx, false);
-            open_btn.set_visible(cx, true);
+            script_apply_eval!(cx, close_btn, { visible: false });
+            script_apply_eval!(cx, open_btn, { visible: true });
             self.animator_play(cx, ids!(panel.close));
         }
     }
