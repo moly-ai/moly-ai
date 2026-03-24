@@ -1783,6 +1783,7 @@ name = "makepad-network"
 version = "1.0.0"
 dependencies = [
  "makepad-apple-sys",
+ "makepad-error-log",
  "makepad-futures-legacy",
  "makepad-live-id",
  "makepad-micro-serde",
