@@ -14,7 +14,7 @@ script_mod! {
         width: Fit
         height: 40
         padding: Inset {left: 20 top: 10 bottom: 10 right: 20}
-        label_walk: Walk { margin: 0 }
+        label_walk: Walk { width: Fit height: Fit margin: 0 }
         draw_text +: {
             text_style: theme.font_bold {font_size: 9}
             color_active: #475467

@@ -256,10 +256,10 @@ impl Widget for ModelFilesItem {
 
             let status_color = match download.status {
                 PendingDownloadsStatus::Downloading | PendingDownloadsStatus::Initializing => {
-                    vec3(0.035, 0.572, 0.314)
+                    vec4(0.035, 0.572, 0.314, 1.0)
                 }
-                PendingDownloadsStatus::Paused => vec3(0.4, 0.44, 0.52),
-                PendingDownloadsStatus::Error => vec3(0.7, 0.11, 0.09),
+                PendingDownloadsStatus::Paused => vec4(0.4, 0.44, 0.52, 1.0),
+                PendingDownloadsStatus::Error => vec4(0.7, 0.11, 0.09, 1.0),
             };
 
             let pending = ids!(cell4.download_pending_controls);
@@ -288,44 +288,44 @@ impl Widget for ModelFilesItem {
                 draw_bg +: { color: #(status_color) }
             });
 
-            self.view(
+            self.button(
                 cx,
                 ids!(cell4.download_pending_controls.resume_download_button),
             )
             .set_visible(cx, is_resume_download_visible);
-            self.view(
+            self.button(
                 cx,
                 ids!(cell4.download_pending_controls.retry_download_button),
             )
             .set_visible(cx, is_retry_download_visible);
-            self.view(
+            self.button(
                 cx,
                 ids!(cell4.download_pending_controls.pause_download_button),
             )
             .set_visible(cx, is_pause_download_visible);
-            self.view(
+            self.button(
                 cx,
                 ids!(cell4.download_pending_controls.cancel_download_button),
             )
             .set_visible(cx, is_cancel_download_visible);
 
-            self.view(cx, ids!(cell4.start_chat_button))
+            self.button(cx, ids!(cell4.start_chat_button))
                 .set_visible(cx, false);
-            self.view(cx, ids!(cell4.download_button))
+            self.button(cx, ids!(cell4.download_button))
                 .set_visible(cx, false);
         } else if files_info.file.downloaded {
             self.view(cx, ids!(cell4.download_pending_controls))
                 .set_visible(cx, false);
-            self.view(cx, ids!(cell4.start_chat_button))
+            self.button(cx, ids!(cell4.start_chat_button))
                 .set_visible(cx, true);
-            self.view(cx, ids!(cell4.download_button))
+            self.button(cx, ids!(cell4.download_button))
                 .set_visible(cx, false);
         } else {
             self.view(cx, ids!(cell4.download_pending_controls))
                 .set_visible(cx, false);
-            self.view(cx, ids!(cell4.start_chat_button))
+            self.button(cx, ids!(cell4.start_chat_button))
                 .set_visible(cx, false);
-            self.view(cx, ids!(cell4.download_button))
+            self.button(cx, ids!(cell4.download_button))
                 .set_visible(cx, true);
         };
 

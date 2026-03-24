@@ -236,7 +236,7 @@ impl Widget for DownloadItem {
         let mut label = self.label(cx, ids!(progress));
         match download.status {
             PendingDownloadsStatus::Initializing => {
-                let downloading_color = vec3(0.035, 0.572, 0.314); //#099250
+                let downloading_color = vec4(0.035, 0.572, 0.314, 1.0); //#099250
 
                 label.set_text(cx, &format!("Downloading {:.1}%", download.progress));
                 script_apply_eval!(cx, label, {
@@ -255,7 +255,7 @@ impl Widget for DownloadItem {
                 self.button(cx, ids!(cancel_button)).set_visible(cx, false);
             }
             PendingDownloadsStatus::Downloading => {
-                let downloading_color = vec3(0.035, 0.572, 0.314); //#099250
+                let downloading_color = vec4(0.035, 0.572, 0.314, 1.0); //#099250
 
                 label.set_text(cx, &format!("Downloading {:.1}%", download.progress));
                 script_apply_eval!(cx, label, {
@@ -274,7 +274,7 @@ impl Widget for DownloadItem {
                 self.button(cx, ids!(cancel_button)).set_visible(cx, true);
             }
             PendingDownloadsStatus::Paused => {
-                let paused_color = vec3(0.4, 0.44, 0.52); //#667085
+                let paused_color = vec4(0.4, 0.44, 0.52, 1.0); //#667085
 
                 label.set_text(cx, &format!("Paused {:.1}%", download.progress));
                 script_apply_eval!(cx, label, {
@@ -293,7 +293,7 @@ impl Widget for DownloadItem {
                 self.button(cx, ids!(cancel_button)).set_visible(cx, true);
             }
             PendingDownloadsStatus::Error => {
-                let failed_color = vec3(0.7, 0.11, 0.09); // #B42318
+                let failed_color = vec4(0.7, 0.11, 0.09, 1.0); // #B42318
 
                 label.set_text(cx, &format!("Error {:.1}%", download.progress));
                 script_apply_eval!(cx, label, {
