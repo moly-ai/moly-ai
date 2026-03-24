@@ -98,6 +98,7 @@ script_mod! {
             padding: Inset {top: 12.0 bottom: 12.0 left: 43.0 right: 43.0}
         }
 
+        content_animation_progress: 0.0
         animator: Animator {
             content: {
                 default: @collapse
@@ -105,13 +106,13 @@ script_mod! {
                     redraw: true
                     from: {all: Forward {duration: 0.3}}
                     ease: ExpDecay {d1: 0.80 d2: 0.97}
-                    apply: {content: { height: 350.0 }}
+                    apply: {content_animation_progress: 1.0}
                 }
                 collapse: AnimatorState {
                     redraw: true
                     from: {all: Forward {duration: 0.3}}
                     ease: ExpDecay {d1: 0.80 d2: 0.97}
-                    apply: {content: { height: 0.0 }}
+                    apply: {content_animation_progress: 0.0}
                 }
             }
         }
@@ -126,6 +127,9 @@ pub struct Downloads {
     #[deref]
     view: View,
 
+    #[live]
+    content_animation_progress: f64,
+
     #[apply_default]
     animator: Animator,
 }
@@ -136,6 +140,9 @@ impl Widget for Downloads {
         self.widget_match_event(cx, event, scope);
 
         if self.animator_handle_event(cx, event).must_redraw() {
+            let height = self.content_animation_progress * 350.0;
+            let mut content = self.view(cx, ids!(content));
+            script_apply_eval!(cx, content, { height: #(height) });
             self.redraw(cx);
         }
 
