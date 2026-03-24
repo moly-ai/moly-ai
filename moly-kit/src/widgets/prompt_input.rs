@@ -13,6 +13,7 @@ script_mod! {
     use mod.prelude.widgets.*
 
     let SubmitButton = Button {
+        text: ""
         width: 28,
         height: 28,
         padding: Inset { right: 2 },
@@ -134,7 +135,7 @@ script_mod! {
             top := View {
                 height: Fit
                 attachments := mod.widgets.DenseAttachmentList {
-                    wrapper := {}
+                    wrapper +: {}
                 }
             }
             center := View {
@@ -157,6 +158,7 @@ script_mod! {
                         color_focus: #000
                         color_empty: #x98A2B3
                         color_empty_focus: #x98A2B3
+                        color_empty_hover: #x98A2B3
                         text_style +: { font_size: 11 }
                     }
                     draw_selection +: {
