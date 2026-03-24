@@ -129,8 +129,9 @@ script_mod! {
                 align: Align { x: 0.0 y: 0.5 }
 
                 provider_name_label := Label {
-                    flow: Right
                     width: Fill
+                    height: Fit
+                    flow: Flow.Right{wrap: false}
                     draw_text +: {
                         text_style: REGULAR_FONT { font_size: 11 }
                         color: #000
