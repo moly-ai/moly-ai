@@ -109,8 +109,7 @@ impl Widget for MolyModal {
                 event.hits_with_sweep_area(cx, self.draw_bg.area(), self.draw_bg.area())
             {
                 if !content_rec.contains(fe.abs) {
-                    let widget_uid = content.widget_uid();
-                    cx.widget_action(widget_uid, MolyModalAction::Dismissed);
+                    cx.widget_action(self.widget_uid(), MolyModalAction::Dismissed);
                     self.close(cx);
                 }
             }
