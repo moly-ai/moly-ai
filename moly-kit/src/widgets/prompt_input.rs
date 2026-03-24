@@ -220,6 +220,14 @@ pub struct PromptInput {
     #[deref]
     pub deref: View,
 
+    /// Placeholder text shown when the input is empty.
+    #[live(String::from("Start typing..."))]
+    pub empty_text: String,
+
+    /// Placeholder text shown when a realtime model is selected.
+    #[live(String::from("For realtime models, use the audio feature ->"))]
+    pub realtime_empty_text: String,
+
     /// If this widget should provoke sending a message or stopping the current response.
     #[rust]
     pub task: Task,
@@ -337,13 +345,10 @@ impl Widget for PromptInput {
         if supports_realtime {
             self.interactivity = Interactivity::Disabled;
             input.set_is_read_only(cx, true);
-            input.set_empty_text(
-                cx,
-                "For realtime models, use the audio feature ->".to_string(),
-            );
+            input.set_empty_text(cx, self.realtime_empty_text.clone());
         } else {
             input.set_is_read_only(cx, false);
-            input.set_empty_text(cx, "Start typing...".to_string());
+            input.set_empty_text(cx, self.empty_text.clone());
         }
 
         let enabled = self.interactivity == Interactivity::Enabled;
