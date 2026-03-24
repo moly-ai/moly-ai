@@ -20,7 +20,7 @@ script_mod! {
         align: Align { x: 0.5, y: 0.5 }
 
         draw_text +: {
-            text_style: theme.font_icons { font_size: 11. }
+            text_style: theme.font_icons { font_size: 11 }
             color: #fff
             color_hover: #fff
             color_focus: #fff
@@ -199,8 +199,8 @@ pub enum Interactivity {
     Disabled,
 }
 
-/// Font Awesome icon for send (fa-paper-plane).
-const FA_SEND: &str = "\u{f1d8}";
+/// Font Awesome icon for send (fa-arrow-up).
+const FA_SEND: &str = "\u{f062}";
 /// Font Awesome icon for stop (fa-stop).
 const FA_STOP: &str = "\u{f04d}";
 
