@@ -2,15 +2,17 @@ use makepad_widgets::*;
 
 use crate::{
     data::{chats::chat::ChatId, store::Store},
-    shared::tooltip::TooltipWidgetExt,
+    shared::{toggle_panel::MolyTogglePanel, tooltip::TooltipWidgetExt},
 };
 
 script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
 
-    let ICON_CLOSE_PANEL = crate_resource("self://resources/icons/close_right_panel.svg")
-    let ICON_OPEN_PANEL = crate_resource("self://resources/icons/open_right_panel.svg")
+    let ICON_CLOSE_PANEL =
+        crate_resource("self://resources/icons/close_right_panel.svg")
+    let ICON_OPEN_PANEL =
+        crate_resource("self://resources/icons/open_right_panel.svg")
 
     let ChatParamsTextInputWrapper = RoundedView {
         width: Fill
@@ -19,172 +21,215 @@ script_mod! {
             border_radius: uniform(5.0)
             color: #fff
             border_size: uniform(1.0)
-            border_color: instance(#D9D9D9)
+            border_color: instance(#xD9D9D9)
         }
         scrolled_content := ScrollYView {
-            margin: Inset {left: 1 right: 1 top: 1 bottom: 1}
+            margin: Inset { left: 1 right: 1 top: 1 bottom: 1 }
             width: Fill
             height: Fill
         }
     }
 
-    // TODO: TogglePanel was removed from new Makepad. This is a simplified
-    // replacement that just shows the params content directly in a View.
     mod.widgets.ChatParamsBase = #(ChatParams::register_widget(vm))
-    mod.widgets.ChatParams = set_type_default() do mod.widgets.ChatParamsBase {
-        ..mod.widgets.SolidView
-        width: Fill height: Fill
-        padding: Inset {top: 70 left: 25.0 right: 25.0}
-        spacing: 35
-        flow: Down
-        show_bg: true
-        draw_bg +: {
-            color: #F2F4F7
-        }
+    mod.widgets.ChatParams =
+        set_type_default() do mod.widgets.ChatParamsBase {
+        ..MolyTogglePanel
+        width: 110
 
-        label := Label {
-            draw_text +: {
-                text_style: theme.font_bold {font_size: 12}
-                color: #x667085
-            }
-            text: "Chat Settings"
-        }
-
-        View {
-            flow: Down
-            height: Fit
-            width: Fill
-            spacing: 12
-            padding: Inset {left: 4}
-            system_prompt_label := Label {
-                draw_text +: {
-                    text_style: theme.font_bold {font_size: 10}
-                    color: #0
-                }
-                text: "System Prompt"
-                hover_actions_enabled: true
-            }
-            ChatParamsTextInputWrapper {
-                height: 90
-                scrolled_content +: {
-                    system_prompt := MolyTextInput {
-                        width: Fill
-                        height: Fit
-                        empty_text: "Enter a system prompt"
-                        draw_bg +: {
-                            border_radius: uniform(0.0)
-                            color: #0000
-                            border_size: uniform(0.0)
-                        }
-                        draw_text +: {
-                            text_style: REGULAR_FONT {font_size: 10}
-                        }
-                    }
-                }
-            }
-        }
-
-        Label {
-            draw_text +: {
-                text_style: theme.font_bold {font_size: 10}
-                color: #x667085
-            }
-            text: "INFERENCE PARAMETERS"
-        }
-
-        View {
-            flow: Down
-            spacing: 24
-
-            temperature := MolySlider {
-                default: 1.0
-                text: "Temperature"
-                min: 0.0
-                max: 2.0
-            }
-
-            top_p := MolySlider {
-                text: "Top P"
-                min: 0.0
-                max: 1.0
-            }
-
+        open_content +: {
             View {
-                flow: Right
-                height: Fit
-                width: Fill
-                align: Align {y: 0.5}
-                padding: Inset {left: 4}
-                stream_label := Label {
-                    width: Fill
-                    draw_text +: {
-                        text_style: theme.font_bold {font_size: 10}
-                        color: #0
-                    }
-                    text: "Stream"
-                    hover_actions_enabled: true
-                }
-                stream := MolySwitch {
-                    active: true
-                }
-            }
-
-            max_tokens := MolySlider {
-                text: "Max Tokens"
-                min: 100.0
-                max: 2048.0
-                step: 1.0
-            }
-
-            View {
+                width: Fill height: Fill
+                padding: Inset { top: 70 left: 25.0 right: 25.0 }
+                spacing: 35
                 flow: Down
-                height: Fit
-                width: Fill
-                spacing: 12
-                padding: Inset {left: 4}
-                stop_label := Label {
-                    width: Fill
-                    draw_text +: {
-                        text_style: theme.font_bold {font_size: 10}
-                        color: #0
-                    }
-                    text: "Stop"
-                    hover_actions_enabled: true
+                show_bg: true
+                draw_bg +: {
+                    color: #xF2F4F7
                 }
-                ChatParamsTextInputWrapper {
-                    height: 65
-                    scrolled_content +: {
-                        stop := MolyTextInput {
-                            width: Fill
-                            height: Fit
-                            empty_text: " "
-                            draw_bg +: {
-                                border_radius: uniform(0.0)
-                                color: #0000
-                                border_size: uniform(0.0)
+
+                label := Label {
+                    draw_text +: {
+                        text_style: theme.font_bold { font_size: 12 }
+                        color: #x667085
+                    }
+                    text: "Chat Settings"
+                }
+
+                View {
+                    flow: Down
+                    height: Fit
+                    width: Fill
+                    spacing: 12
+                    padding: Inset { left: 4 }
+                    system_prompt_label := Label {
+                        draw_text +: {
+                            text_style: theme.font_bold {
+                                font_size: 10
                             }
-                            draw_text +: {
-                                text_style: REGULAR_FONT {font_size: 10}
+                            color: #0
+                        }
+                        text: "System Prompt"
+                        hover_actions_enabled: true
+                    }
+                    ChatParamsTextInputWrapper {
+                        height: 90
+                        scrolled_content +: {
+                            system_prompt := MolyTextInput {
+                                width: Fill
+                                height: Fit
+                                empty_text: "Enter a system prompt"
+                                draw_bg +: {
+                                    border_radius: uniform(0.0)
+                                    color: #0000
+                                    border_size: uniform(0.0)
+                                }
+                                draw_text +: {
+                                    text_style: REGULAR_FONT {
+                                        font_size: 10
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            frequency_penalty := MolySlider {
-                text: "Frequency Penalty"
-                min: 0.0
-                max: 1.0
-            }
+                Label {
+                    draw_text +: {
+                        text_style: theme.font_bold {
+                            font_size: 10
+                        }
+                        color: #x667085
+                    }
+                    text: "INFERENCE PARAMETERS"
+                }
 
-            presence_penalty := MolySlider {
-                text: "Presence Penalty"
-                min: 0.0
-                max: 1.0
+                View {
+                    flow: Down
+                    spacing: 24
+
+                    temperature := MolySlider {
+                        default: 1.0
+                        text: "Temperature"
+                        min: 0.0
+                        max: 2.0
+                    }
+
+                    top_p := MolySlider {
+                        text: "Top P"
+                        min: 0.0
+                        max: 1.0
+                    }
+
+                    View {
+                        flow: Right
+                        height: Fit
+                        width: Fill
+                        align: Align { y: 0.5 }
+                        padding: Inset { left: 4 }
+                        stream_label := Label {
+                            width: Fill
+                            draw_text +: {
+                                text_style: theme.font_bold {
+                                    font_size: 10
+                                }
+                                color: #0
+                            }
+                            text: "Stream"
+                            hover_actions_enabled: true
+                        }
+                        stream := MolySwitch {
+                            active: true
+                        }
+                    }
+
+                    max_tokens := MolySlider {
+                        text: "Max Tokens"
+                        min: 100.0
+                        max: 2048.0
+                        step: 1.0
+                    }
+
+                    View {
+                        flow: Down
+                        height: Fit
+                        width: Fill
+                        spacing: 12
+                        padding: Inset { left: 4 }
+                        stop_label := Label {
+                            width: Fill
+                            draw_text +: {
+                                text_style: theme.font_bold {
+                                    font_size: 10
+                                }
+                                color: #0
+                            }
+                            text: "Stop"
+                            hover_actions_enabled: true
+                        }
+                        ChatParamsTextInputWrapper {
+                            height: 65
+                            scrolled_content +: {
+                                stop := MolyTextInput {
+                                    width: Fill
+                                    height: Fit
+                                    empty_text: " "
+                                    draw_bg +: {
+                                        border_radius: uniform(0.0)
+                                        color: #0000
+                                        border_size: uniform(0.0)
+                                    }
+                                    draw_text +: {
+                                        text_style: REGULAR_FONT {
+                                            font_size: 10
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    frequency_penalty := MolySlider {
+                        text: "Frequency Penalty"
+                        min: 0.0
+                        max: 1.0
+                    }
+
+                    presence_penalty := MolySlider {
+                        text: "Presence Penalty"
+                        min: 0.0
+                        max: 1.0
+                    }
+                }
+            }
+        }
+
+        persistent_content +: {
+            default +: {
+                before +: {
+                    width: Fill
+                }
+                open +: {
+                    visible: true
+                    draw_icon +: {
+                        svg: ICON_OPEN_PANEL
+                    }
+                }
+                close +: {
+                    visible: false
+                    draw_icon +: {
+                        svg: ICON_CLOSE_PANEL
+                    }
+                }
             }
         }
 
         tooltip := Tooltip {}
+
+        animator +: {
+            panel +: {
+                default: @close
+            }
+        }
     }
 }
 
@@ -200,7 +245,7 @@ const TOOLTIP_OFFSET_BOTTOM: DVec2 = DVec2 {
 #[derive(Script, ScriptHook, Widget)]
 pub struct ChatParams {
     #[deref]
-    deref: View,
+    deref: MolyTogglePanel,
 
     #[rust]
     current_chat_id: Option<ChatId>,
@@ -228,7 +273,6 @@ impl Widget for ChatParams {
             let presence_penalty = self.slider(cx, ids!(presence_penalty));
             let stop = self.text_input(cx, ids!(stop));
             let stream = self.check_box(cx, ids!(stream));
-
             let system_prompt = self.text_input(cx, ids!(system_prompt));
 
             temperature.set_value(cx, ip.temperature.into());
@@ -241,9 +285,8 @@ impl Widget for ChatParams {
             let system_prompt_value = chat.system_prompt.clone().unwrap_or_default();
             system_prompt.set_text(cx, &system_prompt_value);
 
-            // Currently, `active` and `set_active` interact with the animator of
-            // the widget to do what they do. To avoid some visual issues, we should
-            // not trigger the animator unnecessarily. This is a workaround.
+            // Avoid triggering the animator unnecessarily when the
+            // value already matches.
             if stream.active(cx) != ip.stream {
                 stream.set_active(cx, ip.stream);
             }
@@ -318,9 +361,10 @@ impl ChatParams {
 
         self.handle_tooltip_actions_for_label(
             ids!(system_prompt_label),
-            "A system prompt is a fixed prompt providing context and instructions \
-             to the model. The system prompt is always included in the provided \
-             input to the LLM, regardless of the user prompt."
+            "A system prompt is a fixed prompt providing context \
+             and instructions to the model. The system prompt is \
+             always included in the provided input to the LLM, \
+             regardless of the user prompt."
                 .to_string(),
             TOOLTIP_OFFSET,
             cx,
@@ -329,9 +373,10 @@ impl ChatParams {
 
         self.handle_tooltip_actions_for_slider(
             ids!(temperature),
-            "Influences the randomness of the model's output. A higher value \
-             leads to more random and diverse responses, while a lower value \
-             produces more predictable outputs."
+            "Influences the randomness of the model's output. A \
+             higher value leads to more random and diverse \
+             responses, while a lower value produces more \
+             predictable outputs."
                 .to_string(),
             TOOLTIP_OFFSET,
             cx,
@@ -340,13 +385,14 @@ impl ChatParams {
 
         self.handle_tooltip_actions_for_slider(
             ids!(top_p),
-            "Top P, also known as nucleus sampling, is another parameter that \
-             influences the randomness of LLM output. This parameter determines \
-             the threshold probability for including tokens in a candidate set \
-             used by the LLM to generate output. Lower values of this parameter \
-             result in more precise and fact-based responses from the LLM, while \
-             higher values increase randomness and diversity in the generated \
-             output."
+            "Top P, also known as nucleus sampling, is another \
+             parameter that influences the randomness of LLM \
+             output. This parameter determines the threshold \
+             probability for including tokens in a candidate set \
+             used by the LLM to generate output. Lower values of \
+             this parameter result in more precise and fact-based \
+             responses from the LLM, while higher values increase \
+             randomness and diversity in the generated output."
                 .to_string(),
             TOOLTIP_OFFSET,
             cx,
@@ -355,9 +401,9 @@ impl ChatParams {
 
         self.handle_tooltip_actions_for_label(
             ids!(stream_label),
-            "Streaming is the sending of words as they are created by the AI \
-             language model one at a time, so you can show them as they are \
-             being generated."
+            "Streaming is the sending of words as they are \
+             created by the AI language model one at a time, so \
+             you can show them as they are being generated."
                 .to_string(),
             TOOLTIP_OFFSET,
             cx,
@@ -366,10 +412,11 @@ impl ChatParams {
 
         self.handle_tooltip_actions_for_slider(
             ids!(max_tokens),
-            "The max tokens parameter sets the upper limit for the total \
-             number of tokens, encompassing both the input provided to the LLM \
-             as a prompt and the output tokens generated by the LLM in response \
-             to that prompt."
+            "The max tokens parameter sets the upper limit for \
+             the total number of tokens, encompassing both the \
+             input provided to the LLM as a prompt and the output \
+             tokens generated by the LLM in response to that \
+             prompt."
                 .to_string(),
             TOOLTIP_OFFSET,
             cx,
@@ -378,10 +425,11 @@ impl ChatParams {
 
         self.handle_tooltip_actions_for_label(
             ids!(stop_label),
-            "Stop sequences are used to make the model stop generating tokens \
-             at a desired point, such as the end of a sentence or a list. The \
-             model response will not contain the stop sequence and you can pass \
-             up to four stop sequences."
+            "Stop sequences are used to make the model stop \
+             generating tokens at a desired point, such as the \
+             end of a sentence or a list. The model response will \
+             not contain the stop sequence and you can pass up to \
+             four stop sequences."
                 .to_string(),
             TOOLTIP_OFFSET,
             cx,
@@ -390,12 +438,14 @@ impl ChatParams {
 
         self.handle_tooltip_actions_for_slider(
             ids!(frequency_penalty),
-            "This parameter is used to discourage the model from repeating \
-             the same words or phrases too frequently within the generated \
-             text. It is a value that is added to the log-probability of a \
-             token each time it occurs in the generated text. A higher \
-             frequency_penalty value will result in the model being more \
-             conservative in its use of repeated tokens."
+            "This parameter is used to discourage the model from \
+             repeating the same words or phrases too frequently \
+             within the generated text. It is a value that is \
+             added to the log-probability of a token each time it \
+             occurs in the generated text. A higher \
+             frequency_penalty value will result in the model \
+             being more conservative in its use of repeated \
+             tokens."
                 .to_string(),
             TOOLTIP_OFFSET_BOTTOM,
             cx,
@@ -404,12 +454,14 @@ impl ChatParams {
 
         self.handle_tooltip_actions_for_slider(
             ids!(presence_penalty),
-            "This parameter is used to encourage the model to include a \
-             diverse range of tokens in the generated text. It is a value \
-             that is subtracted from the log-probability of a token each \
-             time it is generated. A higher presence_penalty value will \
-             result in the model being more likely to generate tokens that \
-             have not yet been included in the generated text."
+            "This parameter is used to encourage the model to \
+             include a diverse range of tokens in the generated \
+             text. It is a value that is subtracted from the \
+             log-probability of a token each time it is \
+             generated. A higher presence_penalty value will \
+             result in the model being more likely to generate \
+             tokens that have not yet been included in the \
+             generated text."
                 .to_string(),
             TOOLTIP_OFFSET_BOTTOM,
             cx,
