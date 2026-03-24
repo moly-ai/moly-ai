@@ -237,8 +237,16 @@ impl Widget for ModelFilesItem {
 
         self.label(cx, ids!(cell1.filename)).set_text(cx, filename);
         self.label(cx, ids!(cell2.full_size)).set_text(cx, &size);
-        self.label(cx, ids!(cell3.quantization_tag.quantization))
-            .set_text(cx, quantization);
+
+        let show_quantization = !quantization.is_empty();
+        if show_quantization {
+            self.label(cx, ids!(cell3.quantization_tag.quantization))
+                .set_text(cx, quantization);
+        }
+        let mut quantization_tag = self.view(cx, ids!(cell3.quantization_tag));
+        script_apply_eval!(cx, quantization_tag, {
+            visible: #(show_quantization)
+        });
 
         if let Some(download) = &files_info.download {
             let progress = format!("{:.1}%", download.progress);

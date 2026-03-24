@@ -229,11 +229,19 @@ impl Widget for DownloadItem {
         self.label(cx, ids!(filename))
             .set_text(cx, download.file.name.as_str());
 
+        let architecture = download.model.architecture.as_str();
+        let show_arch = !architecture.is_empty();
         self.label(cx, ids!(architecture_tag.caption))
-            .set_text(cx, download.model.architecture.as_str());
+            .set_text(cx, architecture);
+        let mut arch_tag = self.view(cx, ids!(architecture_tag));
+        script_apply_eval!(cx, arch_tag, { visible: #(show_arch) });
 
+        let requires = download.model.requires.as_str();
+        let show_requires = !requires.is_empty();
         self.label(cx, ids!(params_size_tag.caption))
-            .set_text(cx, &&download.model.requires.as_str());
+            .set_text(cx, requires);
+        let mut req_tag = self.view(cx, ids!(params_size_tag));
+        script_apply_eval!(cx, req_tag, { visible: #(show_requires) });
 
         let progress_bar_width = download.progress * 6.0; // 6.0 = 600px / 100%
         let mut label = self.label(cx, ids!(progress));
