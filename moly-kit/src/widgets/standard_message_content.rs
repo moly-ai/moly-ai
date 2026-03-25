@@ -66,7 +66,9 @@ impl StandardMessageContent {
         metadata: &MessageMetadata,
     ) {
         /// String to add as suffix to the message text when its being typed.
-        const TYPING_INDICATOR: &str = "●";
+        // TODO: Restore "●" or "▎".
+        // The "IBM Plex Sans" font that Makepad is using by default does not include these and there is no fallback font.
+        const TYPING_INDICATOR: &str = "|";
 
         let citation_list = self.citation_list(cx, ids!(citations));
         citation_list.borrow_mut().unwrap().urls = content.citations.clone();
@@ -179,7 +181,6 @@ impl StandardMessageContentRef {
     /// See [`StandardMessageContent::set_content`].
     pub fn set_content(&mut self, cx: &mut Cx, content: &MessageContent) {
         let Some(mut inner) = self.borrow_mut() else {
-            log!("DEBUG SMC Ref::set_content: borrow_mut FAILED");
             return;
         };
 
@@ -194,7 +195,6 @@ impl StandardMessageContentRef {
         metadata: &MessageMetadata,
     ) {
         let Some(mut inner) = self.borrow_mut() else {
-            log!("DEBUG SMC Ref::set_content_with_metadata: borrow_mut FAILED");
             return;
         };
 
