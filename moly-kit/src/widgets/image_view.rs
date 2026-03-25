@@ -39,28 +39,57 @@ impl Widget for ImageView {
         let available_width = rect.size.x;
         let available_height = rect.size.y;
 
-        let dpi = cx.current_dpi_factor();
         let (image_width, image_height) = self.image_size(cx);
+        if image_width == 0
+            || image_height == 0
+            || available_width <= 0.0
+            || available_height <= 0.0
+        {
+            return self.deref.draw_walk(cx, scope, walk);
+        }
+
+        let dpi = cx.current_dpi_factor();
         let image_width = image_width as f64 * dpi;
         let image_height = image_height as f64 * dpi;
 
-        let scale_x = available_width / image_width;
-        let scale_y = available_height / image_height;
+        if self.contain {
+            let scale_x = available_width / image_width;
+            let scale_y = available_height / image_height;
+            let scale = scale_x.min(scale_y).clamp(0.0, 1.0);
+            let scaled_width = image_width * scale;
+            let scaled_height = image_height * scale;
 
-        let scale = if self.contain {
-            scale_x.min(scale_y).clamp(0.0, 1.0)
+            let mut image = self.image_ref(cx);
+            script_apply_eval!(cx, image, {
+                width: #(scaled_width)
+                height: #(scaled_height)
+            });
         } else {
-            scale_x.max(scale_y)
-        };
+            // Cover mode: image fills the container, centered crop via shader.
+            let container_aspect = available_width / available_height;
+            let image_aspect = image_width / image_height;
+            let r = container_aspect / image_aspect;
 
-        let scaled_width = image_width * scale;
-        let scaled_height = image_height * scale;
+            let (sx, sy, px, py) = if r >= 1.0 {
+                // Container wider than image: full width, crop height.
+                (1.0, 1.0 / r, 0.0, (1.0 - 1.0 / r) / 2.0)
+            } else {
+                // Container taller than image: full height, crop width.
+                (r, 1.0, (1.0 - r) / 2.0, 0.0)
+            };
+            let image_scale = vec2(sx as f32, sy as f32);
+            let image_pan = vec2(px as f32, py as f32);
 
-        let mut image = self.image_ref(cx);
-        script_apply_eval!(cx, image, {
-            width: #(scaled_width)
-            height: #(scaled_height)
-        });
+            let mut image = self.image_ref(cx);
+            script_apply_eval!(cx, image, {
+                width: #(available_width)
+                height: #(available_height)
+                draw_bg +: {
+                    image_scale: #(image_scale)
+                    image_pan: #(image_pan)
+                }
+            });
+        }
 
         self.deref.draw_walk(cx, scope, walk)
     }
