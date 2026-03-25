@@ -618,10 +618,11 @@ impl Messages {
                             (model_name, avatar)
                         });
 
-                    let item =
-                        if message.metadata.is_writing()
-                            && message.content.is_empty()
-                        {
+                    let is_loading =
+                        message.metadata.is_writing()
+                            && message.content.is_empty();
+
+                    let item = if is_loading {
                             let item = list.item(
                                 cx,
                                 index,
@@ -702,37 +703,39 @@ impl Messages {
                     item.label(cx, ids!(name))
                         .set_text(cx, name.as_str());
 
-                    let mut slot =
-                        item.slot(cx, ids!(content));
-                    if let Some(custom_content) = self
-                        .custom_contents
-                        .iter_mut()
-                        .find_map(|cw| {
-                            cw.content_widget(
-                                cx,
-                                slot.current(),
-                                &message.content,
-                            )
-                        })
-                    {
-                        slot.replace(custom_content);
-                    } else {
-                        slot.restore();
-                        slot.default()
-                            .as_standard_message_content()
-                            .set_content_with_metadata(
-                                cx,
-                                &message.content,
-                                &message.metadata,
-                            );
-                    }
+                    if !is_loading {
+                        let mut slot =
+                            item.slot(cx, ids!(content));
+                        if let Some(custom_content) = self
+                            .custom_contents
+                            .iter_mut()
+                            .find_map(|cw| {
+                                cw.content_widget(
+                                    cx,
+                                    slot.current(),
+                                    &message.content,
+                                )
+                            })
+                        {
+                            slot.replace(custom_content);
+                        } else {
+                            slot.restore();
+                            slot.default()
+                                .as_standard_message_content()
+                                .set_content_with_metadata(
+                                    cx,
+                                    &message.content,
+                                    &message.metadata,
+                                );
+                        }
 
-                    let has_any_tool_calls =
-                        !message.content.tool_calls.is_empty();
-                    if !has_any_tool_calls {
-                        self.apply_editor_visibility(
-                            cx, &item, index,
-                        );
+                        let has_any_tool_calls =
+                            !message.content.tool_calls.is_empty();
+                        if !has_any_tool_calls {
+                            self.apply_editor_visibility(
+                                cx, &item, index,
+                            );
+                        }
                     }
 
                     item

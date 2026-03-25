@@ -52,12 +52,12 @@ script_mod! {
                 start: AnimatorState {
                     redraw: true
                     from: { all: Forward { duration: 0.33 } }
-                    apply: { line1: { draw_bg: { dither: 0.1 } } }
+                    apply: { dither1: 0.1 }
                 }
                 run: AnimatorState {
                     redraw: true
                     from: { all: Forward { duration: 0.33 } }
-                    apply: { line1: { draw_bg: { dither: 0.9 } } }
+                    apply: { dither1: 0.9 }
                 }
             }
 
@@ -66,12 +66,12 @@ script_mod! {
                 start: AnimatorState {
                     redraw: true
                     from: { all: Forward { duration: 0.33 } }
-                    apply: { line2: { draw_bg: { dither: 0.1 } } }
+                    apply: { dither2: 0.1 }
                 }
                 run: AnimatorState {
                     redraw: true
                     from: { all: Forward { duration: 0.33 } }
-                    apply: { line2: { draw_bg: { dither: 0.9 } } }
+                    apply: { dither2: 0.9 }
                 }
             }
 
@@ -80,12 +80,12 @@ script_mod! {
                 start: AnimatorState {
                     redraw: true
                     from: { all: Forward { duration: 0.33 } }
-                    apply: { line3: { draw_bg: { dither: 0.1 } } }
+                    apply: { dither3: 0.1 }
                 }
                 run: AnimatorState {
                     redraw: true
                     from: { all: Forward { duration: 0.33 } }
-                    apply: { line3: { draw_bg: { dither: 0.9 } } }
+                    apply: { dither3: 0.9 }
                 }
             }
         }
@@ -103,6 +103,15 @@ pub struct MessageLoading {
     #[apply_default]
     animator: Animator,
 
+    #[live]
+    dither1: f64,
+
+    #[live]
+    dither2: f64,
+
+    #[live]
+    dither3: f64,
+
     #[rust]
     timer: Timer,
 
@@ -116,6 +125,7 @@ impl Widget for MessageLoading {
             self.update_animation(cx);
         }
         if self.animator_handle_event(cx, event).must_redraw() {
+            self.apply_dithers(cx);
             self.redraw(cx);
         }
 
@@ -128,7 +138,19 @@ impl Widget for MessageLoading {
 }
 
 impl MessageLoading {
-    pub fn update_animation(&mut self, cx: &mut Cx) {
+    fn apply_dithers(&mut self, cx: &mut Cx) {
+        let d1 = self.dither1;
+        let d2 = self.dither2;
+        let d3 = self.dither3;
+        let mut line1 = self.view(cx, ids!(line1));
+        script_apply_eval!(cx, line1, { draw_bg +: { dither: #(d1) } });
+        let mut line2 = self.view(cx, ids!(line2));
+        script_apply_eval!(cx, line2, { draw_bg +: { dither: #(d2) } });
+        let mut line3 = self.view(cx, ids!(line3));
+        script_apply_eval!(cx, line3, { draw_bg +: { dither: #(d3) } });
+    }
+
+    fn update_animation(&mut self, cx: &mut Cx) {
         self.current_animated_bar = (self.current_animated_bar + 1) % 3;
 
         match self.current_animated_bar {
@@ -152,6 +174,7 @@ impl MessageLoading {
 }
 
 impl MessageLoadingRef {
+    /// Starts the loading animation if not already running.
     pub fn animate(&mut self, cx: &mut Cx) {
         let Some(mut inner) = self.borrow_mut() else {
             return;
