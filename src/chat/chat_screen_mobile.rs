@@ -75,9 +75,15 @@ script_mod! {
                     padding: Inset {left: 16}
                     left_button +: {
                         height: Fit
-                        icon_walk +: {width: 12 height: Fit}
-                        draw_icon +: {
-                            brightness: 0.0
+                        icon_walk +: {width: 0 height: 0}
+                        text: "\u{f060}"
+                        draw_text +: {
+                            text_style: theme.font_icons {font_size: 14}
+                            color: #x0
+                            color_hover: #x0
+                            color_down: uniform(#x0)
+                            color_focus: uniform(#x0)
+                            color_disabled: uniform(#x0)
                         }
                     }
                 }
@@ -132,17 +138,19 @@ script_mod! {
                                 text: "Chat History"
                             }
                         }
-                        settings_button := View {
-                            margin: Inset {left: 100}
-                            align: Align {x: 1.0 y: 0.5}
+                        View {
                             width: Fill height: Fit
-                            margin: Inset {right: 15}
-                            cursor: MouseCursor.Hand
-                            IconSet {
-                                text: "\u{f013}"
-                                draw_text +: {
-                                    color: #x333
-                                    text_style +: { font_size: 18.0 }
+                            align: Align {x: 1.0 y: 0.5}
+                            settings_button := View {
+                                width: Fit height: Fit
+                                margin: Inset {right: 15}
+                                cursor: MouseCursor.Hand
+                                IconSet {
+                                    text: "\u{f013}"
+                                    draw_text +: {
+                                        color: #x333
+                                        text_style +: { font_size: 18.0 }
+                                    }
                                 }
                             }
                         }
