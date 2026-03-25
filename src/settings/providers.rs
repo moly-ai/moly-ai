@@ -564,7 +564,7 @@ impl ProviderItemRef {
         if let Some(icon) = icon_path {
             inner.view(cx, ids!(image_wrapper)).set_visible(cx, true);
             let image = inner.image(cx, ids!(provider_icon_image));
-            let _ = image.load_image_file_by_path(cx, icon.as_ref());
+            let _ = image.load_image_from_resource_abs_path(cx, &icon);
 
             let label_view = inner.view(cx, ids!(provider_icon_label));
             label_view.set_visible(cx, false);

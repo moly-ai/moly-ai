@@ -273,7 +273,7 @@ impl ModelSelectorList {
                         .set_visible(cx, true);
                     let _ = section_label
                         .image(cx, ids!(icon_image))
-                        .load_image_file_by_path(cx, image.as_ref());
+                        .load_image_from_resource_abs_path(cx, &image);
                 }
                 EntityAvatar::Text(text) => {
                     section_label
