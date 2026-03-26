@@ -96,12 +96,6 @@ impl Widget for ChatScreen {
 
 impl WidgetMatchEvent for ChatScreen {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
-        if self.button(cx, ids!(new_chat_button)).clicked(&actions) {
-            cx.action(ChatAction::StartWithoutEntity);
-            self.stack_navigation(cx, ids!(navigation)).pop_to_root(cx);
-            self.redraw(cx);
-        }
-
         for action in actions {
             if let ChatAction::ChatSelected(_chat_id) = action.cast() {
                 self.stack_navigation(cx, ids!(navigation)).pop_to_root(cx);

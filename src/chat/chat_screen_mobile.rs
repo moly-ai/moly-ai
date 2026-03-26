@@ -1,6 +1,8 @@
 use makepad_widgets::*;
 use moly_kit::prelude::*;
 
+use crate::shared::actions::ChatAction;
+
 script_mod! {
     use mod.prelude.widgets.*
     use mod.widgets.*
@@ -276,6 +278,12 @@ impl WidgetMatchEvent for ChatScreenMobile {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
         let stack_navigation = self.stack_navigation(cx, ids!(navigation));
         stack_navigation.handle_stack_view_actions(cx, actions);
+
+        if self.button(cx, ids!(new_chat_button)).clicked(&actions) {
+            cx.action(ChatAction::StartWithoutEntity);
+            stack_navigation.pop_to_root(cx);
+            self.redraw(cx);
+        }
 
         // Menu Toggle
         if let Some(_evt) = self.view(cx, ids!(menu_toggle)).finger_down(actions) {
