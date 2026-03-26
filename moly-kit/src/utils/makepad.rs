@@ -27,11 +27,15 @@ pub fn hex_rgb_color(hex: u32) -> Vec4 {
 /// the resource data is loaded, and feeds the bytes to the image
 /// widget's async decoder.
 ///
+/// Returns `Ok(())` if the image was decoded or if the resource data
+/// is not yet available (e.g. pending HTTP fetch on web) — the caller
+/// should retry on the next draw pass, matching the behavior of
+/// Makepad's built-in [`Image`] widget.
+///
 /// # Errors
 ///
 /// Returns [`ImageError::PathNotFound`] if no script resource matches
-/// `abs_path`, or [`ImageError::NotYetLoaded`] if the resource exists
-/// but its data is not available yet (e.g. pending HTTP fetch on web).
+/// `abs_path`.
 pub fn load_image_from_resource(
     image: &ImageRef,
     cx: &mut Cx,
@@ -43,9 +47,9 @@ pub fn load_image_from_resource(
         .get_handle_by_abs_path(abs_path)
         .ok_or_else(|| ImageError::PathNotFound(abs_path.into()))?;
     cx.load_script_resource(handle);
-    let data = cx
-        .get_resource(handle)
-        .ok_or(ImageError::NotYetLoaded)?;
+    let Some(data) = cx.get_resource(handle) else {
+        return Ok(());
+    };
     let path = Path::new(abs_path);
     let data = Arc::new((*data).clone());
     image.load_image_from_data_async(cx, path, data)
