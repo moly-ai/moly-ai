@@ -1,47 +1,34 @@
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::widgets::*;
-    use crate::shared::styles::*;
-
-    pub ExternalLink = {{ExternalLink}} {
-        width: Fit,
-        height: Fit,
-        flow: Down,
-        link = <LinkLabel> {
-            width: Fit,
-            margin: 2,
-            draw_text: {
-                text_style: <REGULAR_FONT>{font_size: 9},
-                fn get_color(self) -> vec4 {
-                    return mix(
-                        mix(
-                            MODEL_LINK_FONT_COLOR,
-                            MODEL_LINK_FONT_COLOR,
-                            self.hover
-                        ),
-                        MODEL_LINK_FONT_COLOR,
-                        self.down
-                    )
-                }
+    mod.widgets.ExternalLinkBase = #(ExternalLink::register_widget(vm))
+    mod.widgets.ExternalLink = set_type_default() do mod.widgets.ExternalLinkBase {
+        width: Fit
+        height: Fit
+        flow: Down
+        link := LinkLabel {
+            width: Fit
+            margin: 2
+            draw_text +: {
+                text_style: REGULAR_FONT { font_size: 9 }
+                color: (MODEL_LINK_FONT_COLOR)
             }
         }
-        underline = <Line> {
-            width: Fill,
-            height: 1,
-            show_bg: true,
-            draw_bg: {
+        underline := Line {
+            width: Fill
+            height: 1
+            show_bg: true
+            draw_bg +: {
                 color: (MODEL_LINK_FONT_COLOR)
             }
         }
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct ExternalLink {
     #[deref]
     view: View,
@@ -62,15 +49,15 @@ impl Widget for ExternalLink {
 }
 
 impl WidgetMatchEvent for ExternalLink {
-    fn handle_actions(&mut self, _cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        let link_label_clicked = self.link_label(ids!(link)).clicked(actions);
-        if link_label_clicked {
+    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
+        if self.link_label(cx, ids!(link)).clicked(actions) {
             self.open_url();
         }
     }
 }
 
 impl ExternalLink {
+    /// Sets the URL this link will open.
     pub fn set_url(&mut self, url: &str) {
         self.url = url.to_string();
     }
@@ -81,6 +68,7 @@ impl ExternalLink {
 }
 
 impl ExternalLinkRef {
+    /// Sets the URL this link will open.
     pub fn set_url(&mut self, url: &str) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.set_url(url);

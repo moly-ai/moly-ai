@@ -2,8 +2,6 @@
 //!
 //! Note: Some widgets may depend on certain feature flags.
 
-use makepad_widgets::*;
-
 mod attachment_list;
 mod attachment_view;
 mod attachment_viewer_modal;
@@ -36,34 +34,29 @@ pub mod prompt_input;
 pub mod realtime;
 pub mod stt_input;
 
-pub fn live_design(cx: &mut makepad_widgets::Cx) {
-    theme_moly_kit_light::live_design(cx);
-    // Link the MolyKit theme to the MolyKit-specific theme.
-    // Currently we only have a light theme which we use as default.
-    cx.link(live_id!(moly_kit_theme), live_id!(theme_moly_kit_light));
-
-    math_widget::math::live_design(cx);
-    image_view::live_design(cx);
-    attachment_view::live_design(cx);
-    moly_modal::live_design(cx);
-    attachment_viewer_modal::live_design(cx);
-    attachment_list::live_design(cx);
-    citation::live_design(cx);
-    citation_list::live_design(cx);
-    makepad_code_editor::live_design(cx);
-    message_markdown::live_design(cx);
-    message_loading::live_design(cx);
-    avatar::live_design(cx);
-    slot::live_design(cx);
-    standard_message_content::live_design(cx);
-    chat_line::live_design(cx);
-    messages::live_design(cx);
-    stt_input::live_design(cx);
-    prompt_input::live_design(cx);
-    model_selector_item::live_design(cx);
-    model_selector_list::live_design(cx);
-    model_selector::live_design(cx);
-    chat::live_design(cx);
-    realtime::live_design(cx);
-    message_thinking_block::live_design(cx);
+pub fn script_mod(vm: &mut makepad_widgets::ScriptVm) {
+    theme_moly_kit_light::script_mod(vm);
+    image_view::script_mod(vm);
+    attachment_view::script_mod(vm);
+    moly_modal::script_mod(vm);
+    attachment_viewer_modal::script_mod(vm);
+    attachment_list::script_mod(vm);
+    citation::script_mod(vm);
+    citation_list::script_mod(vm);
+    makepad_code_editor::script_mod(vm);
+    message_markdown::script_mod(vm);
+    message_loading::script_mod(vm);
+    avatar::script_mod(vm);
+    slot::script_mod(vm);
+    message_thinking_block::script_mod(vm);
+    standard_message_content::script_mod(vm);
+    chat_line::script_mod(vm);
+    messages::script_mod(vm);
+    stt_input::script_mod(vm);
+    model_selector_item::script_mod(vm);
+    model_selector_list::script_mod(vm);
+    model_selector::script_mod(vm);
+    prompt_input::script_mod(vm);
+    realtime::script_mod(vm);
+    chat::script_mod(vm);
 }

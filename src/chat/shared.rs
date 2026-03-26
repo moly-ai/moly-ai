@@ -2,55 +2,52 @@ use makepad_widgets::*;
 
 use crate::data::providers::ProviderBot;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
+    mod.widgets.ChatModelAvatar = RoundedView {
+        width: 24
+        height: 24
 
-    pub ChatModelAvatar = <RoundedView> {
-        width: 24,
-        height: 24,
-
-        show_bg: true,
-        draw_bg: {
-            color: #37567d,
-            border_radius: 6,
+        show_bg: true
+        draw_bg +: {
+            color: #37567d
+            border_radius: 6
         }
 
-        align: {x: 0.5, y: 0.5},
+        align: Align {x: 0.5 y: 0.5}
 
-        avatar_label = <Label> {
-            width: Fit,
-            height: Fit,
-            draw_text:{
-                text_style: <BOLD_FONT>{font_size: 8},
-                color: #fff,
+        avatar_label := Label {
+            width: Fit
+            height: Fit
+            draw_text +: {
+                text_style: BOLD_FONT {font_size: 8}
+                color: #fff
             }
             text: "P"
         }
     }
 
-    pub ChatAgentAvatar = {{ChatAgentAvatar}} {
-        reasoner_agent_icon: dep("crate://self/resources/images/reasoner_agent_icon.png")
-        width: Fit,
-        height: Fit,
-        image = <Image> { width: 24, height: 24 }
+    mod.widgets.ChatAgentAvatarBase = #(ChatAgentAvatar::register_widget(vm))
+    mod.widgets.ChatAgentAvatar = set_type_default() do mod.widgets.ChatAgentAvatarBase {
+        reasoner_agent_icon: crate_resource("self://resources/images/reasoner_agent_icon.png")
+        width: Fit
+        height: Fit
+        image := Image { width: 24 height: 24 }
     }
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, Widget, ScriptHook)]
 pub struct ChatAgentAvatar {
     #[deref]
     view: View,
 
     #[live]
-    reasoner_agent_icon: LiveValue,
+    reasoner_agent_icon: Option<ScriptHandleRef>,
 
-    // To avoid requesting `cx` on `set_agent`, which would cause a lot of changes in chain.
     #[rust]
-    pending_image_update: Option<LiveValue>,
+    pending_image_update: Option<ScriptHandleRef>,
 }
 
 impl Widget for ChatAgentAvatar {
@@ -60,14 +57,8 @@ impl Widget for ChatAgentAvatar {
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         if let Some(dep) = self.pending_image_update.take() {
-            self.apply_over(
-                cx,
-                live! {
-                    image = {
-                        source: (dep)
-                    }
-                },
-            )
+            let mut image = self.view.widget(cx, ids!(image));
+            script_apply_eval!(cx, image, { src: #(dep) });
         }
 
         self.view.draw_walk(cx, scope, walk)
@@ -78,7 +69,7 @@ impl ChatAgentAvatar {
     pub fn set_bot(&mut self, _agent: &ProviderBot) {
         let dep = self.reasoner_agent_icon.clone();
 
-        self.pending_image_update = Some(dep);
+        self.pending_image_update = dep;
     }
 }
 

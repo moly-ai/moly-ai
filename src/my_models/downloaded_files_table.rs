@@ -8,74 +8,74 @@ use super::{
     my_models_screen::MyModelsSearchAction,
 };
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::my_models::downloaded_files_row::DownloadedFilesRow
-
-    RowHeaderLabel = <View> {
+    let RowHeaderLabel = View {
         width: 100
         height: Fit
-        align: {x: 0.0, y: 0.5}
-        label = <Label> {
+        align: Align { x: 0.0 y: 0.5 }
+        label := Label {
             width: Fit
-            draw_text: {
-                text_style: <BOLD_FONT>{font_size: 9}
+            draw_text +: {
+                text_style: BOLD_FONT { font_size: 9 }
                 color: #667085
             }
         }
     }
 
-    HeaderRow = <View> {
-        align: {x: 0.0, y: 0.5}
+    let HeaderRow = SolidView {
+        align: Align { x: 0.0 y: 0.5 }
         width: Fill
         height: Fit
-        padding: {top: 10, bottom: 10, left: 20, right: 20}
-        // Heads-up: the spacing and row header widths need to match the row values
-        spacing: 30,
-        show_bg: true
-        draw_bg: {
-            color: #F2F4F7;
+        padding: Inset { top: 10 bottom: 10 left: 20 right: 20 }
+        spacing: 30
+        draw_bg +: {
+            color: #F2F4F7
         }
 
-        <RowHeaderLabel> { width: 500, label = {text: "Model File"} }
-        <RowHeaderLabel> { width: 100, label = {text: "File Size"} }
-        <RowHeaderLabel> { width: 100, label = {text: "Added Date"} }
-        <RowHeaderLabel> { width: 250, label = {text: ""} }
+        RowHeaderLabel {
+            width: 500 label +: { text: "Model File" }
+        }
+        RowHeaderLabel {
+            width: 100 label +: { text: "File Size" }
+        }
+        RowHeaderLabel {
+            width: 100 label +: { text: "Added Date" }
+        }
+        RowHeaderLabel { width: 250 label +: { text: "" } }
     }
 
-    pub DownloadedFilesTable = {{DownloadedFilesTable}} <RoundedShadowView> {
-        width: Fill,
-        height: Fill,
-        align: {x: 0.5, y: 0.5}
-        // TODO: This causes the invisible space taken by the PortalList to be visible,
-        // perhaps we can make PortalList height: Fit
+    mod.widgets.DownloadedFilesTableBase = #(DownloadedFilesTable::register_widget(vm))
+    mod.widgets.DownloadedFilesTable =
+        set_type_default() do mod.widgets.DownloadedFilesTableBase {
+        ..mod.widgets.RoundedShadowView
+        width: Fill
+        height: Fill
+        align: Align { x: 0.5 y: 0.5 }
         show_bg: true
-        draw_bg: {
+        draw_bg +: {
             color: (MAIN_BG_COLOR)
-            border_radius: 5
-            uniform shadow_color: #0001
-            shadow_radius: 12.0,
-            shadow_offset: vec2(0.0,-1.5)
+            border_radius: uniform(5)
+            shadow_color: instance(#x0001)
+            shadow_radius: 12.0
+            shadow_offset: vec2(0.0, -1.5)
         }
 
-        list = <PortalList> {
+        list := PortalList {
             drag_scrolling: false
-            HeaderRow = <HeaderRow> {
+            HeaderRow := HeaderRow {
                 cursor: Default
             }
-            ItemRow = <DownloadedFilesRow> {
+            ItemRow := mod.widgets.DownloadedFilesRow {
                 cursor: Default
             }
         }
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct DownloadedFilesTable {
     #[deref]
     view: View,
@@ -99,8 +99,6 @@ impl Widget for DownloadedFilesTable {
             _ => None,
         };
 
-        // If we're already filtering, re-apply filter over the new store data
-        // only re-filtering if there are new downloads in store
         match filter {
             Some(keywords) => {
                 if self.latest_store_fetch_len
@@ -131,7 +129,6 @@ impl Widget for DownloadedFilesTable {
                     if item_id <= last_item_id {
                         let template;
                         if item_id == 0 {
-                            // Draw header row
                             template = live_id!(HeaderRow);
                             let item = list.item(cx, item_id, template);
                             item.draw_all(cx, scope);

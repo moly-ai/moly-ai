@@ -4,125 +4,124 @@ use crate::data::store::Store;
 
 use super::downloaded_files_row::DownloadedFilesRowProps;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::MolyButton;
-    use crate::shared::resource_imports::*;
-
-    pub DeleteModelModal = {{DeleteModelModal}} {
+    mod.widgets.DeleteModelModalBase = #(DeleteModelModal::register_widget(vm))
+    mod.widgets.DeleteModelModal = set_type_default() do mod.widgets.DeleteModelModalBase {
         width: Fit
         height: Fit
 
-        wrapper = <RoundedView> {
+        wrapper := RoundedView {
             flow: Down
             width: 600
             height: Fit
-            padding: {top: 44, right: 30 bottom: 30 left: 50}
+            padding: Inset { top: 44 right: 30 bottom: 30 left: 50 }
             spacing: 10
 
             show_bg: true
-            draw_bg: {
+            draw_bg +: {
                 color: #fff
                 border_radius: 3
             }
 
-            <View> {
-                width: Fill,
-                height: Fit,
+            View {
+                width: Fill
+                height: Fit
                 flow: Right
 
-                padding: {top: 8, bottom: 20}
+                padding: Inset { top: 8 bottom: 20 }
 
-                title = <View> {
-                    width: Fit,
-                    height: Fit,
+                title := View {
+                    width: Fit
+                    height: Fit
 
-                    model_name = <Label> {
+                    model_name := Label {
                         text: "Delete Model"
-                        draw_text: {
-                            text_style: <BOLD_FONT>{font_size: 13},
+                        draw_text +: {
+                            text_style: BOLD_FONT { font_size: 13 }
                             color: #000
                         }
                     }
                 }
 
-                filler_x = <View> {width: Fill, height: Fit}
+                filler_x := View { width: Fill height: Fit }
 
-                close_button = <MolyButton> {
-                    width: Fit,
-                    height: Fit,
+                close_button := MolyButton {
+                    width: Fit
+                    height: Fit
 
-                    margin: {top: -8}
+                    margin: Inset { top: -8 }
 
-                    draw_icon: {
-                        svg_file: (ICON_CLOSE),
-                        fn get_color(self) -> vec4 {
-                            return #000;
+                    draw_icon +: {
+                        svg: ICON_CLOSE
+                        get_color: fn() -> vec4 {
+                            return #000
                         }
                     }
-                    icon_walk: {width: 12, height: 12}
+                    icon_walk +: { width: 12 height: 12 }
                 }
             }
 
-            body = <View> {
-                width: Fill,
-                height: Fit,
-                flow: Down,
-                spacing: 40,
+            body := View {
+                width: Fill
+                height: Fit
+                flow: Down
+                spacing: 40
 
-                delete_prompt = <Label> {
+                delete_prompt := Label {
                     width: Fill
-                    draw_text: {
-                        text_style: <REGULAR_FONT>{
-                            font_size: 10,
-                        },
+                    draw_text +: {
+                        text_style: REGULAR_FONT {
+                            font_size: 10
+                        }
                         color: #000
-                        wrap: Word
                     }
                 }
 
-                actions = <View> {
-                    width: Fill, height: Fit
-                    flow: Right,
-                    align: {x: 1.0, y: 0.5}
+                actions := View {
+                    width: Fill height: Fit
+                    flow: Right
+                    align: Align { x: 1.0 y: 0.5 }
                     spacing: 20
 
-                    cancel_button = <MolyButton> {
-                        width: Fit,
-                        height: Fit,
-                        padding: {top: 10, bottom: 10, left: 14, right: 14}
+                    cancel_button := MolyButton {
+                        width: Fit
+                        height: Fit
+                        padding: Inset {
+                            top: 10 bottom: 10 left: 14 right: 14
+                        }
 
-                        draw_bg: {
-                            instance border_radius: 2.0,
-                            border_color_1: #D0D5DD,
-                            border_size: 1.2,
-                            color: #fff,
+                        draw_bg +: {
+                            border_radius: uniform(2.0)
+                            border_color_1: #D0D5DD
+                            border_size: 1.2
+                            color: #fff
                         }
 
                         text: "Cancel"
-                        draw_text:{
-                            text_style: <REGULAR_FONT>{font_size: 10},
+                        draw_text +: {
+                            text_style: REGULAR_FONT { font_size: 10 }
                             color: #x0
                         }
                     }
 
-                    delete_button = <MolyButton> {
-                        width: Fit,
-                        height: Fit,
-                        padding: {top: 10, bottom: 10, left: 14, right: 14}
+                    delete_button := MolyButton {
+                        width: Fit
+                        height: Fit
+                        padding: Inset {
+                            top: 10 bottom: 10 left: 14 right: 14
+                        }
 
-                        draw_bg: {
-                            instance border_radius: 2.0,
-                            color: #D92D20,
+                        draw_bg +: {
+                            border_radius: uniform(2.0)
+                            color: #D92D20
                         }
 
                         text: "Delete"
-                        draw_text:{
-                            text_style: <REGULAR_FONT>{font_size: 10},
+                        draw_text +: {
+                            text_style: REGULAR_FONT { font_size: 10 }
                             color: #fff
                         }
                     }
@@ -132,14 +131,15 @@ live_design! {
     }
 }
 
-#[derive(Clone, Debug, DefaultNone)]
+#[derive(Clone, Debug, Default)]
 pub enum DeleteModelModalAction {
+    #[default]
     None,
     ModalDismissed,
     ModelDeleted,
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct DeleteModelModal {
     #[deref]
     view: View,
@@ -164,7 +164,7 @@ impl Widget for DeleteModelModal {
             "Are you sure you want to delete {}?\nThis action cannot be undone.",
             downloaded_file.file.name
         );
-        self.label(ids!(wrapper.body.delete_prompt))
+        self.label(cx, ids!(wrapper.body.delete_prompt))
             .set_text(cx, &prompt_text);
 
         self.view
@@ -174,12 +174,12 @@ impl Widget for DeleteModelModal {
 
 impl WidgetMatchEvent for DeleteModelModal {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
-        if self.button(ids!(close_button)).clicked(actions) {
+        if self.button(cx, ids!(close_button)).clicked(actions) {
             cx.action(DeleteModelModalAction::ModalDismissed);
         }
 
         if self
-            .button(ids!(wrapper.body.actions.delete_button))
+            .button(cx, ids!(wrapper.body.actions.delete_button))
             .clicked(actions)
         {
             let store = scope.data.get_mut::<Store>().unwrap();
@@ -190,7 +190,7 @@ impl WidgetMatchEvent for DeleteModelModal {
         }
 
         if self
-            .button(ids!(wrapper.body.actions.cancel_button))
+            .button(cx, ids!(wrapper.body.actions.cancel_button))
             .clicked(actions)
         {
             cx.action(DeleteModelModalAction::ModalDismissed);

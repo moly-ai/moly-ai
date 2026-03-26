@@ -17,189 +17,183 @@ use moly_protocol::data::{File, FileId};
 use makepad_widgets::*;
 use markdown::MarkdownAction;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::shared::popup_notification::*;
-    use crate::shared::widgets::SidebarMenuButton;
-    use crate::shared::download_notification_popup::DownloadNotificationPopup;
-    use crate::shared::moly_server_popup::MolyServerPopup;
-    use crate::shared::desktop_buttons::MolyDesktopButton;
+    let ICON_CHAT = crate_resource("self://resources/icons/chat.svg")
+    let ICON_LOCAL = crate_resource("self://resources/icons/local.svg")
+    let ICON_MCP = crate_resource("self://resources/icons/mcp.svg")
+    let ICON_CLOUD = crate_resource("self://resources/icons/cloud.svg")
+    let ICON_MOLYSERVER =
+        crate_resource("self://resources/images/providers/molyserver.png")
 
-    use crate::landing::model_card::ModelCardViewAllModal;
-    use crate::chat::chat_screen::ChatScreen;
-    use crate::settings::moly_server_screen::MolyServerScreen;
-    use crate::settings::providers_screen::ProvidersScreen;
-    use crate::mcp::mcp_screen::McpScreen;
-
-    ICON_CHAT = dep("crate://self/resources/icons/chat.svg")
-    ICON_LOCAL = dep("crate://self/resources/icons/local.svg")
-    ICON_MCP = dep("crate://self/resources/icons/mcp.svg")
-    ICON_CLOUD = dep("crate://self/resources/icons/cloud.svg")
-    ICON_MOLYSERVER = dep("crate://self/resources/images/providers/molyserver.png")
-
-    ApplicationPages = <RoundedShadowView> {
-        width: Fill, height: Fill
-        margin: {top: 12, right: 12, bottom: 12}
+    let ApplicationPages = RoundedShadowView {
+        width: Fill height: Fill
+        margin: Inset {top: 12 right: 12 bottom: 12}
         padding: 3
         flow: Overlay
 
         show_bg: true
-        draw_bg: {
-            color: (MAIN_BG_COLOR),
-            border_radius: 4.5,
-            uniform shadow_color: #0003
-            shadow_radius: 15.0,
-            shadow_offset: vec2(0.0,-1.5)
+        draw_bg +: {
+            color: (MAIN_BG_COLOR)
+            border_radius: uniform(4.5)
+            shadow_color: instance(#x0003)
+            shadow_radius: 15.0
+            shadow_offset: vec2(0.0, -1.5)
         }
 
-        chat_frame = <ChatScreen> {visible: true}
-        moly_server_frame = <MolyServerScreen> {visible: false}
-        mcp_frame = <McpScreen> {visible: false}
-        providers_frame = <ProvidersScreen> {visible: false}
+        chat_frame := ChatScreen {visible: true}
+        moly_server_frame := MolyServerScreen {visible: false}
+        mcp_frame := McpScreen {visible: false}
+        providers_frame := ProvidersScreen {visible: false}
     }
 
-    SidebarMenu = <RoundedView> {
-        width: 90, height: Fill,
-        flow: Down, spacing: 15.0,
-        padding: { top: 40, bottom: 20, left: 0, right: 0 },
+    let SidebarMenu = RoundedView {
+        width: 90 height: Fill
+        flow: Down spacing: 15.0
+        padding: Inset { top: 40 bottom: 20 left: 0 right: 0 }
 
-        align: {x: 0.5, y: 0.5},
+        align: Align {x: 0.5 y: 0.5}
 
-        show_bg: true,
-        draw_bg: {
-            color: (SIDEBAR_BG_COLOR),
-            instance border_radius: 0.0,
+        show_bg: true
+        draw_bg +: {
+            color: (SIDEBAR_BG_COLOR)
+            border_radius: uniform(0.0)
         }
 
-        logo = <View> {
-            width: Fit, height: Fit
-            margin: {bottom: 5}
-            <Image> {
-                width: 50, height: 50,
-                source: (ICON_MOLYSERVER),
+        logo := View {
+            width: Fit height: Fit
+            margin: Inset {bottom: 5}
+            Image {
+                width: 50 height: 50
+                src: (ICON_MOLYSERVER)
             }
         }
 
-        seprator = <View> {
-            width: Fill, height: 1.6,
-            margin: {left: 15, right: 15, bottom: 10}
-            show_bg: true
-            draw_bg: {
-                color: #dadada,
+        seprator := SolidView {
+            width: Fill height: 1.6
+            margin: Inset {left: 15 right: 15 bottom: 10}
+            draw_bg +: {
+                color: #xdadada
             }
         }
 
-        chat_tab = <SidebarMenuButton> {
-            animator: {active = {default: on}}
-            text: "Chat",
-            draw_icon: {
-                svg_file: (ICON_CHAT),
+        chat_tab := SidebarMenuButton {
+            text: "Chat"
+            draw_icon +: {
+                svg: (ICON_CHAT)
             }
         }
-        moly_server_tab = <SidebarMenuButton> {
-            text: "MolyServer",
-            draw_icon: {
-                svg_file: (ICON_LOCAL),
+        moly_server_tab := SidebarMenuButton {
+            text: "MolyServer"
+            draw_icon +: {
+                svg: (ICON_LOCAL)
             }
         }
-        <HorizontalFiller> {}
+        HorizontalFiller {}
 
-        mcp_tab_container = <View> {
-            width: Fit, height: Fit
+        mcp_tab_container := View {
+            width: Fit height: Fit
             visible: false
 
-            mcp_tab = <SidebarMenuButton> {
-                text: "MCP",
-                draw_icon: {
-                    svg_file: (ICON_MCP),
+            mcp_tab := SidebarMenuButton {
+                text: "MCP"
+                draw_icon +: {
+                    svg: (ICON_MCP)
                 }
             }
         }
 
-        providers_tab = <SidebarMenuButton> {
-            text: "Providers",
-            draw_icon: {
-                svg_file: (ICON_CLOUD),
+        providers_tab := SidebarMenuButton {
+            text: "Providers"
+            draw_icon +: {
+                svg: (ICON_CLOUD)
             }
         }
     }
 
-    App = {{App}} {
-        ui: <Window> {
-            window: {inner_size: vec2(1440, 1024), title: "Moly"},
-            pass: {clear_color: #fff}
+    load_all_resources() do #(App::script_component(vm)) {
+        ui: Root {
+            main_window := Window {
+                window +: {inner_size: vec2(1440 1024) title: "Moly"}
+                pass +: {clear_color: #xfff}
+                show_caption_bar: false
 
-            caption_bar = {
-                caption_label = <View> {} // empty view to remove the default caption label
-                windows_buttons = <View> {
-                    visible: false,
-                    width: Fit, height: Fit,
-                    min = <MolyDesktopButton> {draw_bg: {button_type: WindowsMin}}
-                    max = <MolyDesktopButton> {draw_bg: {button_type: WindowsMax}}
-                    close = <MolyDesktopButton> {draw_bg: {button_type: WindowsClose}}
-                }
-            }
-
-            body = {
-                keyboard_min_shift: 75,
-                flow: Overlay
-                width: Fill,
-                height: Fill,
-                padding: 0
-
-                // View that shows by default, eventually gets replaced by the root view.
-                loading_view = <View> {
-                    align: {x: 0.5, y: 0.5}
-                    flow: Down, spacing: 20
-                    <Image> {
-                        width: 100, height: 100,
-                        source: (ICON_MOLYSERVER),
-                    }
-                    <Label> {
-                        text: "Loading..."
-                        draw_text: {
-                            text_style: <THEME_FONT_BOLD> { font_size: 12 }
-                            color: #444
+                caption_bar +: {
+                    caption_label := View {}
+                    windows_buttons := View {
+                        visible: false
+                        width: Fit height: Fit
+                        min := MolyDesktopButton {
+                            draw_bg +: {button_type: DesktopButtonType.WindowsMin}
+                        }
+                        max := MolyDesktopButton {
+                            draw_bg +: {button_type: DesktopButtonType.WindowsMax}
+                        }
+                        close := MolyDesktopButton {
+                            draw_bg +: {button_type: DesktopButtonType.WindowsClose}
                         }
                     }
                 }
 
-                root = {{MolyRoot}} {
-                    width: Fill,
-                    height: Fill,
-                    show_bg: true,
-                    draw_bg: {
-                        color: (MAIN_BG_COLOR_DARK),
-                    }
+                body +: {
+                    keyboard_min_shift: 75
+                    flow: Overlay
+                    width: Fill
+                    height: Fill
+                    padding: 0
 
-                    root_adaptive_view = <AdaptiveView> {
-                        Mobile = {
-                            application_pages = <ApplicationPages> {
-                                margin: 0
+                    loading_view := View {
+                        align: Align {x: 0.5 y: 0.5}
+                        flow: Down spacing: 20
+                        Image {
+                            width: 100 height: 100
+                            src: (ICON_MOLYSERVER)
+                        }
+                        Label {
+                            text: "Loading..."
+                            draw_text +: {
+                                text_style: theme.font_bold { font_size: 12 }
+                                color: #x444
                             }
                         }
+                    }
 
-                        Desktop = {
-                            sidebar_menu = <SidebarMenu> {}
-                            application_pages = <ApplicationPages> {}
+                    root := #(MolyRoot::register_widget(vm)) {
+                        ..mod.widgets.SolidView
+                        width: Fill
+                        height: Fill
+                        show_bg: true
+                        draw_bg +: {
+                            color: (MAIN_BG_COLOR_DARK)
+                        }
+
+                        root_adaptive_view := AdaptiveView {
+                            Mobile +: {
+                                application_pages := ApplicationPages {
+                                    margin: 0
+                                }
+                            }
+
+                            Desktop +: {
+                                sidebar_menu := SidebarMenu {}
+                                application_pages := ApplicationPages {}
+                            }
                         }
                     }
-                }
 
-                download_popup = <PopupNotification> {
-                    content: {
-                        popup_download_notification = <DownloadNotificationPopup> {}
+                    download_popup := PopupNotification {
+                        content +: {
+                            popup_download_notification :=
+                                DownloadNotificationPopup {}
+                        }
                     }
-                }
 
-                moly_server_popup = <PopupNotification> {
-                    content: {
-                        popup_moly_server = <MolyServerPopup> {}
+                    moly_server_popup := PopupNotification {
+                        content +: {
+                            popup_moly_server := MolyServerPopup {}
+                        }
                     }
                 }
             }
@@ -209,7 +203,7 @@ live_design! {
 
 app_main!(App);
 
-#[derive(Live, LiveHook)]
+#[derive(Script, ScriptHook)]
 pub struct App {
     #[live]
     pub ui: WidgetRef,
@@ -227,32 +221,37 @@ pub struct App {
     file_id: Option<FileId>,
 }
 
-impl LiveRegister for App {
-    fn live_register(cx: &mut Cx) {
-        makepad_widgets::live_design(cx);
-        moly_kit::widgets::live_design(cx);
-
-        crate::shared::live_design(cx);
-        crate::landing::live_design(cx);
-        crate::chat::live_design(cx);
-        crate::my_models::live_design(cx);
-        crate::settings::live_design(cx);
-        crate::mcp::live_design(cx);
-    }
-}
-
 impl AppMain for App {
+    fn script_mod(vm: &mut ScriptVm) -> ScriptValue {
+        makepad_widgets::script_mod(vm);
+        moly_kit::widgets::script_mod(vm);
+
+        crate::shared::script_mod(vm);
+        // entity_button (and its dep chat::shared) must be registered before
+        // landing, which uses EntityButton in model_list.
+        crate::chat::shared::script_mod(vm);
+        crate::chat::entity_button::script_mod(vm);
+        crate::landing::script_mod(vm);
+        crate::my_models::script_mod(vm);
+        crate::settings::script_mod(vm);
+        crate::mcp::script_mod(vm);
+        crate::chat::script_mod(vm);
+
+        self::script_mod(vm)
+    }
+
     fn handle_event(&mut self, cx: &mut Cx, event: &Event) {
         self.ui_runner()
             .handle(cx, event, &mut Scope::empty(), self);
 
         if let Event::Startup = event {
             // Prevent rendering the ui before the store is initialized.
-            self.ui.view(ids!(body)).set_visible(cx, false);
+            self.ui.view(cx, ids!(body)).set_visible(cx, false);
             register_capture_manager();
 
             #[cfg(any(target_os = "android", target_os = "ios"))]
-            // Initialize filesystem with the data directory if available, required for mobile platforms.
+            // Initialize filesystem with the data directory if available,
+            // required for mobile platforms.
             if let Some(data_dir) = cx.get_data_dir() {
                 // Ensure the data directory exists
                 let path = std::path::PathBuf::from(data_dir.clone());
@@ -265,16 +264,22 @@ impl AppMain for App {
             }
 
             Store::load_into_app();
+
+            self.ui
+                .radio_button(cx, ids!(sidebar_menu.chat_tab))
+                .select(cx, &mut Scope::empty());
         }
 
-        // If the store is not loaded, do not continue with store-dependent logic
-        // however, we still want the window to handle Makepad events. (e.g. window initialization events, platform context changes, etc.)
+        // If the store is not loaded, do not continue with
+        // store-dependent logic. However, we still want the window to
+        // handle Makepad events (e.g. window initialization events,
+        // platform context changes, etc.)
         let Some(store) = self.store.as_mut() else {
             self.ui.handle_event(cx, event, &mut Scope::empty());
             return;
         };
 
-        self.ui.view(ids!(loading_view)).set_visible(cx, false);
+        self.ui.view(cx, ids!(loading_view)).set_visible(cx, false);
 
         // It triggers when the timer expires.
         if self.timer.is_event(event).is_some() {
@@ -302,30 +307,35 @@ impl MatchEvent for App {
         // Only show the MCP tab in native builds
         #[cfg(not(target_arch = "wasm32"))]
         {
-            radio_button_set = self.ui.radio_button_set(ids_array!(
-                sidebar_menu.chat_tab,
-                sidebar_menu.moly_server_tab,
-                sidebar_menu.mcp_tab,
-                sidebar_menu.providers_tab,
-            ));
+            radio_button_set = self.ui.radio_button_set(
+                cx,
+                ids_array!(
+                    sidebar_menu.chat_tab,
+                    sidebar_menu.moly_server_tab,
+                    sidebar_menu.mcp_tab,
+                    sidebar_menu.providers_tab,
+                ),
+            );
             self.ui
-                .view(ids!(sidebar_menu.mcp_tab_container))
+                .view(cx, ids!(sidebar_menu.mcp_tab_container))
                 .set_visible(cx, true);
         }
 
         #[cfg(target_arch = "wasm32")]
         {
-            radio_button_set = self.ui.radio_button_set(ids_array!(
-                sidebar_menu.chat_tab,
-                sidebar_menu.moly_server_tab,
-                sidebar_menu.providers_tab,
-            ));
+            radio_button_set = self.ui.radio_button_set(
+                cx,
+                ids_array!(
+                    sidebar_menu.chat_tab,
+                    sidebar_menu.moly_server_tab,
+                    sidebar_menu.providers_tab,
+                ),
+            );
             self.ui
-                .view(ids!(sidebar_menu.mcp_tab_container))
+                .view(cx, ids!(sidebar_menu.mcp_tab_container))
                 .set_visible(cx, false);
         }
 
-        // TODO: Replace this with a proper navigation widget.
         if let Some(selected_tab) = radio_button_set.selected(cx, actions) {
             #[cfg(not(target_arch = "wasm32"))]
             match selected_tab {
@@ -398,18 +408,17 @@ impl MatchEvent for App {
             }
 
             if let ChatAction::Start(_) = action.cast() {
-                let chat_radio_button = self.ui.radio_button(ids!(chat_tab));
+                let chat_radio_button = self.ui.radio_button(cx, ids!(chat_tab));
                 chat_radio_button.select(cx, &mut Scope::empty());
             }
 
             if let NavigationAction::NavigateToMyModels = action.cast() {
-                let my_models_radio_button = self.ui.radio_button(ids!(my_models_tab));
+                let my_models_radio_button = self.ui.radio_button(cx, ids!(my_models_tab));
                 my_models_radio_button.select(cx, &mut Scope::empty());
-                // navigate_to_my_models = true;
             }
 
             if let NavigationAction::NavigateToProviders = action.cast() {
-                let providers_radio_button = self.ui.radio_button(ids!(providers_tab));
+                let providers_radio_button = self.ui.radio_button(cx, ids!(providers_tab));
                 providers_radio_button.select(cx, &mut Scope::empty());
                 navigate_to_providers = true;
             }
@@ -423,16 +432,20 @@ impl MatchEvent for App {
                 DownloadNotificationPopupAction::ActionLinkClicked
                     | DownloadNotificationPopupAction::CloseButtonClicked
             ) {
-                self.ui.popup_notification(ids!(download_popup)).close(cx);
+                self.ui
+                    .popup_notification(cx, ids!(download_popup))
+                    .close(cx);
             }
 
             if let MolyClientAction::ServerUnreachable = action.cast() {
-                self.ui.popup_notification(ids!(moly_server_popup)).open(cx);
+                self.ui
+                    .popup_notification(cx, ids!(moly_server_popup))
+                    .open(cx);
             }
 
             if let MolyServerPopupAction::CloseButtonClicked = action.cast() {
                 self.ui
-                    .popup_notification(ids!(moly_server_popup))
+                    .popup_notification(cx, ids!(moly_server_popup))
                     .close(cx);
             }
         }
@@ -456,7 +469,7 @@ impl App {
         if let Some(notification) = store.downloads.next_download_notification() {
             let mut popup = self
                 .ui
-                .download_notification_popup(ids!(popup_download_notification));
+                .download_notification_popup(cx, ids!(popup_download_notification));
 
             match notification {
                 DownloadPendingNotification::DownloadedFile(file) => {
@@ -469,7 +482,9 @@ impl App {
                 }
             }
 
-            self.ui.popup_notification(ids!(download_popup)).open(cx);
+            self.ui
+                .popup_notification(cx, ids!(download_popup))
+                .open(cx);
         }
     }
 
@@ -509,42 +524,42 @@ impl App {
         let mcp_id = ids!(application_pages.mcp_frame);
 
         if id != providers_id {
-            self.ui.widget(providers_id).set_visible(cx, false);
+            self.ui.widget(cx, providers_id).set_visible(cx, false);
         }
 
         if id != chat_id {
-            self.ui.widget(chat_id).set_visible(cx, false);
+            self.ui.widget(cx, chat_id).set_visible(cx, false);
         }
 
         if id != moly_server_id {
-            self.ui.widget(moly_server_id).set_visible(cx, false);
+            self.ui.widget(cx, moly_server_id).set_visible(cx, false);
         }
 
         if id != mcp_id {
-            self.ui.widget(mcp_id).set_visible(cx, false);
+            self.ui.widget(cx, mcp_id).set_visible(cx, false);
         }
 
-        self.ui.widget(id).set_visible(cx, true);
+        self.ui.widget(cx, id).set_visible(cx, true);
     }
 }
 
-#[derive(Clone, DefaultNone, Debug)]
+#[derive(Clone, Default, Debug)]
 pub enum NavigationAction {
-    // TODO: Implement a proper navigation system that supports NavigateTo(some_id), NavigateBack, etc.
     NavigateToProviders,
     NavigateToMyModels,
+    #[default]
     None,
 }
 
-// Ugly workaround to be abale to switch between sync and async code in the `Store`.
+/// Workaround to switch between sync and async code in `Store`.
 pub fn app_runner() -> UiRunner<App> {
     // `0` is reserved for whatever implements `AppMain`.
     UiRunner::new(0)
 }
 
 /// A wrapper around the main Moly view, used to prevent draw/events
-/// from being propagated to the all of Moly if the store is not loaded.
-#[derive(Live, Widget, LiveHook)]
+/// from being propagated to all of Moly if the store is not loaded.
+#[derive(Script, ScriptHook, Widget)]
 pub struct MolyRoot {
     #[deref]
     view: View,

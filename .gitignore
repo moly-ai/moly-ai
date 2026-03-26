@@ -10,5 +10,8 @@ ignored/
 mdbook-admonish.css
 symlinks/
 
+# MacOS metadata files. they may be created when using NFS or other network file systems.
+._*
+
 # iOS build script with personal credentials (use MANUAL_BUILD.md as template)
 packaging/ios/build-and-upload.sh

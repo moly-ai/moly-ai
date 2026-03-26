@@ -1,6 +1,6 @@
 use async_stream::stream;
 use makepad_widgets::*;
-use makepad_widgets::{Cx, LiveNew, WidgetRef};
+use makepad_widgets::{Cx, WidgetRef};
 use moly_kit::aitk::utils::sse::parse_sse;
 use moly_kit::prelude::*;
 use reqwest::header::{HeaderMap, HeaderName};
@@ -99,11 +99,10 @@ pub struct Stage {
     pub stage_type: StageType,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Default, Live, LiveHook, LiveRead)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Default)]
 pub enum StageType {
     #[default]
     Thinking,
-    #[pick]
     Content,
     Completion,
 }
@@ -432,11 +431,11 @@ fn default_client() -> reqwest::Client {
 }
 
 pub struct DeepInquireCustomContent {
-    template: LivePtr,
+    template: ScriptObjectRef,
 }
 
 impl DeepInquireCustomContent {
-    pub fn new(template: LivePtr) -> Self {
+    pub fn new(template: ScriptObjectRef) -> Self {
         Self { template }
     }
 }
@@ -459,7 +458,10 @@ impl CustomContent for DeepInquireCustomContent {
         let widget = if previous_widget.as_deep_inquire_content().borrow().is_some() {
             previous_widget
         } else {
-            WidgetRef::new_from_ptr(cx, Some(self.template))
+            cx.with_vm(|vm| {
+                let template_value: ScriptValue = self.template.as_object().into();
+                WidgetRef::script_from_value(vm, template_value)
+            })
         };
 
         widget

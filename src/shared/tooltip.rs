@@ -1,127 +1,141 @@
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::widgets::*;
-    use crate::shared::styles::*;
+    mod.widgets.TooltipBase = #(Tooltip::register_widget(vm))
 
-    pub Tooltip = {{Tooltip}}{
-        width: Fill,
-        height: Fill,
+    mod.widgets.Tooltip = TooltipBase {
+        width: Fill
+        height: Fill
 
         flow: Overlay
-        align: {x: 0.0, y: 0.0}
+        align: Align { x: 0.0 y: 0.0 }
 
-        draw_bg: {
-            fn pixel(self) -> vec4 {
-                return vec4(0., 0., 0., 0.0)
+        draw_bg +: {
+            pixel: fn() -> vec4 {
+                return vec4(0. 0. 0. 0.0)
             }
         }
 
-        content: <View> {
-            flow: Overlay
+        flow: Overlay
+        width: Fit
+        height: Fit
+
+        RoundedView {
             width: Fit
             height: Fit
 
-            <RoundedView> {
-                width: Fit,
-                height: Fit,
+            padding: 16
 
-                padding: 16,
+            draw_bg +: {
+                color: #fff
+                border_size: 1.0
+                border_color: #D0D5DD
+                radius: 2.
+            }
 
-                draw_bg: {
-                    color: #fff,
-                    border_size: 1.0,
-                    border_color_1: #D0D5DD,
-                    border_radius: 2.
-                }
-
-                tooltip_label = <Label> {
-                    width: 270,
-                    draw_text: {
-                        text_style: <REGULAR_FONT>{font_size: 9},
-                        text_wrap: Word,
-                        color: #000
-                    }
+            tooltip_label := Label {
+                width: 270
+                draw_text +: {
+                    text_style: REGULAR_FONT { font_size: 9 }
+                    color: #000
                 }
             }
         }
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, Widget)]
 pub struct Tooltip {
+    #[deref]
+    view: View,
+
+    #[rust]
+    draw_list: Option<DrawList2d>,
+
+    #[live]
+    draw_bg: DrawQuad,
+
     #[rust]
     opened: bool,
 
-    #[live]
-    #[find]
-    content: View,
+    #[rust]
+    tooltip_pos: Vec2d,
+}
 
-    #[rust(DrawList2d::new(cx))]
-    draw_list: DrawList2d,
+impl ScriptHook for Tooltip {
+    fn on_after_new(&mut self, vm: &mut ScriptVm) {
+        self.draw_list = Some(DrawList2d::script_new(vm));
+    }
 
-    #[redraw]
-    #[live]
-    draw_bg: DrawQuad,
-    #[layout]
-    layout: Layout,
-    #[walk]
-    walk: Walk,
+    fn on_after_apply(
+        &mut self,
+        vm: &mut ScriptVm,
+        _apply: &Apply,
+        _scope: &mut Scope,
+        _value: ScriptValue,
+    ) {
+        vm.with_cx_mut(|cx| {
+            if let Some(draw_list) = &self.draw_list {
+                draw_list.redraw(cx);
+            }
+        });
+    }
 }
 
 impl Widget for Tooltip {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
-        self.content.handle_event(cx, event, scope);
+        self.view.handle_event(cx, event, scope);
     }
 
-    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        self.draw_list.begin_overlay_reuse(cx);
+    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, _walk: Walk) -> DrawStep {
+        let draw_list = self.draw_list.as_mut().unwrap();
+        draw_list.begin_overlay_reuse(cx);
 
-        cx.begin_turtle(walk, self.layout);
-        self.draw_bg.begin(cx, self.walk, self.layout);
+        let size = cx.current_pass_size();
+        cx.begin_root_turtle(size, self.view.layout);
+        self.draw_bg.begin(cx, self.view.walk, self.view.layout);
 
         if self.opened {
-            let _ = self.content.draw_all(cx, scope);
+            let content_walk = self.view.walk(cx).with_abs_pos(self.tooltip_pos);
+            self.view.draw_walk_all(cx, scope, content_walk);
         }
 
         self.draw_bg.end(cx);
 
         cx.end_pass_sized_turtle();
-        self.draw_list.end(cx);
+        self.draw_list.as_mut().unwrap().end(cx);
 
         DrawStep::done()
     }
 
     fn set_text(&mut self, cx: &mut Cx, text: &str) {
-        self.label(ids!(tooltip_label)).set_text(cx, text);
+        self.label(cx, ids!(tooltip_label)).set_text(cx, text);
     }
 }
 
 impl Tooltip {
-    pub fn set_pos(&mut self, cx: &mut Cx, pos: DVec2) {
-        self.apply_over(
-            cx,
-            live! {
-                content: { margin: { left: (pos.x), top: (pos.y) } }
-            },
-        );
+    /// Sets the tooltip display position.
+    pub fn set_pos(&mut self, _cx: &mut Cx, pos: DVec2) {
+        self.tooltip_pos = Vec2d { x: pos.x, y: pos.y };
     }
 
+    /// Shows the tooltip.
     pub fn show(&mut self, cx: &mut Cx) {
         self.opened = true;
         self.redraw(cx);
     }
 
+    /// Shows the tooltip with the given text at the given position.
     pub fn show_with_options(&mut self, cx: &mut Cx, pos: DVec2, text: &str) {
         self.set_text(cx, text);
         self.set_pos(cx, pos);
         self.show(cx);
     }
 
+    /// Hides the tooltip.
     pub fn hide(&mut self, cx: &mut Cx) {
         self.opened = false;
         self.redraw(cx);
@@ -130,30 +144,35 @@ impl Tooltip {
 
 #[allow(dead_code)]
 impl TooltipRef {
+    /// Sets the tooltip text.
     pub fn set_text(&mut self, cx: &mut Cx, text: &str) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.set_text(cx, text);
         }
     }
 
+    /// Sets the tooltip display position.
     pub fn set_pos(&mut self, cx: &mut Cx, pos: DVec2) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.set_pos(cx, pos);
         }
     }
 
+    /// Shows the tooltip.
     pub fn show(&mut self, cx: &mut Cx) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.show(cx);
         }
     }
 
+    /// Shows the tooltip with the given text at the given position.
     pub fn show_with_options(&mut self, cx: &mut Cx, pos: DVec2, text: &str) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.show_with_options(cx, pos, text);
         }
     }
 
+    /// Hides the tooltip.
     pub fn hide(&mut self, cx: &mut Cx) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.hide(cx);

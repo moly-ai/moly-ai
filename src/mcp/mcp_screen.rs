@@ -1,48 +1,43 @@
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-
-    use crate::mcp::mcp_servers::McpServers;
-
-    pub McpScreen = {{McpScreen}} {
+    mod.widgets.McpScreenBase = #(McpScreen::register_widget(vm))
+    mod.widgets.McpScreen = set_type_default() do mod.widgets.McpScreenBase {
         width: Fill, height: Fill
         spacing: 20
         flow: Down
 
-        header = <View> {
+        header := View {
             height: Fit
             spacing: 20
             flow: Down
 
-            padding: {left: 30, top: 40}
-            <Label> {
-                draw_text:{
-                    text_style: <BOLD_FONT>{font_size: 25}
+            padding: Inset { left: 30 top: 40 }
+            Label {
+                draw_text +: {
+                    text_style: BOLD_FONT { font_size: 25 }
                     color: #000
                 }
                 text: "MCP Servers"
             }
 
-            <Label> {
-                draw_text:{
-                    text_style: <BOLD_FONT>{font_size: 12}
+            Label {
+                draw_text +: {
+                    text_style: BOLD_FONT { font_size: 12 }
                     color: #000
                 }
                 text: "Manage MCP servers and tools"
             }
         }
 
-        mcp_servers = <McpServers> {}
+        mcp_servers := mod.widgets.McpServers {}
     }
 }
 
-#[derive(Widget, LiveHook, Live)]
+#[derive(Widget, ScriptHook, Script)]
 pub struct McpScreen {
     #[deref]
     view: View,
@@ -61,7 +56,7 @@ impl Widget for McpScreen {
 
 impl WidgetMatchEvent for McpScreen {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        let stack_navigation = self.stack_navigation(ids!(navigation));
+        let stack_navigation = self.stack_navigation(cx, ids!(navigation));
         stack_navigation.handle_stack_view_actions(cx, actions);
     }
 }

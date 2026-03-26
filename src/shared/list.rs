@@ -1,19 +1,23 @@
 use makepad_widgets::*;
 
-live_design!(
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    pub List = {{List}} {
-        flow: Down,
-        width: Fill,
-        height: Fill,
+    mod.widgets.ListBase = #(List::register_widget(vm))
+    mod.widgets.List = set_type_default() do mod.widgets.ListBase {
+        flow: Down
+        width: Fill
+        height: Fill
     }
-);
+}
 
 /// Minimalistic list of dynamic widgets created from your data, eagerly rendered and
 /// with a known size.
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct List {
+    #[uid]
+    uid: WidgetUid,
+
     #[walk]
     walk: Walk,
 

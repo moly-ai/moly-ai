@@ -7,53 +7,47 @@ use crate::shared::actions::ChatAction;
 use makepad_widgets::*;
 use moly_protocol::data::Model;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::landing::model_card::ModelCard;
-    use crate::landing::search_loading::SearchLoading;
-    use crate::chat::entity_button::*;
-
-    AgentCard = <RoundedView> {
-        width: Fill,
-        height: 100,
-        show_bg: false,
-        draw_bg: {
-            border_radius: 5,
-            color: #F9FAFB,
+    let AgentCard = RoundedView {
+        width: Fill
+        height: 100
+        show_bg: false
+        draw_bg +: {
+            border_radius: 5
+            color: #F9FAFB
         }
-        button = <EntityButton> {
-            width: Fill,
-            height: Fill,
-            padding: {left: 15, right: 15},
-            spacing: 15,
-            align: {x: 0, y: 0.35},
-            server_url_visible: true,
+        button := mod.widgets.EntityButton {
+            width: Fill
+            height: Fill
+            padding: Inset {left: 15 right: 15}
+            spacing: 15
+            align: Align {x: 0 y: 0.35}
+            server_url_visible: true
 
-            draw_bg: {
-                border_radius: 5,
+            draw_bg +: {
+                border_radius: 5
             }
-            agent_avatar = {
-                image = {
-                    width: 64,
-                    height: 64,
+            agent_avatar +: {
+                image +: {
+                    width: 64
+                    height: 64
                 }
             }
-            text_layout = {
-                height: Fit,
-                flow: Down,
-                caption = {
-                    draw_text: {
-                        text_style: <BOLD_FONT>{font_size: 11},
+            text_layout +: {
+                height: Fit
+                flow: Down
+                caption +: {
+                    draw_text +: {
+                        text_style: theme.font_bold {font_size: 11}
                     }
                 }
-                description = {
-                    label = {
-                        draw_text: {
-                            wrap: Word,
-                            color: #1D2939,
+                description +: {
+                    label +: {
+                        draw_text +: {
+                            color: #1D2939
                         }
                     }
                 }
@@ -61,68 +55,68 @@ live_design! {
         }
     }
 
-    pub ModelList = {{ModelList}} {
-        width: Fill,
-        height: Fill,
+    mod.widgets.ModelListBase = #(ModelList::register_widget(vm))
+    mod.widgets.ModelList = set_type_default() do mod.widgets.ModelListBase {
+        width: Fill
+        height: Fill
 
-        flow: Overlay,
+        flow: Overlay
 
-        content = <View> {
-            width: Fill,
-            height: Fill,
-            list = <PortalList> {
-                width: Fill,
-                height: Fill,
+        content := View {
+            width: Fill
+            height: Fill
+            list := PortalList {
+                width: Fill
+                height: Fill
 
                 // We need this setting because we will have modal dialogs that should
                 // "capture" the events, so we don't want to handle them here.
-                capture_overload: false,
+                capture_overload: false
 
-                AgentRow = <View> {
-                    width: Fill,
-                    height: Fit,
-                    flow: Right,
-                    spacing: 15,
+                AgentRow := View {
+                    width: Fill
+                    height: Fit
+                    flow: Right
+                    spacing: 15
 
-                    first = <AgentCard> {}
-                    second = <AgentCard> {}
-                    third = <AgentCard> {}
+                    first := AgentCard {}
+                    second := AgentCard {}
+                    third := AgentCard {}
                 }
-                Header = <Label> {
-                    margin: {bottom: 10, top: 35}
-                    padding: {left: 10}
-                    draw_text:{
-                        text_style: <BOLD_FONT>{font_size: 16},
+                Header := Label {
+                    margin: Inset {bottom: 10 top: 35}
+                    padding: Inset {left: 10}
+                    draw_text +: {
+                        text_style: theme.font_bold {font_size: 16}
                         color: #000
                     }
                 }
-                Model = <ModelCard> {
-                    margin: {bottom: 30},
+                Model := ModelCard {
+                    margin: Inset {bottom: 30}
                 }
             }
         }
 
-        loading = <View> {
-            width: Fill,
-            height: Fill,
-            visible: false,
+        loading := SolidView {
+            width: Fill
+            height: Fill
+            visible: false
 
-            show_bg: true,
-            draw_bg: {
-                color: #FFFE,
+            draw_bg +: {
+                color: #FFFE
             }
-            search_loading = <SearchLoading> {}
+            search_loading := SearchLoading {}
         }
 
-        search_error = <View> {
-            width: Fill,
-            height: Fill,
-            visible: false,
-            align: {x: 0.5, y: 0.5},
+        search_error := View {
+            width: Fill
+            height: Fill
+            visible: false
+            align: Align {x: 0.5 y: 0.5}
 
-            <Label> {
-                draw_text:{
-                    text_style: <REGULAR_FONT>{font_size: 13},
+            Label {
+                draw_text +: {
+                    text_style: theme.font_regular {font_size: 13}
                     color: #000
                 }
                 text: "Error fetching models. Check your connection to MolyServer."
@@ -131,7 +125,7 @@ live_design! {
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct ModelList {
     #[deref]
     view: View,
@@ -188,7 +182,7 @@ impl Widget for ModelList {
                     if item_id < items.len() {
                         match items[item_id] {
                             Item::Header(text) => {
-                                let item = list.item(cx, item_id, live_id!(Header));
+                                let item = list.item(cx, item_id, id!(Header));
                                 item.set_text(cx, text);
                                 item.draw_all(cx, &mut Scope::empty());
                             }
@@ -196,28 +190,22 @@ impl Widget for ModelList {
                                 agents,
                                 margin_bottom,
                             } => {
-                                let row = list.item(cx, item_id, live_id!(AgentRow));
+                                let mut row = list.item(cx, item_id, id!(AgentRow));
 
-                                row.apply_over(
-                                    cx,
-                                    live! {
-                                        margin: {bottom: (margin_bottom)},
-                                    },
-                                );
+                                script_apply_eval!(cx, row, {
+                                    margin: {bottom: #(margin_bottom)}
+                                });
 
                                 [ids!(first), ids!(second), ids!(third)]
                                     .iter()
                                     .enumerate()
                                     .for_each(|(i, id)| {
                                         if let Some(agent) = agents.get(i) {
-                                            let cell = row.view(*id);
-                                            cell.apply_over(
-                                                cx,
-                                                live! {
-                                                    show_bg: true,
-                                                },
-                                            );
-                                            let mut button = cell.entity_button(ids!(button));
+                                            let mut cell = row.view(cx, *id);
+                                            script_apply_eval!(cx, cell, {
+                                                show_bg: true
+                                            });
+                                            let mut button = cell.entity_button(cx, ids!(button));
                                             button.set_bot_id(cx, &agent.id);
                                             button.set_description_visible(cx, true);
                                         }
@@ -226,7 +214,7 @@ impl Widget for ModelList {
                                 row.draw_all(cx, &mut Scope::empty());
                             }
                             Item::Model(model) => {
-                                let item = list.item(cx, item_id, live_id!(Model));
+                                let item = list.item(cx, item_id, id!(Model));
                                 let mut model_with_download_info =
                                     store.add_download_info_to_model(model);
                                 item.draw_all(
@@ -244,8 +232,9 @@ impl Widget for ModelList {
     }
 }
 
-#[derive(Clone, DefaultNone, Debug)]
+#[derive(Clone, Default, Debug)]
 pub enum ModelListAction {
+    #[default]
     None,
     ScrolledAtTop,
     ScrolledNotAtTop,
@@ -255,12 +244,12 @@ const SCROLLING_AT_TOP_THRESHOLD: f64 = -30.0;
 
 impl WidgetMatchEvent for ModelList {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        let portal_list = self.portal_list(ids!(list));
+        let portal_list = self.portal_list(cx, ids!(list));
 
         let clicked_entity_button = portal_list
             .items_with_actions(actions)
             .iter()
-            .map(|(_, item)| item.entity_button(ids!(button)))
+            .map(|(_, item)| item.entity_button(cx, ids!(button)))
             .find(|button| button.clicked(actions));
 
         if let Some(entity_button) = clicked_entity_button {
@@ -277,9 +266,9 @@ impl WidgetMatchEvent for ModelList {
 
             match action.cast() {
                 StoreAction::Search(_) | StoreAction::ResetSearch => {
-                    self.view(ids!(search_error)).set_visible(cx, false);
-                    self.view(ids!(loading)).set_visible(cx, true);
-                    self.search_loading(ids!(search_loading)).animate(cx);
+                    self.view(cx, ids!(search_error)).set_visible(cx, false);
+                    self.view(cx, ids!(loading)).set_visible(cx, true);
+                    self.search_loading(cx, ids!(search_loading)).animate(cx);
                     portal_list.set_first_id_and_scroll(0, 0.0);
 
                     self.redraw(cx);
@@ -304,14 +293,16 @@ impl ModelList {
     fn update_loading_and_error_message(&mut self, cx: &mut Cx, scope: &mut Scope) {
         let store = scope.data.get::<Store>().unwrap();
         let is_loading = store.search.is_pending();
-        self.view(ids!(loading)).set_visible(cx, is_loading);
+        self.view(cx, ids!(loading)).set_visible(cx, is_loading);
         if is_loading {
-            self.search_loading(ids!(search_loading)).animate(cx);
+            self.search_loading(cx, ids!(search_loading)).animate(cx);
         } else {
-            self.search_loading(ids!(search_loading)).stop_animation();
+            self.search_loading(cx, ids!(search_loading))
+                .stop_animation();
         }
 
         let is_errored = store.search.was_error();
-        self.view(ids!(search_error)).set_visible(cx, is_errored);
+        self.view(cx, ids!(search_error))
+            .set_visible(cx, is_errored);
     }
 }

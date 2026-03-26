@@ -2,55 +2,52 @@ use super::chat_history_card::ChatHistoryCardAction;
 use crate::data::chats::chat::ChatId;
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::widgets::*;
-    use crate::shared::styles::*;
+    let ICON_DELETE = crate_resource("self://resources/icons/delete.svg")
+    let ICON_EDIT = crate_resource("self://resources/icons/edit.svg")
 
-    ICON_DELETE = dep("crate://self/resources/icons/delete.svg")
-    ICON_EDIT = dep("crate://self/resources/icons/edit.svg")
-
-    pub ChatHistoryCardOptions = {{ChatHistoryCardOptions}} {
+    mod.widgets.ChatHistoryCardOptionsBase = #(ChatHistoryCardOptions::register_widget(vm))
+    mod.widgets.ChatHistoryCardOptions = set_type_default() do mod.widgets.ChatHistoryCardOptionsBase {
         width: Fit
         height: Fit
         flow: Overlay
 
-        options_content = <RoundedView> {
-            width: Fit,
-            height: Fit,
-            flow: Down,
+        options_content := RoundedView {
+            width: Fit
+            height: Fit
+            flow: Down
 
-            draw_bg: {
-                color: #fff,
-                border_size: 1.0,
-                border_color: #D0D5DD,
+            draw_bg +: {
+                color: #fff
+                border_size: 1.0
+                border_color: #D0D5DD
                 border_radius: 2.
             }
 
-            edit_chat_name = <MolyButton> {
+            edit_chat_name := MolyButton {
                 width: Fit
                 height: Fit
-                padding: { top: 12, right: 12, bottom: 12, left: 12}
+                padding: Inset {top: 12 right: 12 bottom: 12 left: 12}
 
-                draw_bg: {
-                    border_size: 0,
+                draw_bg +: {
+                    border_size: 0
                     border_radius: 0
                 }
 
-                icon_walk: {width: 12, height: 12}
-                draw_icon: {
-                    svg_file: (ICON_EDIT),
-                    fn get_color(self) -> vec4 {
+                icon_walk +: {width: 12 height: 12}
+                draw_icon +: {
+                    svg: (ICON_EDIT)
+                    get_color: fn() -> vec4 {
                         return #000;
                     }
                 }
 
-                draw_text: {
-                    text_style: <REGULAR_FONT>{font_size: 9},
-                    fn get_color(self) -> vec4 {
+                draw_text +: {
+                    text_style: REGULAR_FONT {font_size: 9}
+                    get_color: fn() -> vec4 {
                         return #000;
                     }
                 }
@@ -58,30 +55,29 @@ live_design! {
                 text: "Edit Chat Name"
             }
 
-
-            delete_chat = <MolyButton> {
+            delete_chat := MolyButton {
                 width: Fill
                 height: Fit
-                padding: { top: 12, right: 12, bottom: 12, left: 12}
-                align: {x: 0.0, y: 0.5}
+                padding: Inset {top: 12 right: 12 bottom: 12 left: 12}
+                align: Align {x: 0.0 y: 0.5}
 
-                draw_bg: {
-                    border_size: 0,
+                draw_bg +: {
+                    border_size: 0
                     border_radius: 0
                 }
 
-                icon_walk: {width: 12, height: 12}
-                draw_icon: {
-                    svg_file: (ICON_DELETE),
-                    fn get_color(self) -> vec4 {
-                        return #B42318;
+                icon_walk +: {width: 12 height: 12}
+                draw_icon +: {
+                    svg: (ICON_DELETE)
+                    get_color: fn() -> vec4 {
+                        return #xB42318;
                     }
                 }
 
-                draw_text: {
-                    text_style: <REGULAR_FONT>{font_size: 9},
-                    fn get_color(self) -> vec4 {
-                        return #B42318;
+                draw_text +: {
+                    text_style: REGULAR_FONT {font_size: 9}
+                    get_color: fn() -> vec4 {
+                        return #xB42318;
                     }
                 }
 
@@ -90,7 +86,8 @@ live_design! {
         }
     }
 }
-#[derive(Live, LiveHook, Widget)]
+
+#[derive(Script, ScriptHook, Widget)]
 pub struct ChatHistoryCardOptions {
     #[deref]
     view: View,
@@ -127,7 +124,7 @@ impl ChatHistoryCardOptionsRef {
 
 impl WidgetMatchEvent for ChatHistoryCardOptions {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if self.button(ids!(delete_chat)).clicked(actions) {
+        if self.button(cx, ids!(delete_chat)).clicked(actions) {
             cx.action(ChatHistoryCardAction::MenuClosed(self.chat_id));
 
             cx.action(ChatHistoryCardAction::DeleteChatOptionSelected(
@@ -135,7 +132,7 @@ impl WidgetMatchEvent for ChatHistoryCardOptions {
             ));
         }
 
-        if self.button(ids!(edit_chat_name)).clicked(actions) {
+        if self.button(cx, ids!(edit_chat_name)).clicked(actions) {
             cx.action(ChatHistoryCardAction::MenuClosed(self.chat_id));
 
             cx.action(ChatHistoryCardAction::ActivateTitleEdition(self.chat_id));

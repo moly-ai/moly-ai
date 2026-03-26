@@ -395,9 +395,9 @@ impl MolyClient {
     }
 }
 
-#[derive(Clone, Debug, DefaultNone)]
-
+#[derive(Clone, Debug, Default)]
 pub enum MolyClientAction {
+    #[default]
     None,
     ServerUnreachable,
 }

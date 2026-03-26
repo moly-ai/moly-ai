@@ -3,155 +3,158 @@ use makepad_widgets::*;
 
 use super::downloaded_files_row::DownloadedFilesRowProps;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::MolyButton;
-    use crate::shared::resource_imports::*;
-
-    MolyHtml = <Html> {
-        font_color: #000,
-        draw_fixed: { color: #x0 }
-        draw_block: {
+    let MolyHtml = Html {
+        font_color: #000
+        draw_block +: {
             code_color: (#EAECF0)
         }
         font_size: 10
-        code_layout: { padding: 15, }
+        code_layout: Layout { padding: 15 }
     }
 
-    pub ModelInfoModal = {{ModelInfoModal}} {
+    mod.widgets.ModelInfoModalBase = #(ModelInfoModal::register_widget(vm))
+    mod.widgets.ModelInfoModal =
+        set_type_default() do mod.widgets.ModelInfoModalBase {
         width: Fit
         height: Fit
 
-        wrapper = <RoundedView> {
+        wrapper := RoundedView {
             flow: Down
             width: 800
             height: Fit
-            padding: {top: 44, right: 30 bottom: 30 left: 50}
+            padding: Inset { top: 44 right: 30 bottom: 30 left: 50 }
             spacing: 5
 
             show_bg: true
-            draw_bg: {
+            draw_bg +: {
                 color: #fff
                 border_radius: 3
             }
 
-            <View> {
-                width: Fill,
-                height: Fit,
+            View {
+                width: Fill
+                height: Fit
                 flow: Right
 
-                padding: {top: 6, bottom: 20}
+                padding: Inset { top: 6 bottom: 20 }
 
-                title = <View> {
-                    width: Fit,
-                    height: Fit,
+                title := View {
+                    width: Fit
+                    height: Fit
 
-                    filename = <Label> {
-                        draw_text: {
-                            text_style: <BOLD_FONT>{font_size: 13},
+                    filename := Label {
+                        draw_text +: {
+                            text_style: BOLD_FONT { font_size: 13 }
                             color: #000
                         }
                     }
                 }
 
-                filler_x = <View> {width: Fill, height: Fit}
+                filler_x := View { width: Fill height: Fit }
 
-                close_button = <MolyButton> {
-                    width: Fit,
-                    height: Fit,
-                    margin: {top: -6}
+                close_button := MolyButton {
+                    width: Fit
+                    height: Fit
+                    margin: Inset { top: -6 }
 
-                    draw_icon: {
-                        svg_file: (ICON_CLOSE),
-                        fn get_color(self) -> vec4 {
-                            return #000;
+                    draw_icon +: {
+                        svg: ICON_CLOSE
+                        get_color: fn() -> vec4 {
+                            return #000
                         }
                     }
-                    icon_walk: {width: 12, height: 12}
+                    icon_walk +: { width: 12 height: 12 }
                 }
             }
 
-            file_dir = <View> {
-                width: Fill,
-                height: Fit,
-                flow: Down,
+            file_dir := View {
+                width: Fill
+                height: Fit
+                flow: Down
                 spacing: 8
-                // Hack to align the text with the html block, 0.5 it not visually centered
-                align: {x: 0.0, y: 0.6}
+                align: Align { x: 0.0 y: 0.6 }
 
-                <Label> {
+                Label {
                     text: "Read from"
-                    draw_text: {
-                        text_style: <REGULAR_FONT>{font_size: 10},
+                    draw_text +: {
+                        text_style: REGULAR_FONT { font_size: 10 }
                         color: #344054
                     }
                 }
-                path = <MolyHtml> {
+                path := MolyHtml {
                     width: Fill
                     font_size: 10
-                    code_layout: { padding: 9 }
+                    code_layout: Layout { padding: 9 }
                 }
             }
 
-            body = <View> {
-                width: Fill,
-                height: Fit,
-                flow: Down,
-                spacing: 20,
+            body := View {
+                width: Fill
+                height: Fit
+                flow: Down
+                spacing: 20
 
-                metadata = <MolyHtml> {}
-                actions = <View> {
-                    width: Fill, height: Fit
-                    flow: Right,
-                    align: {x: 0.0, y: 0.5}
+                metadata := MolyHtml {}
+                actions := View {
+                    width: Fill height: Fit
+                    flow: Right
+                    align: Align { x: 0.0 y: 0.5 }
                     spacing: 20
 
-                    copy_button = <MolyButton> {
-                        width: Fit,
-                        height: Fit,
-                        padding: {top: 10, bottom: 10, left: 14, right: 14}
+                    copy_button := MolyButton {
+                        width: Fit
+                        height: Fit
+                        padding: Inset {
+                            top: 10 bottom: 10 left: 14 right: 14
+                        }
                         spacing: 10
 
-                        draw_icon: {
-                            svg_file: (ICON_COPY)
-                            fn get_color(self) -> vec4 {
-                                return #x0;
+                        draw_icon +: {
+                            svg: ICON_COPY
+                            get_color: fn() -> vec4 {
+                                return #x0
                             }
                         }
-                        icon_walk: {width: 14, height: 14}
+                        icon_walk +: { width: 14 height: 14 }
 
-                        draw_bg: {
-                            instance border_radius: 2.0,
-                            border_color_1: #D0D5DD,
-                            border_size: 1.2,
-                            color: #EDFCF2,
+                        draw_bg +: {
+                            border_radius: uniform(2.0)
+                            border_color_1: #D0D5DD
+                            border_size: 1.2
+                            color: #EDFCF2
                         }
 
                         text: "Copy to Clipboard"
-                        draw_text:{
-                            text_style: <REGULAR_FONT>{font_size: 10},
+                        draw_text +: {
+                            text_style: REGULAR_FONT {
+                                font_size: 10
+                            }
                             color: #x0
                         }
                     }
-                    external_link = <MolyButton> {
-                        width: Fit,
-                        height: Fit,
-                        padding: {top: 10, bottom: 10, left: 14, right: 14}
+                    external_link := MolyButton {
+                        width: Fit
+                        height: Fit
+                        padding: Inset {
+                            top: 10 bottom: 10 left: 14 right: 14
+                        }
 
-                        draw_bg: {
-                            instance border_radius: 2.0,
-                            border_color_1: #D0D5DD,
-                            border_size: 1.2,
-                            color: #F5FEFF,
+                        draw_bg +: {
+                            border_radius: uniform(2.0)
+                            border_color_1: #D0D5DD
+                            border_size: 1.2
+                            color: #F5FEFF
                         }
 
                         text: "Model Card on Hugging Face"
-                        draw_text:{
-                            text_style: <REGULAR_FONT>{font_size: 10},
+                        draw_text +: {
+                            text_style: REGULAR_FONT {
+                                font_size: 10
+                            }
                             color: #x0
                         }
                     }
@@ -161,13 +164,14 @@ live_design! {
     }
 }
 
-#[derive(Clone, Debug, DefaultNone)]
+#[derive(Clone, Debug, Default)]
 pub enum ModelInfoModalAction {
+    #[default]
     None,
     ModalDismissed,
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct ModelInfoModal {
     #[deref]
     view: View,
@@ -189,24 +193,21 @@ impl Widget for ModelInfoModal {
 
         self.model_id = downloaded_file.model.id.clone();
 
-        // filename
-        self.label(ids!(title.filename))
+        self.label(cx, ids!(title.filename))
             .set_text(cx, &downloaded_file.file.name);
 
-        // file path
         if let Some(path) = &downloaded_file.file.downloaded_path {
-            self.html(ids!(file_dir.path))
+            self.html(cx, ids!(file_dir.path))
                 .set_text(cx, &format!("<pre>{}</pre>", path));
         } else {
-            self.view(ids!(file_dir)).set_visible(cx, false);
+            self.view(cx, ids!(file_dir)).set_visible(cx, false);
         }
 
-        // metadata
         self.stringified_model_data = serde_json::to_string_pretty(&downloaded_file.model)
             .expect("Could not serialize model data into json");
         let metadata = format!("<pre>{}</pre>", self.stringified_model_data);
 
-        self.html(ids!(wrapper.body.metadata))
+        self.html(cx, ids!(wrapper.body.metadata))
             .set_text(cx, &metadata);
 
         self.view
@@ -216,19 +217,19 @@ impl Widget for ModelInfoModal {
 
 impl WidgetMatchEvent for ModelInfoModal {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if self.button(ids!(close_button)).clicked(actions) {
+        if self.button(cx, ids!(close_button)).clicked(actions) {
             cx.action(ModelInfoModalAction::ModalDismissed);
         }
 
         if self
-            .button(ids!(wrapper.body.actions.copy_button))
+            .button(cx, ids!(wrapper.body.actions.copy_button))
             .clicked(actions)
         {
             cx.copy_to_clipboard(&self.stringified_model_data);
         }
 
         if self
-            .button(ids!(wrapper.body.actions.external_link))
+            .button(cx, ids!(wrapper.body.actions.external_link))
             .clicked(actions)
         {
             let model_url = hugging_face_model_url(&self.model_id);

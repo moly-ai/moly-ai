@@ -1,64 +1,48 @@
 use makepad_widgets::*;
 
 use crate::shared::actions::ChatAction;
+use crate::shared::toggle_panel::MolyTogglePanel;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::chat::chat_history::ChatHistory;
+    let ICON_NEW_CHAT = crate_resource("self://resources/icons/new_chat.svg")
 
-    ICON_NEW_CHAT = dep("crate://self/resources/icons/new_chat.svg")
+    mod.widgets.ChatHistoryPanelBase = #(ChatHistoryPanel::register_widget(vm))
+    mod.widgets.ChatHistoryPanel =
+        set_type_default() do mod.widgets.ChatHistoryPanelBase {
+        ..MolyTogglePanel
 
-    HeadingLabel = <Label> {
-        margin: {left: 4, bottom: 4},
-        draw_text:{
-            text_style: <BOLD_FONT>{font_size: 10.5},
-            color: #3
-        }
-    }
-
-    NoAgentsWarning = <Label> {
-        margin: {left: 4, bottom: 4},
-        width: Fill
-        draw_text:{
-            text_style: {font_size: 8.5},
-            color: #3
-        }
-    }
-
-    pub ChatHistoryPanel = {{ChatHistoryPanel}} <MolyTogglePanel> {
-        // Workaround: Instantiate a view replacing the whole `open_content` content,
-        // because `CachedView` is currently rendering up-side-down on web.
-        open_content = <View> {
-            <ChatHistory> {
-                margin: {top: 80}
+        open_content +: {
+            ChatHistory {
+                margin: Inset {top: 80}
             }
-            right_border = <View> {
-                width: 1.6, height: Fill
-                margin: {top: 15, bottom: 15}
-                show_bg: true,
-                draw_bg: {
-                    color: #eaeaea
+
+            right_border := SolidView {
+                width: 1.6 height: Fill
+                margin: Inset {top: 15 bottom: 15}
+                draw_bg +: {
+                    color: #xeaeaea
                 }
             }
         }
 
-        persistent_content = {
-            margin: { left: -10 },
-            default = {
-                after = {
-                    new_chat_button = <MolyButton> {
-                        width: Fit,
-                        height: Fit,
-                        icon_walk: {margin: { top: -1 }, width: 21, height: 21},
-                        draw_icon: {
-                            svg_file: (ICON_NEW_CHAT),
-                            fn get_color(self) -> vec4 {
-                                return #475467;
+        persistent_content +: {
+            default +: {
+                margin: Inset { left: -10 }
+                after +: {
+                    new_chat_button := MolyButton {
+                        width: Fit
+                        height: Fit
+                        icon_walk +: {
+                            margin: Inset {top: -1}
+                            width: 21 height: 21
+                        }
+                        draw_icon +: {
+                            svg: ICON_NEW_CHAT
+                            get_color: fn() -> vec4 {
+                                return #x475467
                             }
                         }
                     }
@@ -68,15 +52,16 @@ live_design! {
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct ChatHistoryPanel {
     #[deref]
-    deref: TogglePanel,
+    deref: MolyTogglePanel,
 }
 
 impl Widget for ChatHistoryPanel {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.deref.handle_event(cx, event, scope);
+        self.widget_match_event(cx, event, scope);
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
@@ -86,7 +71,7 @@ impl Widget for ChatHistoryPanel {
 
 impl WidgetMatchEvent for ChatHistoryPanel {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if self.button(ids!(new_chat_button)).clicked(&actions) {
+        if self.button(cx, ids!(new_chat_button)).clicked(&actions) {
             cx.action(ChatAction::StartWithoutEntity);
             self.redraw(cx);
         }

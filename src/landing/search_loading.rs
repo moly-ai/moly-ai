@@ -1,106 +1,104 @@
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::landing::model_card::ModelCard;
-
-    ANIMATION_SPEED = 0.33
-
-    LoadingBall = <CircleView> {
+    let LoadingBall = CircleView {
         width: 28
         height: 28
-        draw_bg: {
+        draw_bg +: {
             border_radius: 14.0
-            fn get_color(self) -> vec4 {
-                let top_color = #E6F2D8;
-                let bottom_color = #A4E0EF;
-                let gradient_ratio = self.pos.y;
-                return mix(top_color, bottom_color, gradient_ratio);
+            get_color: fn() -> vec4 {
+                let top_color = #E6F2D8
+                let bottom_color = #A4E0EF
+                let gradient_ratio = self.pos.y
+                return mix(top_color bottom_color gradient_ratio)
             }
         }
     }
 
-    pub SearchLoading = {{SearchLoading}} {
-        width: Fill,
-        height: Fill,
+    mod.widgets.SearchLoadingBase = #(SearchLoading::register_widget(vm))
+    mod.widgets.SearchLoading = set_type_default() do mod.widgets.SearchLoadingBase {
+        width: Fill
+        height: Fill
 
-        flow: Down,
-        spacing: 60,
-        align: {x: 0.5, y: 0.5},
+        flow: Down
+        spacing: 60
+        align: Align {x: 0.5 y: 0.5}
 
-        content = <View> {
-            width: Fit,
-            height: Fit,
-            spacing: 30,
-            circle1 = <LoadingBall> {}
-            circle2 = <LoadingBall> {}
-            circle3 = <LoadingBall> {}
+        content := View {
+            width: Fit
+            height: Fit
+            spacing: 30
+            circle1 := LoadingBall {}
+            circle2 := LoadingBall {}
+            circle3 := LoadingBall {}
         }
 
-        <Label> {
-            draw_text:{
-                text_style: <REGULAR_FONT>{font_size: 14},
+        Label {
+            draw_text +: {
+                text_style: theme.font_regular {font_size: 14}
                 color: #667085
             }
             text: "Searching..."
         }
 
-        animator: {
-            circle1 = {
-                default: start,
-                start = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle1 = { draw_bg: {border_radius: 1.0} }}}
+        animator: Animator {
+            circle1: {
+                default: @start
+                start: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {content: { circle1: { draw_bg: {border_radius: 1.0} }}}
                 }
-                run = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle1 = { draw_bg: {border_radius: 14.0} }}}
-                }
-            }
-
-            circle2 = {
-                default: start,
-                start = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle2 = { draw_bg: {border_radius: 1.0} }}}
-                }
-                run = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle2 = { draw_bg: {border_radius: 14.0} }}}
+                run: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {content: { circle1: { draw_bg: {border_radius: 14.0} }}}
                 }
             }
 
-            circle3 = {
-                default: start,
-                start = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle3 = { draw_bg: {border_radius: 1.0} }}}
+            circle2: {
+                default: @start
+                start: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {content: { circle2: { draw_bg: {border_radius: 1.0} }}}
                 }
-                run = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {content = { circle3 = { draw_bg: {border_radius: 14.0} }}}
+                run: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {content: { circle2: { draw_bg: {border_radius: 14.0} }}}
+                }
+            }
+
+            circle3: {
+                default: @start
+                start: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {content: { circle3: { draw_bg: {border_radius: 1.0} }}}
+                }
+                run: AnimatorState {
+                    redraw: true
+                    from: {all: Forward {duration: 0.33}}
+                    apply: {content: { circle3: { draw_bg: {border_radius: 14.0} }}}
                 }
             }
         }
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Animator, Script, ScriptHook, Widget)]
 pub struct SearchLoading {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     view: View,
 
-    #[animator]
+    #[apply_default]
     animator: Animator,
 
     #[rust]

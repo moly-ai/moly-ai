@@ -13,7 +13,7 @@ use super::search::SortCriteria;
 use super::supported_providers;
 use super::{chats::Chats, downloads::Downloads, search::Search};
 use chrono::{DateTime, Utc};
-use makepad_widgets::{Action, ActionDefaultRef, DefaultNone};
+use makepad_widgets::Action;
 use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
 
@@ -25,11 +25,12 @@ use makepad_widgets::*;
 #[allow(dead_code)]
 const DEFAULT_MOFA_ADDRESS: &str = "http://localhost:8000";
 
-#[derive(Clone, DefaultNone, Debug)]
+#[derive(Clone, Default, Debug)]
 pub enum StoreAction {
     Search(String),
     ResetSearch,
     Sort(SortCriteria),
+    #[default]
     None,
 }
 
@@ -76,7 +77,7 @@ pub struct Store {
     moly_client: MolyClient,
     pub provider_syncing_status: ProviderSyncingStatus,
 
-    pub provider_icons: Vec<LiveDependency>,
+    pub provider_icons: Vec<String>,
 }
 
 const MOLY_SERVER_VERSION_EXTENSION: &str = "/api/v1";
@@ -112,7 +113,7 @@ impl Store {
 
             app_runner().defer(move |app, cx, _| {
                 app.store = Some(store);
-                app.ui.view(ids!(body)).set_visible(cx, true);
+                app.ui.view(cx, ids!(body)).set_visible(cx, true);
                 cx.redraw_all(); // app.ui.redraw(cx) doesn't work as expected on web.
             });
         })
@@ -449,17 +450,13 @@ impl Store {
         self.preferences.remove_provider(provider_id);
     }
 
-    pub fn get_provider_icon(&self, provider_name: &str) -> Option<LiveDependency> {
+    pub fn get_provider_icon(&self, provider_name: &str) -> Option<&str> {
         let base_name = normalize_provider_name(provider_name);
 
         self.provider_icons
             .iter()
-            .find(|icon| {
-                icon.as_str()
-                    .to_lowercase()
-                    .contains(&base_name.to_lowercase())
-            })
-            .cloned()
+            .find(|icon| icon.to_lowercase().contains(&base_name.to_lowercase()))
+            .map(|s| s.as_str())
     }
 
     pub fn get_mcp_servers_config(&self) -> &McpServersConfig {

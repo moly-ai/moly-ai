@@ -4,99 +4,94 @@ use super::shared::ChatAgentAvatarWidgetExt;
 use makepad_widgets::*;
 use moly_kit::prelude::*;
 
-live_design!(
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::chat::shared::ChatAgentAvatar;
+    mod.widgets.EntityButtonBase = #(EntityButton::register_widget(vm))
+    mod.widgets.EntityButton = set_type_default() do mod.widgets.EntityButtonBase {
+        ..mod.widgets.SolidView
+        flow: Right
+        width: Fill
+        visible: false
+        height: 40
+        align: Align {x: 0.0 y: 0.5}
+        padding: Inset {left: 9 top: 4 bottom: 4 right: 9}
+        spacing: 10
+        server_url_visible: false
 
-    pub EntityButton = {{EntityButton}} <RoundedView> {
-        flow: Right,
-        width: Fill,
-        visible: false,
-        height: 40,
-        align: { x: 0.0, y: 0.5 },
-        padding: { left: 9, top: 4, bottom: 4, right: 9 },
-        spacing: 10,
-        server_url_visible: false,
-
-        cursor: Hand
-        show_bg: true,
-        draw_bg: {
-            border_radius: 0,
+        cursor: MouseCursor.Hand
+        show_bg: true
+        draw_bg +: {
             color: #0000
         }
 
-        agent_avatar = <ChatAgentAvatar> {}
-        text_layout = <View> {
-            width: Fill,
-            height: Fit,
-            flow: Right,
+        agent_avatar := mod.widgets.ChatAgentAvatar {}
+        text_layout := View {
+            width: Fill
+            height: Fit
+            flow: Right
             spacing: 10
 
-            caption = <Label> {
-                width: Fit,
-                height: Fit,
-                draw_text: {
-                    text_style: <BOLD_FONT>{font_size: 10},
-                    color: #000;
+            caption := Label {
+                width: Fit
+                height: Fit
+                draw_text +: {
+                    text_style: BOLD_FONT {font_size: 10}
+                    color: #000
                 }
             }
-            server_url = <View> {
-                visible: false,
-                width: Fill,
-                height: Fit,
-                label = <Label> {
-                    draw_text: {
-                        text_style: <REGULAR_FONT>{font_size: 9},
-                        color: #667085,
+            server_url := View {
+                visible: false
+                width: Fill
+                height: Fit
+                label := Label {
+                    draw_text +: {
+                        text_style: REGULAR_FONT {font_size: 9}
+                        color: #667085
                     }
                 }
             }
-            description = <View> {
-                visible: false,
-                width: Fill,
-                height: Fit,
-                label = <Label> {
-                    width: Fill,
-                    height: Fit,
-                    draw_text: {
-                        wrap: Ellipsis,
-                        text_style: <REGULAR_FONT>{font_size: 9},
-                        color: #667085,
+            description := View {
+                visible: false
+                width: Fill
+                height: Fit
+                label := Label {
+                    width: Fill
+                    height: Fit
+                    draw_text +: {
+                        text_style: REGULAR_FONT {font_size: 9}
+                        color: #667085
                     }
                 }
             }
         }
-        animator: {
-            hover = {
-                default: off
-                off = {
+        animator: Animator {
+            hover: {
+                default: @off
+                off: AnimatorState {
                     from: {all: Forward {duration: 0.15}}
                     apply: {
-                        draw_bg: {color: #F2F4F700}
+                        draw_bg: {color: #xF2F4F700}
                     }
                 }
-                on = {
+                on: AnimatorState {
                     from: {all: Snap}
                     apply: {
-                        draw_bg: {color: #EAECEF88}
+                        draw_bg: {color: #xEAECEF88}
                     }
                 }
             }
-            down = {
-                default: off
-                off = {
+            down: {
+                default: @off
+                off: AnimatorState {
                     from: {all: Forward {duration: 0.5}}
                     ease: OutExp
                     apply: {
                         draw_bg: {down: 0.0}
                     }
                 }
-                on = {
+                on: AnimatorState {
                     ease: OutExp
                     from: {
                         all: Forward {duration: 0.2}
@@ -108,9 +103,9 @@ live_design!(
             }
         }
     }
-);
+}
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, Widget, ScriptHook)]
 pub struct EntityButton {
     #[deref]
     view: View,
@@ -140,7 +135,7 @@ impl Widget for EntityButton {
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         if self.server_url_visible {
-            self.view(ids!(server_url)).set_visible(cx, true);
+            self.view(cx, ids!(server_url)).set_visible(cx, true);
         }
 
         if self.should_update_bot_info && self.bot_id.is_some() {
@@ -172,10 +167,10 @@ impl EntityButton {
         let store = scope.data.get_mut::<Store>().unwrap();
         self.visible = true;
 
-        let description_label = self.label(ids!(description.label));
-        let name_label = self.label(ids!(caption));
-        let mut avatar = self.chat_agent_avatar(ids!(agent_avatar));
-        let server_url = self.label(ids!(server_url.label));
+        let description_label = self.label(cx, ids!(description.label));
+        let name_label = self.label(cx, ids!(caption));
+        let mut avatar = self.chat_agent_avatar(cx, ids!(agent_avatar));
+        let server_url = self.label(cx, ids!(server_url.label));
 
         let bot = store.chats.get_bot_or_placeholder(&bot_id);
 
@@ -210,7 +205,7 @@ impl EntityButton {
     }
 
     pub fn set_description_visible(&mut self, cx: &mut Cx, visible: bool) {
-        self.view(ids!(description)).set_visible(cx, visible);
+        self.view(cx, ids!(description)).set_visible(cx, visible);
     }
 }
 

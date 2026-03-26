@@ -153,14 +153,15 @@ impl ProviderConnectionStatus {
     }
 }
 
-#[derive(Debug, DefaultNone, Clone)]
+#[derive(Debug, Default, Clone)]
 pub enum ProviderFetchModelsResult {
     Success(ProviderId, Vec<ProviderBot>),
     Failure(ProviderId, ClientError),
+    #[default]
     None,
 }
 
-#[derive(Live, LiveHook, PartialEq, Debug, LiveRead, Serialize, Deserialize, Clone)]
+#[derive(Script, ScriptHook, PartialEq, Debug, Serialize, Deserialize, Clone)]
 // Note: Aliases are used to support old casing styles in saved data.
 pub enum ProviderType {
     #[pick]

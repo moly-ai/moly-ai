@@ -7,278 +7,324 @@ use crate::{
 };
 use makepad_widgets::*;
 use moly_kit::prelude::*;
+use moly_kit::utils::makepad::load_image_from_resource;
 
 use super::{
     add_provider_modal::AddProviderModalAction, provider_view::ProviderViewAction,
     utilities_modal::UtilitiesModalAction,
 };
 
-live_design! {
-    use link::widgets::*;
-    use link::theme::*;
-    use link::shaders::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::widgets::*;
-    use crate::shared::styles::*;
-    use crate::settings::add_provider_modal::*;
-    use crate::settings::sync_modal::SyncModal;
-    use crate::settings::utilities_modal::UtilitiesModal;
+    let ICON_SUCCESS =
+        crate_resource("self://resources/images/circle_check_icon.png")
+    let ICON_LOADER =
+        crate_resource("self://resources/images/loader_icon.png")
+    let ICON_FAILURE =
+        crate_resource("self://resources/images/refresh_error_icon.png")
 
-    use moly_kit::widgets::moly_modal::*;
+    let ICON_OPENAI =
+        crate_resource("self://resources/images/providers/openai.png")
+    let ICON_GEMINI =
+        crate_resource("self://resources/images/providers/gemini.png")
+    let ICON_SILICONFLOW =
+        crate_resource("self://resources/images/providers/siliconflow.png")
+    let ICON_OPENROUTER =
+        crate_resource("self://resources/images/providers/openrouter.png")
+    let ICON_MOLYSERVER =
+        crate_resource("self://resources/images/providers/molyserver.png")
+    let ICON_DEEPSEEK =
+        crate_resource("self://resources/images/providers/deepseek.png")
+    let ICON_OLLAMA =
+        crate_resource("self://resources/images/providers/ollama.png")
+    let ICON_ANTHROPIC =
+        crate_resource("self://resources/images/providers/anthropic.png")
+    let ICON_OPENCLAW =
+        crate_resource("self://resources/images/providers/openclaw.png")
 
-    ICON_EDIT = dep("crate://self/resources/icons/edit.svg")
-    ICON_TRASH = dep("crate://self/resources/images/trash_icon.png")
-    ICON_REMOTE = dep("crate://self/resources/images/globe_icon.png")
-    ICON_LOCAL = dep("crate://self/resources/images/laptop_icon.png")
-
-    ICON_SUCCESS = dep("crate://self/resources/images/circle_check_icon.png")
-    ICON_LOADER = dep("crate://self/resources/images/loader_icon.png")
-    ICON_FAILURE = dep("crate://self/resources/images/refresh_error_icon.png")
-
-    // Provider icons
-    ICON_OPENAI = dep("crate://self/resources/images/providers/openai.png")
-    ICON_GEMINI = dep("crate://self/resources/images/providers/gemini.png")
-    ICON_SILICONFLOW = dep("crate://self/resources/images/providers/siliconflow.png")
-    ICON_OPENROUTER = dep("crate://self/resources/images/providers/openrouter.png")
-    ICON_MOLYSERVER = dep("crate://self/resources/images/providers/molyserver.png")
-    ICON_DEEPSEEK = dep("crate://self/resources/images/providers/deepseek.png")
-    ICON_OLLAMA = dep("crate://self/resources/images/providers/ollama.png")
-    ICON_ANTHROPIC = dep("crate://self/resources/images/providers/anthropic.png")
-    ICON_OPENCLAW = dep("crate://self/resources/images/providers/openclaw.png")
-
-    // Not making this based on <Icon> because button does not support images
-    // (and these SVGs are too complex for Makepad's SVG support)
-    ConnectionActionButton = <View> {
+    let ConnectionActionButton = View {
         visible: false
-        cursor: Hand
-        width: Fit, height: Fit
+        cursor: MouseCursor.Hand
+        width: Fit
+        height: Fit
 
-        icon = <Image> {
-            width: 22, height: 22
-            // Override the color of the icon
-            draw_bg: {
-                instance tint_color: #B42318
+        icon := Image {
+            width: 22
+            height: 22
+            draw_bg +: {
+                tint_color: instance(#B42318)
 
-                fn get_color_scale_pan(self, scale: vec2, pan: vec2) -> vec4 {
-                    let tex_color = sample2d(self.image, self.pos * scale + pan).xyzw;
-                    // Use the alpha channel from the texture but replace RGB with our tint color
-                    // Assuming the icon is black/white with transparency
+                get_color_scale_pan: fn(scale: vec2 pan: vec2) -> vec4 {
+                    let tex_color = sample2d(self.image self.pos * scale + pan).xyzw
                     return vec4(
-                        self.tint_color.rgb * tex_color.a,
+                        self.tint_color.rgb * tex_color.a
                         tex_color.a
-                    );
+                    )
                 }
             }
         }
     }
 
-    ProviderItem = {{ProviderItem}}<RoundedView> {
-        width: Fill, height: 40
+    mod.widgets.ProviderItemBase = #(ProviderItem::register_widget(vm))
+    let ProviderItem =
+        mod.widgets.ProviderItemBase {
+        ..mod.widgets.RoundedView
+        width: Fill
+        height: 40
         flow: Overlay
         show_bg: true
-        draw_bg: {
+        draw_bg +: {
             border_radius: 5
+            color: instance(#0000)
         }
-        padding: {left: 20}
-        align: {x: 0.0, y: 0.5}
+        padding: Inset { left: 20 }
+        align: Align { x: 0.0 y: 0.5 }
 
-        main_view = <View> {
-            cursor: Hand
+        main_view := View {
+            cursor: MouseCursor.Hand
             padding: 8
-            align: {x: 0.0, y: 0.5}
+            align: Align { x: 0.0 y: 0.5 }
             spacing: 20
             flow: Right
 
-            provider_icon = <View> {
-                width: Fit, height: Fit
-                image_wrapper = <View> {
-                    width: Fit, height: Fit
-                    provider_icon_image = <Image> {
-                        width: 25, height: 25
+            provider_icon := View {
+                width: Fit
+                height: Fit
+                image_wrapper := View {
+                    width: Fit
+                    height: Fit
+                    provider_icon_image := Image {
+                        width: 25
+                        height: 25
                     }
                     visible: true
                 }
 
-                label_wrapper = <RoundedView> {
-                    width: 25, height: 25
+                label_wrapper := RoundedView {
+                    width: 25
+                    height: 25
                     visible: false
                     show_bg: true
-                    draw_bg: {
+                    draw_bg +: {
                         color: #344054
                         border_radius: 6
                     }
-                    align: {x: 0.5, y: 0.5}
+                    align: Align { x: 0.5 y: 0.5 }
 
-                    initial_label = <Label> {
-                        draw_text:{
-                            text_style: <BOLD_FONT>{font_size: 12}
+                    initial_label := Label {
+                        draw_text +: {
+                            text_style: BOLD_FONT { font_size: 12 }
                             color: #f
                         }
                     }
                 }
             }
 
-
-            <View> {
+            View {
                 flow: Right
-                width: Fill, height: Fill
+                width: Fill
+                height: Fill
                 spacing: 20
-                align: {x: 0.0, y: 0.5}
+                align: Align { x: 0.0 y: 0.5 }
 
-                provider_name_label = <Label> {
-                    flow: Right,
-                    width: Fill,
-                    draw_text:{
-                        text_style: <REGULAR_FONT>{font_size: 11}
+                provider_name_label := Label {
+                    width: Fill
+                    height: Fit
+                    flow: Flow.Right{wrap: false}
+                    draw_text +: {
+                        text_style: REGULAR_FONT { font_size: 11 }
                         color: #000
                     }
                 }
 
-                status_view = <RoundedView> {
-                    align: {x: 0.5, y: 0.5}
+                status_view := RoundedView {
+                    align: Align { x: 0.5 y: 0.5 }
                     show_bg: true
-                    width: Fit, height: Fit
-                    padding: {left: 8, right: 8, bottom: 5, top: 5}
-                    margin: {right: 10}
-                    draw_bg: {
+                    width: Fit
+                    height: Fit
+                    padding: Inset {
+                        left: 8 right: 8 bottom: 5 top: 5
+                    }
+                    margin: Inset { right: 10 }
+                    draw_bg +: {
                         border_radius: 5
                         color: #9FD5C7
                         border_color: #357852
                         border_size: 1.2
                     }
-                    status_label = <Label> {
+                    status_label := Label {
                         text: "ON"
-                        draw_text: {
-                            text_style: <BOLD_FONT>{font_size: 7},
+                        draw_text +: {
+                            text_style: BOLD_FONT { font_size: 7 }
                             color: #043b1c
                         }
                     }
                 }
             }
-
         }
-
     }
 
-    pub Providers = {{Providers}} {
-        width: 300, height: Fill
-        flow: Down, spacing: 10
-        padding: {left: 10, right: 10}
-        providers_list = <PortalList> {
-            width: Fill, height: Fill
-            provider_item = <ProviderItem> {}
-        }
-
-        add_provider_button = <RoundedShadowView> {
-            cursor: Hand
-            margin: {left: 10, right: 10, bottom: 0, top: 10}
-            width: Fill, height: Fit
-            align: {x: 0.5, y: 0.5}
-            padding: {left: 30, right: 30, bottom: 15, top: 15}
-            draw_bg: {
-                color: (MAIN_BG_COLOR)
-                border_radius: 4.5,
-                uniform shadow_color: #0002
-                shadow_radius: 8.0,
-                shadow_offset: vec2(0.0,-1.5)
-            }
-            <Label> {
-                text: "+ Add a Custom Provider"
-                draw_text: {
-                    text_style: <REGULAR_FONT>{font_size: 11}
-                    color: #000
-                }
-            }
-        }
-
-        open_sync_button = <RoundedShadowView> {
-            cursor: Hand
-            margin: {left: 10, right: 10, bottom: 0}
-            width: Fill, height: Fit
-            align: {x: 0.5, y: 0.5}
-            padding: {left: 30, right: 30, bottom: 15, top: 15}
-            draw_bg: {
-                color: (MAIN_BG_COLOR)
-                border_radius: 4.5,
-                uniform shadow_color: #0002
-                shadow_radius: 8.0,
-                shadow_offset: vec2(0.0,-1.5)
-            }
-            <Label> {
-                text: "Sync Settings"
-                draw_text: {
-                    text_style: <REGULAR_FONT>{font_size: 11}
-                    color: #000
-                }
-            }
-        }
-
-        utilities_button = <RoundedShadowView> {
-            cursor: Hand
-            margin: {left: 10, right: 10, bottom: 20}
-            width: Fill, height: Fit
-            align: {x: 0.5, y: 0.5}
-            padding: {left: 30, right: 30, bottom: 15, top: 15}
-            draw_bg: {
-                color: (MAIN_BG_COLOR)
-                border_radius: 4.5,
-                uniform shadow_color: #0002
-                shadow_radius: 8.0,
-                shadow_offset: vec2(0.0,-1.5)
-            }
-            <Label> {
-                text: "Utilities"
-                draw_text: {
-                    text_style: <REGULAR_FONT>{font_size: 11}
-                    color: #000
-                }
-            }
-        }
-
-        provider_icons: [
-            (ICON_OPENAI),
-            (ICON_GEMINI),
-            (ICON_SILICONFLOW),
-            (ICON_OPENROUTER),
-            (ICON_MOLYSERVER),
-            (ICON_DEEPSEEK),
-            (ICON_OLLAMA),
-            (ICON_ANTHROPIC),
-            (ICON_OPENCLAW),
+    mod.widgets.ProvidersBase = #(Providers::register_widget(vm))
+    mod.widgets.Providers =
+        set_type_default() do mod.widgets.ProvidersBase {
+        provider_icon_handles: [
+            ICON_ANTHROPIC
+            ICON_DEEPSEEK
+            ICON_GEMINI
+            ICON_MOLYSERVER
+            ICON_OLLAMA
+            ICON_OPENCLAW
+            ICON_OPENAI
+            ICON_OPENROUTER
+            ICON_SILICONFLOW
         ]
 
-        <View> {
-            width: Fill, height: Fit
+        width: 300
+        height: Fill
+        flow: Down
+        spacing: 10
+        padding: Inset { left: 10 right: 10 }
+        providers_list := PortalList {
+            width: Fill
+            height: Fill
+            provider_item := ProviderItem {}
+        }
+
+        add_provider_button := RoundedShadowView {
+            cursor: MouseCursor.Hand
+            margin: Inset {
+                left: 10 right: 10 bottom: 0 top: 10
+            }
+            width: Fill
+            height: Fit
+            align: Align { x: 0.5 y: 0.5 }
+            padding: Inset {
+                left: 30 right: 30 bottom: 15 top: 15
+            }
+            draw_bg +: {
+                color: (MAIN_BG_COLOR)
+                border_radius: 4.5
+                shadow_color: instance(#0002)
+                shadow_radius: 8.0
+                shadow_offset: vec2(0.0, -1.5)
+            }
+            Label {
+                text: "+ Add a Custom Provider"
+                draw_text +: {
+                    text_style: REGULAR_FONT { font_size: 11 }
+                    color: #000
+                }
+            }
+        }
+
+        open_sync_button := RoundedShadowView {
+            cursor: MouseCursor.Hand
+            margin: Inset { left: 10 right: 10 bottom: 0 }
+            width: Fill
+            height: Fit
+            align: Align { x: 0.5 y: 0.5 }
+            padding: Inset {
+                left: 30 right: 30 bottom: 15 top: 15
+            }
+            draw_bg +: {
+                color: (MAIN_BG_COLOR)
+                border_radius: 4.5
+                shadow_color: instance(#0002)
+                shadow_radius: 8.0
+                shadow_offset: vec2(0.0, -1.5)
+            }
+            Label {
+                text: "Sync Settings"
+                draw_text +: {
+                    text_style: REGULAR_FONT { font_size: 11 }
+                    color: #000
+                }
+            }
+        }
+
+        utilities_button := RoundedShadowView {
+            cursor: MouseCursor.Hand
+            margin: Inset { left: 10 right: 10 bottom: 20 }
+            width: Fill
+            height: Fit
+            align: Align { x: 0.5 y: 0.5 }
+            padding: Inset {
+                left: 30 right: 30 bottom: 15 top: 15
+            }
+            draw_bg +: {
+                color: (MAIN_BG_COLOR)
+                border_radius: 4.5
+                shadow_color: instance(#0002)
+                shadow_radius: 8.0
+                shadow_offset: vec2(0.0, -1.5)
+            }
+            Label {
+                text: "Utilities"
+                draw_text +: {
+                    text_style: REGULAR_FONT { font_size: 11 }
+                    color: #000
+                }
+            }
+        }
+
+        View {
+            width: Fill
+            height: Fit
             flow: Overlay
 
-            add_provider_modal = <MolyModal> {
-                content: {
-                    add_provider_modal_inner = <AddProviderModal> {}
+            add_provider_modal := MolyModal {
+                content +: {
+                    add_provider_modal_inner := AddProviderModal {}
                 }
             }
 
-            sync_modal = <MolyModal> {
-                content: {
-                    sync_modal_inner = <SyncModal> {}
+            sync_modal := MolyModal {
+                content +: {
+                    sync_modal_inner := SyncModal {}
                 }
             }
 
-            utilities_modal = <MolyModal> {
-                content: {
-                    utilities_modal_inner = <UtilitiesModal> {}
+            utilities_modal := MolyModal {
+                content +: {
+                    utilities_modal_inner := UtilitiesModal {}
                 }
             }
         }
     }
 }
 
-#[derive(Widget, Live, LiveHook)]
+#[derive(Widget, Script)]
 struct Providers {
     #[deref]
     view: View,
 
+    /// Splash array of resource handles for provider icons.
+    /// Resolved to absolute paths in `on_after_apply`.
+    ///
+    /// Better than doing something like:
+    ///
+    /// ```text
+    /// #[live]
+    /// icon_openai: Option<ScriptHandleRef>,
+    /// #[live]
+    /// icon_gemini: Option<ScriptHandleRef>,
+    /// ... etc ...
+    /// ```
+    ///
+    /// Could also be an automatic:
+    ///
+    /// ```text
+    /// provider_icon_handles: Vec<ScriptValue>,
+    /// ```
+    ///
+    /// But that would allocate an extra vec and still have GC values (the handles).
     #[live]
-    provider_icons: Vec<LiveDependency>,
+    provider_icon_handles: ScriptValue,
+
+    #[rust]
+    provider_icon_paths: Vec<String>,
     #[rust]
     selected_provider_id: Option<String>,
 
@@ -286,15 +332,35 @@ struct Providers {
     initialized: bool,
 }
 
+impl ScriptHook for Providers {
+    fn on_after_apply(
+        &mut self,
+        vm: &mut ScriptVm,
+        _apply: &Apply,
+        _scope: &mut Scope,
+        _value: ScriptValue,
+    ) {
+        let mut paths = Vec::new();
+        let Some(arr) = self.provider_icon_handles.as_array() else {
+            return;
+        };
+        let len = vm.bx.heap.array_len(arr);
+        for i in 0..len {
+            let elem = vm.bx.heap.array_index_unchecked(arr, i);
+            let handle = elem.as_handle();
+            if let Some(path) = handle.and_then(|h| vm.with_cx(|cx| cx.get_resource_abs_path(h))) {
+                paths.push(path);
+            }
+        }
+        self.provider_icon_paths = paths;
+    }
+}
+
 impl Widget for Providers {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.view.handle_event(cx, event, scope);
         self.widget_match_event(cx, event, scope);
 
-        // `after_new_from_doc` will run although the whole app is set to invisible
-        // so the event will not be received.
-        //
-        // I think this demostrates that `after_new_from_doc != initialize`.
         if !self.initialized {
             if cx.display_context.is_desktop() {
                 self.initialized = true;
@@ -309,7 +375,7 @@ impl Widget for Providers {
 
         let store = scope.data.get_mut::<Store>().unwrap();
         if store.provider_icons.is_empty() {
-            store.provider_icons = self.provider_icons.clone();
+            store.provider_icons = self.provider_icon_paths.clone();
         }
     }
 
@@ -329,13 +395,12 @@ impl Widget for Providers {
                         let template = live_id!(provider_item);
                         let item = list.item(cx, item_id, template);
 
-                        // hide the separator for the first item
                         if item_id == 0 {
-                            item.view(ids!(separator)).set_visible(cx, false);
+                            item.view(cx, ids!(separator)).set_visible(cx, false);
                         }
 
                         let provider = all_providers[item_id].clone();
-                        let icon = self.get_provider_icon(&provider);
+                        let icon = self.get_provider_icon(cx, &provider);
                         let is_selected = self.selected_provider_id == Some(provider.id.clone());
                         item.as_provider_item()
                             .set_provider(cx, provider, icon, is_selected);
@@ -349,76 +414,64 @@ impl Widget for Providers {
 }
 
 impl Providers {
-    fn get_provider_icon(&self, provider: &Provider) -> Option<LiveDependency> {
+    fn get_provider_icon(&self, _cx: &Cx, provider: &Provider) -> Option<String> {
         let base_name = normalize_provider_name(&provider.name);
 
-        self.provider_icons
+        self.provider_icon_paths
             .iter()
-            .find(|icon| {
-                icon.as_str()
-                    .to_lowercase()
-                    .contains(&base_name.to_lowercase())
-            })
+            .find(|path| path.to_lowercase().contains(&base_name.to_lowercase()))
             .cloned()
     }
 }
 
 impl WidgetMatchEvent for Providers {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
-        // Handle modal open
-        if let Some(fu) = self.view(ids!(add_provider_button)).finger_up(actions)
+        if let Some(fu) = self.view(cx, ids!(add_provider_button)).finger_up(actions)
             && fu.was_tap()
         {
-            let modal = self.moly_modal(ids!(add_provider_modal));
+            let modal = self.moly_modal(cx, ids!(add_provider_modal));
             modal.open_as_dialog(cx);
         }
 
-        if let Some(fu) = self.view(ids!(open_sync_button)).finger_up(actions)
+        if let Some(fu) = self.view(cx, ids!(open_sync_button)).finger_up(actions)
             && fu.was_tap()
         {
-            let modal = self.moly_modal(ids!(sync_modal));
+            let modal = self.moly_modal(cx, ids!(sync_modal));
             modal.open_as_dialog(cx);
         }
 
-        if let Some(fu) = self.view(ids!(utilities_button)).finger_up(actions)
+        if let Some(fu) = self.view(cx, ids!(utilities_button)).finger_up(actions)
             && fu.was_tap()
         {
-            let modal = self.moly_modal(ids!(utilities_modal));
+            let modal = self.moly_modal(cx, ids!(utilities_modal));
             modal.open_as_dialog(cx);
         }
 
         for action in actions {
-            // Handle selected provider
             if let ConnectionSettingsAction::ProviderSelected(provider_id) = action.cast() {
                 self.selected_provider_id = Some(provider_id);
             }
 
-            // Handle modal actions
             if let AddProviderModalAction::ModalDismissed = action.cast() {
-                self.moly_modal(ids!(add_provider_modal)).close(cx);
+                self.moly_modal(cx, ids!(add_provider_modal)).close(cx);
                 self.redraw(cx);
             }
 
             if let SyncModalAction::ModalDismissed = action.cast() {
-                self.moly_modal(ids!(sync_modal)).close(cx);
+                self.moly_modal(cx, ids!(sync_modal)).close(cx);
                 self.redraw(cx);
             }
 
             if let UtilitiesModalAction::ModalDismissed = action.cast() {
-                self.moly_modal(ids!(utilities_modal)).close(cx);
+                self.moly_modal(cx, ids!(utilities_modal)).close(cx);
                 self.redraw(cx);
             }
 
-            // Handle the case where the modal is dismissed by the user clicking outside the modal
-            // This is a hacky way to reset the modal state because the inner content never gets to
-            // hear if it was dismissed from outside.
-            if self.moly_modal(ids!(sync_modal)).dismissed(actions) {
-                self.sync_modal(ids!(sync_modal_inner)).reset_state(cx);
+            if self.moly_modal(cx, ids!(sync_modal)).dismissed(actions) {
+                self.sync_modal(cx, ids!(sync_modal_inner)).reset_state(cx);
             }
 
-            // Handle provider removed
             if let ProviderViewAction::ProviderRemoved = action.cast() {
-                // Select another provider
                 let store = scope.data.get::<Store>().unwrap();
                 if let Some(first_provider) = store.chats.providers.values().next() {
                     self.selected_provider_id = Some(first_provider.id.clone());
@@ -432,7 +485,7 @@ impl WidgetMatchEvent for Providers {
     }
 }
 
-#[derive(Widget, LiveHook, Live)]
+#[derive(Widget, ScriptHook, Script)]
 struct ProviderItem {
     #[deref]
     view: View,
@@ -448,15 +501,13 @@ impl Widget for ProviderItem {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        // Update the label
-        self.label(ids!(provider_name_label))
+        self.label(cx, ids!(provider_name_label))
             .set_text(cx, &self.provider.name);
 
         let connection_status = self.provider.connection_status.clone();
-        // Show connection status icons
         self.update_connection_status(cx, &connection_status);
 
-        self.view(ids!(status_view)).set_visible(
+        self.view(cx, ids!(status_view)).set_visible(
             cx,
             connection_status == ProviderConnectionStatus::Connected && self.provider.enabled,
         );
@@ -467,7 +518,7 @@ impl Widget for ProviderItem {
 
 impl WidgetMatchEvent for ProviderItem {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if let Some(finger_up) = self.view(ids!(main_view)).finger_up(actions) {
+        if let Some(finger_up) = self.view(cx, ids!(main_view)).finger_up(actions) {
             if finger_up.was_tap() {
                 cx.action(ConnectionSettingsAction::ProviderSelected(
                     self.provider.id.clone(),
@@ -478,21 +529,20 @@ impl WidgetMatchEvent for ProviderItem {
 }
 
 impl ProviderItem {
-    /// Toggles the visibility of the connection status icons
     fn update_connection_status(
         &mut self,
         cx: &mut Cx,
         connection_status: &ProviderConnectionStatus,
     ) {
-        self.view(ids!(connection_status_success)).set_visible(
+        self.view(cx, ids!(connection_status_success)).set_visible(
             cx,
             *connection_status == ProviderConnectionStatus::Connected,
         );
-        self.view(ids!(connection_status_failure)).set_visible(
+        self.view(cx, ids!(connection_status_failure)).set_visible(
             cx,
             *connection_status == ProviderConnectionStatus::Disconnected,
         );
-        self.view(ids!(connection_status_loading)).set_visible(
+        self.view(cx, ids!(connection_status_loading)).set_visible(
             cx,
             *connection_status == ProviderConnectionStatus::Connecting,
         );
@@ -504,7 +554,7 @@ impl ProviderItemRef {
         &mut self,
         cx: &mut Cx,
         provider: Provider,
-        icon_path: Option<LiveDependency>,
+        icon_path: Option<String>,
         is_selected: bool,
     ) {
         let Some(mut inner) = self.borrow_mut() else {
@@ -512,25 +562,20 @@ impl ProviderItemRef {
         };
         inner.provider = provider.clone();
 
-        // Determine whether to show image or label
         if let Some(icon) = icon_path {
-            // Show the image
-            inner.view(ids!(image_wrapper)).set_visible(cx, true);
-            let image = inner.image(ids!(provider_icon_image));
-            let _ = image.load_image_dep_by_path(cx, icon.as_str());
+            inner.view(cx, ids!(image_wrapper)).set_visible(cx, true);
+            let image = inner.image(cx, ids!(provider_icon_image));
+            let _ = load_image_from_resource(&image, cx, &icon)
+                .or_else(|_| image.load_image_file_by_path(cx, icon.as_ref()));
 
-            // Hide the label
-            let label_view = inner.view(ids!(provider_icon_label));
+            let label_view = inner.view(cx, ids!(provider_icon_label));
             label_view.set_visible(cx, false);
         } else {
-            // Hide the image
-            inner.view(ids!(image_wrapper)).set_visible(cx, false);
+            inner.view(cx, ids!(image_wrapper)).set_visible(cx, false);
 
-            // Show the label
-            let label_view = inner.view(ids!(label_wrapper));
+            let label_view = inner.view(cx, ids!(label_wrapper));
             label_view.set_visible(cx, true);
 
-            // Get first character of the provider name
             let first_char = provider
                 .name
                 .chars()
@@ -539,30 +584,27 @@ impl ProviderItemRef {
                 .unwrap_or_default();
 
             label_view
-                .label(ids!(initial_label))
+                .label(cx, ids!(initial_label))
                 .set_text(cx, &first_char);
         }
 
         if is_selected && cx.display_context.is_desktop() {
-            inner.view.apply_over(
-                cx,
-                live! {
-                    draw_bg: { color: #EAECEF }
-                },
-            );
+            let color = vec4(0.918, 0.926, 0.937, 1.0); // #EAECEF
+            script_apply_eval!(cx, inner.view, {
+                draw_bg +: { color: #(color) }
+            });
         } else {
-            inner.view.apply_over(
-                cx,
-                live! {
-                    draw_bg: { color: #f9f9f9 }
-                },
-            );
+            let color = vec4(0.976, 0.976, 0.976, 1.0); // #f9f9f9
+            script_apply_eval!(cx, inner.view, {
+                draw_bg +: { color: #(color) }
+            });
         }
     }
 }
 
-#[derive(Clone, DefaultNone, Debug)]
+#[derive(Clone, Default, Debug)]
 pub enum ConnectionSettingsAction {
+    #[default]
     None,
     ProviderSelected(String),
 }

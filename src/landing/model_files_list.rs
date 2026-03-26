@@ -3,23 +3,26 @@ use makepad_widgets::*;
 
 use super::model_files_item::ModelFilesItemWidgetRefExt;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    use crate::landing::model_files_item::ModelFilesItem;
+    use mod.widgets.*
 
-    pub ModelFilesList = {{ModelFilesList}} {
-        width: Fill,
-        height: Fit,
-        flow: Down,
+    mod.widgets.ModelFilesListBase = #(ModelFilesList::register_widget(vm))
+    mod.widgets.ModelFilesList = set_type_default() do mod.widgets.ModelFilesListBase {
+        width: Fill
+        height: Fit
+        flow: Down
 
-        template: <ModelFilesItem> {}
+        template: ModelFilesItem {}
     }
 }
 
-#[derive(Live, LiveHook, LiveRegisterWidget, WidgetRef)]
+#[derive(Script, ScriptHook, WidgetRegister, WidgetRef)]
 pub struct ModelFilesList {
+    #[uid]
+    uid: WidgetUid,
+
     #[rust]
     area: Area,
 
@@ -30,7 +33,7 @@ pub struct ModelFilesList {
     layout: Layout,
 
     #[live]
-    template: Option<LivePtr>,
+    template: Option<ScriptObjectRef>,
 
     #[live(false)]
     show_featured: bool,
@@ -66,6 +69,10 @@ impl Widget for ModelFilesList {
 }
 
 impl WidgetNode for ModelFilesList {
+    fn widget_uid(&self) -> WidgetUid {
+        self.uid
+    }
+
     fn area(&self) -> Area {
         self.area
     }
@@ -77,20 +84,6 @@ impl WidgetNode for ModelFilesList {
     fn redraw(&mut self, cx: &mut Cx) {
         self.area.redraw(cx)
     }
-
-    fn find_widgets(&self, path: &[LiveId], cached: WidgetCache, results: &mut WidgetSet) {
-        for item in self.items.values() {
-            item.find_widgets(path, cached, results);
-        }
-    }
-
-    fn uid_to_widget(&self, ui: WidgetUid) -> WidgetRef {
-        self.items
-            .values()
-            .map(|item| item.uid_to_widget(ui))
-            .find(|x| !x.is_empty())
-            .unwrap_or(WidgetRef::empty())
-    }
 }
 
 impl ModelFilesList {
@@ -98,9 +91,13 @@ impl ModelFilesList {
         for i in 0..files_info.len() {
             let item_id = LiveId(i as u64).into();
 
-            let item_widget = self
-                .items
-                .get_or_insert(cx, item_id, |cx| WidgetRef::new_from_ptr(cx, self.template));
+            let item_widget = self.items.get_or_insert(cx, item_id, |cx| {
+                let template = self.template.clone();
+                cx.with_vm(|vm| {
+                    let obj = template.as_object().expect("template not set");
+                    WidgetRef::script_from_value(vm, obj.into())
+                })
+            });
 
             item_widget
                 .as_model_files_item()

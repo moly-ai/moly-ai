@@ -6,58 +6,57 @@ use crate::{
     utils::makepad::hex_rgb_color,
     widgets::image_view::{ImageViewRef, ImageViewWidgetExt},
 };
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::widgets::image_view::*;
-
-    pub AttachmentView = {{AttachmentView}} {
-        flow: Overlay,
-        icon_wrapper = <View> {
-            flow: Down,
-            align: {x: 0.5, y: 0.5},
-            spacing: 2,
-            icon = <Label> {
-                text: "",
-                draw_text: {
-                    color: #000,
-                    text_style: <THEME_FONT_ICONS>{font_size: 28}
+    mod.widgets.AttachmentViewBase = #(AttachmentView::register_widget(vm))
+    mod.widgets.AttachmentView = set_type_default() do mod.widgets.AttachmentViewBase {
+        flow: Overlay
+        icon_wrapper := View {
+            flow: Down
+            align: Align { x: 0.5, y: 0.5 }
+            spacing: 2
+            icon := Label {
+                text: "\u{f15b}" // fa-file
+                draw_text +: {
+                    color: #000
+                    text_style: theme.font_icons { font_size: 28 }
                 }
             }
-            title = <Label> {
-                text: "document.pdf",
-                draw_text: {
-                    color: #000,
-                    text_style: {font_size: 11}
+            title := Label {
+                text: "document.pdf"
+                draw_text +: {
+                    text_style +: { font_size: 11 }
+                    color: #000
                 }
             }
         }
 
-        image_wrapper = <View> {
-            image = <ImageView> {contain: true}
+        image_wrapper := View {
+            image := ImageView { contain: true }
         }
 
-        tag_wrapper = <View> {
-            visible: false,
-            align: {x: 1}
-            tag_bg = <RoundedView> {
-                width: Fit,
-                height: Fit,
-                margin: 8,
-                draw_bg: {
-                    color: #000,
-                    border_radius: 4.0,
+        tag_wrapper := View {
+            visible: false
+            align: Align { x: 1 }
+            tag_bg := RoundedView {
+                width: Fit
+                height: Fit
+                margin: 8
+                draw_bg +: {
+                    color: #000
+                    border_radius: 4.0
                 }
-                tag_label = <Label> {
-                    text: "PDF",
-                    padding: {left: 2, right: 2, top: 1.6, bottom: 1.6},
-                    draw_text: {
-                        color: #fff,
-                        text_style: <THEME_FONT_BOLD>{font_size: 8}
+                tag_label := Label {
+                    text: "PDF"
+                    padding: Inset { left: 2, right: 2, top: 1.6, bottom: 1.6 }
+                    draw_text +: {
+                        color: #fff
+                        text_style: theme.font_bold { font_size: 8 }
                     }
                 }
             }
@@ -65,8 +64,11 @@ live_design! {
     }
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct AttachmentView {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     deref: View,
 
@@ -90,17 +92,15 @@ impl Widget for AttachmentView {
 
 impl AttachmentView {
     pub fn set_attachment(&mut self, cx: &mut Cx, attachment: Attachment) {
-        // Only trigger stuff if attachment has changed.
         if self.attachment != attachment {
-            // Preserve for future comparisons.
             self.attachment = attachment;
 
-            let icon = self.label(ids!(icon));
-            let tag_label = self.label(ids!(tag_label));
-            let title = self.label(ids!(title));
+            let icon = self.label(cx, ids!(icon));
+            let tag_label = self.label(cx, ids!(tag_label));
+            let title = self.label(cx, ids!(title));
 
-            self.icon_wrapper_ref().set_visible(cx, true);
-            self.image_wrapper_ref().set_visible(cx, false);
+            self.icon_wrapper_ref(cx).set_visible(cx, true);
+            self.image_wrapper_ref(cx).set_visible(cx, false);
 
             tag_label.set_text(
                 cx,
@@ -112,14 +112,13 @@ impl AttachmentView {
                     .as_str(),
             );
 
-            self.tag_bg_ref().apply_over(
-                cx,
-                live! {
-                    draw_bg: {
-                        color: (no_preview_color()),
-                    }
-                },
-            );
+            let color = no_preview_color();
+            let mut tag_bg = self.tag_bg_ref(cx);
+            script_apply_eval!(cx, tag_bg, {
+                draw_bg +: {
+                    color: #(color)
+                }
+            });
 
             title.set_text(cx, &self.attachment.name);
 
@@ -133,45 +132,43 @@ impl AttachmentView {
             } else {
                 icon.set_text(cx, "\u{f127}");
                 tag_label.set_text(cx, "Unavailable");
-                self.tag_bg_ref().apply_over(
-                    cx,
-                    live! {
-                        draw_bg: {
-                            color: (unavailable_color()),
-                        }
-                    },
-                );
+                let color = unavailable_color();
+                let mut tag_bg = self.tag_bg_ref(cx);
+                script_apply_eval!(cx, tag_bg, {
+                    draw_bg +: {
+                        color: #(color)
+                    }
+                });
             }
         }
     }
 
     #[allow(unused)]
-    pub fn get_texture(&self) -> Option<Texture> {
-        self.image_ref().borrow().unwrap().get_texture()
+    pub fn get_texture(&self, cx: &Cx) -> Option<Texture> {
+        self.image_ref(cx).borrow().unwrap().get_texture()
     }
 
     pub fn get_attachment(&self) -> &Attachment {
         &self.attachment
     }
 
-    fn image_ref(&self) -> ImageViewRef {
-        self.image_view(ids!(image))
+    fn image_ref(&self, cx: &Cx) -> ImageViewRef {
+        self.image_view(cx, ids!(image))
     }
 
-    fn image_wrapper_ref(&self) -> ViewRef {
-        self.view(ids!(image_wrapper))
+    fn image_wrapper_ref(&self, cx: &Cx) -> ViewRef {
+        self.view(cx, ids!(image_wrapper))
     }
 
-    fn icon_wrapper_ref(&self) -> ViewRef {
-        self.view(ids!(icon_wrapper))
+    fn icon_wrapper_ref(&self, cx: &Cx) -> ViewRef {
+        self.view(cx, ids!(icon_wrapper))
     }
 
-    fn tag_bg_ref(&self) -> ViewRef {
-        self.view(ids!(tag_bg))
+    fn tag_bg_ref(&self, cx: &Cx) -> ViewRef {
+        self.view(cx, ids!(tag_bg))
     }
 
     fn try_load_preview(&mut self) {
-        // Not even try if not a supported image.
         if !crate::widgets::image_view::can_load(self.attachment.content_type_or_octet_stream()) {
             return;
         }
@@ -189,12 +186,13 @@ impl AttachmentView {
                 return;
             };
 
-            ui.defer_with_redraw(move |me, cx, _| {
-                if let Err(e) = me.image_ref().borrow_mut().unwrap().load_with_contet_type(
-                    cx,
-                    &content,
-                    attachment.content_type_or_octet_stream(),
-                ) {
+            ui.defer_with_redraw(move |me: &mut AttachmentView, cx, _| {
+                if let Err(e) = me
+                    .image_ref(cx)
+                    .borrow_mut()
+                    .unwrap()
+                    .load_with_contet_type(cx, &content, attachment.content_type_or_octet_stream())
+                {
                     ::log::warn!(
                         "Failed to load attachment {} as {}: {}",
                         attachment.name,
@@ -203,16 +201,15 @@ impl AttachmentView {
                     );
                 }
 
-                me.icon_wrapper_ref().set_visible(cx, false);
-                me.image_wrapper_ref().set_visible(cx, true);
-                me.tag_bg_ref().apply_over(
-                    cx,
-                    live! {
-                        draw_bg: {
-                            color: (preview_color()),
-                        }
-                    },
-                );
+                me.icon_wrapper_ref(cx).set_visible(cx, false);
+                me.image_wrapper_ref(cx).set_visible(cx, true);
+                let color = preview_color();
+                let mut tag_bg = me.tag_bg_ref(cx);
+                script_apply_eval!(cx, tag_bg, {
+                    draw_bg +: {
+                        color: #(color)
+                    }
+                });
             });
         };
 

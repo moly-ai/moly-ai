@@ -12,262 +12,256 @@ use super::{
     delete_chat_modal::DeleteChatModalAction,
 };
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::chat::chat_history_card_options::ChatHistoryCardOptions;
-    use crate::chat::delete_chat_modal::DeleteChatModal;
+    let ICON_DELETE = crate_resource("self://resources/icons/delete.svg")
 
-    use moly_kit::widgets::moly_modal::*;
-
-    ICON_DELETE = dep("crate://self/resources/icons/delete.svg")
-
-    EditTextInput = <MolyTextInput> {
-        width: Fill,
-        height: Fit,
-        padding: 6,
+    let EditTextInput = MolyTextInput {
+        width: Fill
+        height: Fit
+        padding: 6
         empty_text: ""
 
-        draw_text: {
-            text_style:<REGULAR_FONT>{font_size: 10},
-            word: Wrap,
+        draw_text +: {
+            text_style: REGULAR_FONT {font_size: 10}
 
-            instance prompt_enabled: 0.0
-            fn get_color(self) -> vec4 {
+            prompt_enabled: instance(0.0)
+            get_color: fn() -> vec4 {
                 return #000;
             }
         }
     }
 
-    EditActionButton = <MolyButton> {
-        width: 56,
-        height: 31,
-        spacing: 6,
+    let EditActionButton = MolyButton {
+        width: 56
+        height: 31
+        spacing: 6
 
-        draw_bg: { color: #099250 }
+        draw_bg +: { color: #x099250 }
 
-        draw_text: {
-            text_style: <REGULAR_FONT>{font_size: 9},
-            fn get_color(self) -> vec4 {
+        draw_text +: {
+            text_style: REGULAR_FONT {font_size: 9}
+            get_color: fn() -> vec4 {
                 return #fff;
             }
         }
     }
 
-    SaveButton = <EditActionButton> {
+    let SaveButton = EditActionButton {
         text: "Save"
     }
 
-    CancelButton = <EditActionButton> {
-        draw_bg: { border_color_1: #D0D5DD, border_size: 1.0, color: #fff }
+    let CancelButton = EditActionButton {
+        draw_bg +: {
+            border_color_1: #xD0D5DD border_size: 1.0 color: #fff
+        }
 
-        draw_text: {
-            text_style: <REGULAR_FONT>{font_size: 9},
-            fn get_color(self) -> vec4 {
+        draw_text +: {
+            text_style: REGULAR_FONT {font_size: 9}
+            get_color: fn() -> vec4 {
                 return #000;
             }
         }
         text: "Cancel"
     }
 
-    pub ChatHistoryCard = {{ChatHistoryCard}} {
-        flow: Overlay,
-        width: Fill,
-        height: 56,
+    mod.widgets.ChatHistoryCardBase = #(ChatHistoryCard::register_widget(vm))
+    mod.widgets.ChatHistoryCard = set_type_default() do mod.widgets.ChatHistoryCardBase {
+        flow: Overlay
+        width: Fill
+        height: 56
 
-        selected_bg = <RoundedInnerShadowView> {
+        selected_bg := RoundedInnerShadowView {
             width: Fill
             height: Fill
-            padding: {left: 8, right: 8}
+            padding: Inset {left: 8 right: 8}
 
             show_bg: true
 
-            draw_bg: {
-                border_radius: 5.0,
-                shadow_color: #47546722
+            draw_bg +: {
+                border_radius: 5.0
+                shadow_color: #x47546722
                 shadow_radius: 25.0
                 shadow_offset: vec2(-2.0, 1.0)
-                border_color: #D0D5DD
+                border_color: #xD0D5DD
             }
         }
 
-        content = <RoundedView> {
+        content := RoundedView {
             width: Fill
             height: Fill
             flow: Right
-            padding: {left: 8, right: 8}
+            padding: Inset {left: 8 right: 8}
             spacing: 6
 
-            cursor: Hand
+            cursor: MouseCursor.Hand
             show_bg: true
-            draw_bg: {
-                instance down: 0.0,
-                color: #0000
+            draw_bg +: {
+                down: instance(0.0)
+                color: #x0000
                 border_size: 0
                 border_radius: 5
             }
 
-            <View> {
+            View {
                 width: Fill
                 height: Fill
                 flow: Down
-                align: {y: 0.5, x: 0.0}
+                align: Align {y: 0.5 x: 0.0}
                 spacing: 3
-                padding: { left: 6, top: 10, bottom: 6 }
+                padding: Inset {left: 6 top: 10 bottom: 6}
 
-                <View> {
-                    width: Fill, height: Fit
+                View {
+                    width: Fill height: Fit
                     spacing: 8
-                    model_or_agent_name_label = <Label> {
-                        width: Fit,
-                        height: Fit,
+                    model_or_agent_name_label := Label {
+                        width: Fit
+                        height: Fit
                         padding: 0
-                        draw_text:{
-                            text_style: <BOLD_FONT>{font_size: 8.2},
-                            color: #475467,
+                        draw_text +: {
+                            text_style: BOLD_FONT {font_size: 8.2}
+                            color: #x475467
                         }
                     }
 
-                    unread_message_badge = <RoundedView> {
-                        visible: false,
-                        width: 12, height: 12
+                    unread_message_badge := RoundedView {
+                        visible: false
+                        width: 12 height: 12
                         show_bg: true
-                        draw_bg: {
+                        draw_bg +: {
                             border_radius: 3.0
-                            color: #e81313
+                            color: #xe81313
                         }
                     }
                 }
 
-                <View> {
+                View {
                     width: Fill
                     height: Fill
                     flow: Right
                     spacing: 5
-                    padding: { top: 2, bottom: 2 }
-                    align: {y: 0.5}
+                    padding: Inset {top: 2 bottom: 2}
+                    align: Align {y: 0.5}
 
-                    <View> {
-                        width: Fill,
-                        height: Fill,
-                        flow: Down,
-                        align: {y: 0.5}
+                    View {
+                        width: Fill
+                        height: Fill
+                        flow: Down
+                        align: Align {y: 0.5}
 
-                        title_input_container = <View> {
-                            visible: false,
-                            width: Fill,
-                            height: Fit,
-                            title_input = <EditTextInput> {}
+                        title_input_container := View {
+                            visible: false
+                            width: Fill
+                            height: Fit
+                            title_input := EditTextInput {}
                         }
 
-                        title_label_container = <View> {
-                            visible: false,
-                            width: Fill,
-                            height: Fit,
+                        title_label_container := View {
+                            visible: false
+                            width: Fill
+                            height: Fit
 
-                            title_label = <Label> {
-                                padding: {left: 0}
-                                width: Fill,
-                                height: Fit,
-                                draw_text: {
-                                    text_style: <REGULAR_FONT>{font_size: 11},
-                                    color: #101828,
+                            title_label := Label {
+                                padding: Inset {left: 0}
+                                width: Fill
+                                height: Fit
+                                draw_text +: {
+                                    text_style: REGULAR_FONT {font_size: 11}
+                                    color: #x101828
                                 }
                                 text: ""
                             }
                         }
 
-                        edit_buttons = <View> {
-                            visible: false,
-                            width: Fit,
-                            height: Fit,
-                            margin: {top: 10},
-                            spacing: 6,
-                            save = <SaveButton> {}
-                            cancel = <CancelButton> {}
+                        edit_buttons := View {
+                            visible: false
+                            width: Fit
+                            height: Fit
+                            margin: Inset {top: 10}
+                            spacing: 6
+                            save := SaveButton {}
+                            cancel := CancelButton {}
                         }
                     }
                 }
             }
 
-            chat_options_wrapper = <View> {
+            chat_options_wrapper := View {
                 width: Fit
                 height: Fill
                 padding: 4
 
-                chat_options = <MolyButton> {
+                chat_options := MolyButton {
                     width: Fit
                     height: Fit
-                    padding: { top: 0, right: 4, bottom: 6, left: 4 }
+                    padding: Inset {top: 0 right: 4 bottom: 6 left: 4}
 
-                    draw_bg: {
+                    draw_bg +: {
                         border_radius: 5
                     }
 
-                    draw_text:{
-                        text_style: <BOLD_FONT>{font_size: 12},
-                        color: #667085,
+                    draw_text +: {
+                        text_style: BOLD_FONT {font_size: 12}
+                        color: #x667085
                     }
                     text: "..."
 
                     reset_hover_on_click: false
                 }
             }
-            animator: {
-                hover = {
-                    default: off
-                    off = {
+            animator: Animator {
+                hover: {
+                    default: @off
+                    off: AnimatorState {
                         from: {all: Forward {duration: 0.15}}
                         apply: {
-                            draw_bg: {color: #F2F4F700}
+                            draw_bg: {color: #xF2F4F700}
                         }
                     }
-                    on = {
+                    on: AnimatorState {
                         from: {all: Forward {duration: 0.15}}
                         apply: {
-                            draw_bg: {color: #EAECEF88}
+                            draw_bg: {color: #xEAECEF88}
                         }
                     }
                 }
-                down = {
-                    default: off
-                    off = {
+                down: {
+                    default: @off
+                    off: AnimatorState {
                         from: {all: Forward {duration: 0.5}}
                         ease: OutExp
                         apply: {
-                            draw_bg: {instance down: 0.0}
+                            draw_bg: {down: instance(0.0)}
                         }
                     }
-                    on = {
+                    on: AnimatorState {
                         ease: OutExp
                         from: {
                             all: Forward {duration: 0.2}
                         }
                         apply: {
-                            draw_bg: {instance down: 1.0}
+                            draw_bg: {down: instance(1.0)}
                         }
                     }
                 }
             }
         }
 
-        chat_history_card_options_modal = <MolyModal> {
-            align: {x: 0.0, y: 0.0}
-            bg_view: {
+        chat_history_card_options_modal := MolyModal {
+            align: Align {x: 0.0 y: 0.0}
+            bg_view +: {
                 visible: false
             }
-            content: {
-                chat_history_card_options = <ChatHistoryCardOptions> {}
+            content +: {
+                chat_history_card_options := mod.widgets.ChatHistoryCardOptions {}
             }
         }
 
-        delete_chat_modal = <MolyModal> {
-            content: {
-                delete_chat_modal_inner = <DeleteChatModal> {}
+        delete_chat_modal := MolyModal {
+            content +: {
+                delete_chat_modal_inner := mod.widgets.DeleteChatModal {}
             }
         }
     }
@@ -280,7 +274,7 @@ enum TitleState {
     Editable,
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct ChatHistoryCard {
     #[deref]
     view: View,
@@ -307,25 +301,22 @@ impl Widget for ChatHistoryCard {
             .unwrap();
 
         if let Some(current_chat_id) = store.chats.get_current_chat_id() {
-            let content_view_highlight = self.view(ids!(selected_bg));
+            let mut content_view_highlight = self.view(cx, ids!(selected_bg));
 
             if current_chat_id == self.chat_id {
-                content_view_highlight.apply_over(
-                    cx,
-                    live! {
-                        draw_bg: {color: #ebedee}
-                    },
-                );
+                let color = vec4(0.922, 0.929, 0.933, 1.0);
+                script_apply_eval!(cx, content_view_highlight, {
+                    draw_bg +: {color: #(color)}
+                });
             } else {
                 if chat.borrow().has_unread_messages {
-                    self.view(ids!(unread_message_badge)).set_visible(cx, true);
+                    self.view(cx, ids!(unread_message_badge))
+                        .set_visible(cx, true);
                 }
-                content_view_highlight.apply_over(
-                    cx,
-                    live! {
-                        draw_bg: {color: #x0000}
-                    },
-                );
+                let color = vec4(0.0, 0.0, 0.0, 0.0);
+                script_apply_eval!(cx, content_view_highlight, {
+                    draw_bg +: {color: #(color)}
+                });
             }
         }
 
@@ -350,41 +341,43 @@ impl Widget for ChatHistoryCard {
 
 impl WidgetMatchEvent for ChatHistoryCard {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
-        // let widget_uid = self.widget_uid();
-
         match self.title_edition_state {
             TitleState::Editable => self.handle_title_editable_actions(cx, actions, scope),
             TitleState::OnEdit => self.handle_title_on_edit_actions(cx, actions, scope),
         }
 
-        let chat_options_wrapper_rect = self.view(ids!(chat_options_wrapper)).area().rect(cx);
-        if self.button(ids!(chat_options)).clicked(actions) {
-            let wrapper_coords = chat_options_wrapper_rect.pos;
+        let chat_options_btn = self.button(cx, ids!(chat_options));
+        if chat_options_btn.clicked(actions) {
+            let btn_rect = chat_options_btn.area().rect(cx);
             let coords = dvec2(
-                wrapper_coords.x - 100.,
-                wrapper_coords.y + chat_options_wrapper_rect.size.y - 12.0,
+                btn_rect.pos.x - 100.,
+                btn_rect.pos.y + btn_rect.size.y + 6.0,
             );
 
-            self.chat_history_card_options(ids!(chat_history_card_options))
+            self.chat_history_card_options(cx, ids!(chat_history_card_options))
                 .selected(cx, self.chat_id);
 
-            let modal = self.moly_modal(ids!(chat_history_card_options_modal));
+            let modal = self.moly_modal(cx, ids!(chat_history_card_options_modal));
             modal.open_as_popup(cx, coords);
             return;
         }
 
-        if let Some(fe) = self.view(ids!(content)).finger_down(actions) {
-            if fe.tap_count == 1 {
-                let store = scope.data.get_mut::<Store>().unwrap();
-                store.chats.set_current_chat(Some(self.chat_id));
+        let content = self.view(cx, ids!(content));
+        if let Some(item) = actions.find_widget_action(content.widget_uid()) {
+            if let ViewAction::FingerDown(fe) = item.cast() {
+                if fe.tap_count == 1 {
+                    let store = scope.data.get_mut::<Store>().unwrap();
+                    store.chats.set_current_chat(Some(self.chat_id));
 
-                if let Some(chat) = store.chats.get_chat_by_id(self.chat_id) {
-                    chat.borrow_mut().has_unread_messages = false;
-                    self.view(ids!(unread_message_badge)).set_visible(cx, false);
+                    if let Some(chat) = store.chats.get_chat_by_id(self.chat_id) {
+                        chat.borrow_mut().has_unread_messages = false;
+                        self.view(cx, ids!(unread_message_badge))
+                            .set_visible(cx, false);
+                    }
+
+                    cx.action(ChatAction::ChatSelected(self.chat_id));
+                    self.redraw(cx);
                 }
-
-                cx.action(ChatAction::ChatSelected(self.chat_id));
-                self.redraw(cx);
             }
         }
 
@@ -395,7 +388,7 @@ impl WidgetMatchEvent for ChatHistoryCard {
                     | DeleteChatModalAction::CloseButtonClicked
                     | DeleteChatModalAction::ChatDeleted
             ) {
-                self.moly_modal(ids!(delete_chat_modal)).close(cx);
+                self.moly_modal(cx, ids!(delete_chat_modal)).close(cx);
             }
         }
     }
@@ -410,25 +403,28 @@ impl ChatHistoryCard {
     }
 
     fn set_title_text(&mut self, cx: &mut Cx, text: &str, caption: &str) {
-        self.view.label(ids!(title_label)).set_text(cx, text.trim());
+        self.view
+            .label(cx, ids!(title_label))
+            .set_text(cx, text.trim());
         if let TitleState::Editable = self.title_edition_state {
             self.view
-                .text_input(ids!(title_input))
-                .set_text(cx, &text.trim());
+                .text_input(cx, ids!(title_input))
+                .set_text(cx, text.trim());
         }
-        self.label(ids!(model_or_agent_name_label))
+        self.label(cx, ids!(model_or_agent_name_label))
             .set_text(cx, &human_readable_name(caption));
     }
 
     fn update_title_visibility(&mut self, cx: &mut Cx) {
         let on_edit = matches!(self.title_edition_state, TitleState::OnEdit);
-        self.view(ids!(edit_buttons)).set_visible(cx, on_edit);
-        self.view(ids!(title_input_container))
+        self.view(cx, ids!(edit_buttons)).set_visible(cx, on_edit);
+        self.view(cx, ids!(title_input_container))
             .set_visible(cx, on_edit);
-        self.button(ids!(chat_options)).set_visible(cx, !on_edit);
+        self.button(cx, ids!(chat_options))
+            .set_visible(cx, !on_edit);
 
         let editable = matches!(self.title_edition_state, TitleState::Editable);
-        self.view(ids!(title_label_container))
+        self.view(cx, ids!(title_label_container))
             .set_visible(cx, editable);
     }
 
@@ -442,10 +438,10 @@ impl ChatHistoryCard {
 
         match self.title_edition_state {
             TitleState::OnEdit => {
-                self.apply_over(cx, live! { height: 108 });
+                script_apply_eval!(cx, self, { height: 108 });
             }
             TitleState::Editable => {
-                self.apply_over(cx, live! { height: 56 });
+                script_apply_eval!(cx, self, { height: 56 });
             }
         }
 
@@ -462,8 +458,8 @@ impl ChatHistoryCard {
             match action.cast() {
                 ChatHistoryCardAction::MenuClosed(chat_id) => {
                     if chat_id == self.chat_id {
-                        self.button(ids!(chat_options)).reset_hover(cx);
-                        self.moly_modal(ids!(chat_history_card_options_modal))
+                        self.button(cx, ids!(chat_options)).reset_hover(cx);
+                        self.moly_modal(cx, ids!(chat_history_card_options_modal))
                             .close(cx);
                     }
                 }
@@ -475,22 +471,21 @@ impl ChatHistoryCard {
                 ChatHistoryCardAction::DeleteChatOptionSelected(chat_id) => {
                     if chat_id == self.chat_id {
                         let mut delete_modal_inner =
-                            self.delete_chat_modal(ids!(delete_chat_modal_inner));
+                            self.delete_chat_modal(cx, ids!(delete_chat_modal_inner));
                         delete_modal_inner.set_chat_id(self.chat_id);
 
-                        self.moly_modal(ids!(delete_chat_modal)).open_as_dialog(cx);
+                        self.moly_modal(cx, ids!(delete_chat_modal))
+                            .open_as_dialog(cx);
                     }
                 }
                 _ => {}
             }
 
-            // If the modal is dissmised (such as, clicking outside) we need to reset the hover state
-            // of the open chat options button.
             if self
-                .moly_modal(ids!(chat_history_card_options_modal))
+                .moly_modal(cx, ids!(chat_history_card_options_modal))
                 .dismissed(actions)
             {
-                self.button(ids!(chat_options)).reset_hover(cx);
+                self.button(cx, ids!(chat_options)).reset_hover(cx);
             }
         }
     }
@@ -498,8 +493,8 @@ impl ChatHistoryCard {
     fn handle_title_on_edit_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
         let store = scope.data.get_mut::<Store>().unwrap();
 
-        if self.button(ids!(save)).clicked(actions) {
-            let updated_title = self.text_input(ids!(title_input)).text();
+        if self.button(cx, ids!(save)).clicked(actions) {
+            let updated_title = self.text_input(cx, ids!(title_input)).text();
             let chat = store
                 .chats
                 .saved_chats
@@ -515,7 +510,7 @@ impl ChatHistoryCard {
             self.transition_title_state(cx)
         }
 
-        if let Some((val, _)) = self.text_input(ids!(title_input)).returned(actions) {
+        if let Some((val, _)) = self.text_input(cx, ids!(title_input)).returned(actions) {
             let chat = store
                 .chats
                 .saved_chats
@@ -531,7 +526,7 @@ impl ChatHistoryCard {
             self.transition_title_state(cx)
         }
 
-        if self.button(ids!(cancel)).clicked(actions) {
+        if self.button(cx, ids!(cancel)).clicked(actions) {
             self.transition_title_state(cx)
         }
     }
@@ -548,8 +543,9 @@ impl ChatHistoryCardRef {
     }
 }
 
-#[derive(Clone, DefaultNone, Eq, Hash, PartialEq, Debug)]
+#[derive(Clone, Default, Eq, Hash, PartialEq, Debug)]
 pub enum ChatHistoryCardAction {
+    #[default]
     None,
     ActivateTitleEdition(ChatId),
     MenuClosed(ChatId),

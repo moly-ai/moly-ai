@@ -12,20 +12,20 @@ pub mod search_loading;
 pub mod shared;
 pub mod sorting;
 
-use makepad_widgets::Cx;
+use makepad_widgets::ScriptVm;
 
-pub fn live_design(cx: &mut Cx) {
-    shared::live_design(cx);
-    model_files_tags::live_design(cx);
-    model_files_item::live_design(cx);
-    model_files_list::live_design(cx);
-    model_files::live_design(cx);
-    model_card::live_design(cx);
-    model_list::live_design(cx);
-    landing_screen::live_design(cx);
-    search_bar::live_design(cx);
-    search_loading::live_design(cx);
-    sorting::live_design(cx);
-    downloads::live_design(cx);
-    download_item::live_design(cx);
+pub fn script_mod(vm: &mut ScriptVm) {
+    shared::script_mod(vm);
+    model_files_tags::script_mod(vm);
+    model_files_item::script_mod(vm);
+    model_files_list::script_mod(vm);
+    model_files::script_mod(vm);
+    sorting::script_mod(vm);
+    search_loading::script_mod(vm);
+    download_item::script_mod(vm);
+    downloads::script_mod(vm);
+    model_card::script_mod(vm);
+    model_list::script_mod(vm);
+    search_bar::script_mod(vm);
+    landing_screen::script_mod(vm);
 }

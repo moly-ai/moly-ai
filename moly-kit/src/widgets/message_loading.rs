@@ -1,108 +1,116 @@
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
-    use link::shaders::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    ANIMATION_SPEED = 0.33
-
-    VerticalFiller = <View> {
-        width: Fill,
-        height: 1,
+    let VerticalFiller = View {
+        width: Fill
+        height: 1
     }
 
-    Bar = <View> {
-        width: Fill,
-        height: 17,
-        show_bg: true,
-        draw_bg: {
-            instance dither: 0.1
+    let Bar = View {
+        width: Fill
+        height: 17
+        show_bg: true
+        draw_bg +: {
+            dither: instance(0.1)
 
-            fn get_color(self) -> vec4 {
+            get_color: fn() -> vec4 {
                 return mix(
-                    #9CADBC,
-                    #B0CBC6,
+                    #x9CADBC
+                    #xB0CBC6
                     self.pos.x + self.dither
                 )
             }
 
-            fn pixel(self) -> vec4 {
-                return Pal::premul(self.get_color())
+            pixel: fn() -> vec4 {
+                return Pal.premul(self.get_color())
             }
         }
     }
 
-    pub MessageLoading = {{MessageLoading}} {
-        width: Fill,
-        height: Fit,
+    mod.widgets.MessageLoadingBase = #(MessageLoading::register_widget(vm))
+    mod.widgets.MessageLoading = set_type_default() do mod.widgets.MessageLoadingBase {
+        width: Fill
+        height: Fit
 
-        flow: Down,
-        spacing: 4,
+        flow: Down
+        spacing: 4
 
-        line1 = <Bar> {}
-        line2 = <Bar> {}
-        <View> {
-            width: Fill,
-            height: 16,
-            line3 = <Bar> {}
-            <VerticalFiller> {}
+        line1 := Bar {}
+        line2 := Bar {}
+        View {
+            width: Fill
+            height: 16
+            line3 := Bar {}
+            VerticalFiller {}
         }
 
-        animator: {
-            line1 = {
-                default: start,
-                start = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {line1 = { draw_bg: {dither: 0.1} }}
+        animator: Animator {
+            line1: {
+                default: @start
+                start: AnimatorState {
+                    redraw: true
+                    from: { all: Forward { duration: 0.33 } }
+                    apply: { dither1: 0.1 }
                 }
-                run = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {line1 = { draw_bg: {dither: 0.9} }}
-                }
-            }
-
-            line2 = {
-                default: start,
-                start = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {line2 = { draw_bg: {dither: 0.1} }}
-                }
-                run = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {line2 = { draw_bg: {dither: 0.9} }}
+                run: AnimatorState {
+                    redraw: true
+                    from: { all: Forward { duration: 0.33 } }
+                    apply: { dither1: 0.9 }
                 }
             }
 
-            line3 = {
-                default: start,
-                start = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {line3 = { draw_bg: {dither: 0.1} }}
+            line2: {
+                default: @start
+                start: AnimatorState {
+                    redraw: true
+                    from: { all: Forward { duration: 0.33 } }
+                    apply: { dither2: 0.1 }
                 }
-                run = {
-                    redraw: true,
-                    from: {all: Forward {duration: (ANIMATION_SPEED)}}
-                    apply: {line3 = { draw_bg: {dither: 0.9} }}
+                run: AnimatorState {
+                    redraw: true
+                    from: { all: Forward { duration: 0.33 } }
+                    apply: { dither2: 0.9 }
+                }
+            }
+
+            line3: {
+                default: @start
+                start: AnimatorState {
+                    redraw: true
+                    from: { all: Forward { duration: 0.33 } }
+                    apply: { dither3: 0.1 }
+                }
+                run: AnimatorState {
+                    redraw: true
+                    from: { all: Forward { duration: 0.33 } }
+                    apply: { dither3: 0.9 }
                 }
             }
         }
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget, Animator)]
 pub struct MessageLoading {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     view: View,
 
-    #[animator]
+    #[apply_default]
     animator: Animator,
+
+    #[live]
+    dither1: f64,
+
+    #[live]
+    dither2: f64,
+
+    #[live]
+    dither3: f64,
 
     #[rust]
     timer: Timer,
@@ -117,6 +125,7 @@ impl Widget for MessageLoading {
             self.update_animation(cx);
         }
         if self.animator_handle_event(cx, event).must_redraw() {
+            self.apply_dithers(cx);
             self.redraw(cx);
         }
 
@@ -129,7 +138,19 @@ impl Widget for MessageLoading {
 }
 
 impl MessageLoading {
-    pub fn update_animation(&mut self, cx: &mut Cx) {
+    fn apply_dithers(&mut self, cx: &mut Cx) {
+        let d1 = self.dither1;
+        let d2 = self.dither2;
+        let d3 = self.dither3;
+        let mut line1 = self.view(cx, ids!(line1));
+        script_apply_eval!(cx, line1, { draw_bg +: { dither: #(d1) } });
+        let mut line2 = self.view(cx, ids!(line2));
+        script_apply_eval!(cx, line2, { draw_bg +: { dither: #(d2) } });
+        let mut line3 = self.view(cx, ids!(line3));
+        script_apply_eval!(cx, line3, { draw_bg +: { dither: #(d3) } });
+    }
+
+    fn update_animation(&mut self, cx: &mut Cx) {
         self.current_animated_bar = (self.current_animated_bar + 1) % 3;
 
         match self.current_animated_bar {
@@ -153,6 +174,7 @@ impl MessageLoading {
 }
 
 impl MessageLoadingRef {
+    /// Starts the loading animation if not already running.
     pub fn animate(&mut self, cx: &mut Cx) {
         let Some(mut inner) = self.borrow_mut() else {
             return;

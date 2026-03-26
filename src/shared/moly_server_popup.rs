@@ -1,44 +1,39 @@
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::resource_imports::*;
-    use crate::shared::widgets::MolyButton;
+    let ERROR_ICON = crate_resource("self:resources/images/failure_icon.png")
 
-    ERROR_ICON = dep("crate://self/resources/images/failure_icon.png")
-
-    MolyServerPopupDialog = <RoundedView> {
+    let MolyServerPopupDialog = RoundedView {
         width: 350
         height: Fit
-        margin: {top: 20, right: 20}
-        padding: {top: 20, right: 20 bottom: 20 left: 20}
+        margin: Inset { top: 20 right: 20 }
+        padding: Inset { top: 20 right: 20 bottom: 20 left: 20 }
         spacing: 15
 
         show_bg: true
-        draw_bg: {
+        draw_bg +: {
             color: #fff
-            instance border_radius: 4.0
-            fn pixel(self) -> vec4 {
-                let border_color = #d4;
-                let border_width = 1;
-                let sdf = Sdf2d::viewport(self.pos * self.rect_size);
+            border_radius: uniform(4.0)
+            pixel: fn() -> vec4 {
+                let border_color = #d4
+                let border_width = 1
+                let sdf = Sdf2d.viewport(self.pos * self.rect_size)
                 let body = #fff
 
                 sdf.box(
-                    1.,
-                    1.,
-                    self.rect_size.x - 2.0,
-                    self.rect_size.y - 2.0,
+                    1.
+                    1.
+                    self.rect_size.x - 2.0
+                    self.rect_size.y - 2.0
                     self.border_radius
                 )
                 sdf.fill_keep(body)
 
                 sdf.stroke(
-                    border_color,
+                    border_color
                     border_width
                 )
                 return sdf.result
@@ -46,81 +41,82 @@ live_design! {
         }
     }
 
-    NetworkErrorCloseButton = <MolyButton> {
-        width: Fit,
-        height: Fit,
+    let NetworkErrorCloseButton = MolyButton {
+        width: Fit
+        height: Fit
 
-        margin: {top: -8}
+        margin: Inset { top: -8 }
 
-        draw_icon: {
-            svg_file: (ICON_CLOSE),
-            fn get_color(self) -> vec4 {
-                return #000;
+        draw_icon +: {
+            svg: ICON_CLOSE
+            get_color: fn() -> vec4 {
+                return #000
             }
         }
-        icon_walk: {width: 10, height: 10}
+        icon_walk +: { width: 10 height: 10 }
     }
 
-    NetworkErrorIcon = <View> {
-        width: Fit,
-        height: Fit,
-        margin: {top: -10, left: -10}
-        error_icon = <View> {
-            width: Fit,
-            height: Fit,
-            <Image> {
-                source: (ERROR_ICON),
-                width: 35,
-                height: 35,
+    let NetworkErrorIcon = View {
+        width: Fit
+        height: Fit
+        margin: Inset { top: -10 left: -10 }
+        error_icon := View {
+            width: Fit
+            height: Fit
+            Image {
+                src: ERROR_ICON
+                width: 35
+                height: 35
             }
         }
     }
 
-    NetworkErrorContent = <View> {
-        width: Fill,
-        height: Fit,
-        flow: Down,
+    let NetworkErrorContent = View {
+        width: Fill
+        height: Fit
+        flow: Down
         spacing: 10
 
-        title = <Label> {
-            draw_text:{
-                text_style: <BOLD_FONT>{font_size: 9},
-                word: Wrap,
+        title := Label {
+            draw_text +: {
+                text_style: BOLD_FONT { font_size: 9 }
                 color: #000
             }
             text: "Network Connection Error"
         }
 
-        message = <Label> {
-            width: Fill,
-            draw_text:{
-                text_style: <REGULAR_FONT>{font_size: 9},
-                word: Wrap,
+        message := Label {
+            width: Fill
+            draw_text +: {
+                text_style: REGULAR_FONT { font_size: 9 }
                 color: #000
             }
             text: "Connection with MolySever interrupted.\nPlease check that the server is running and try again."
         }
     }
 
-    pub MolyServerPopup = {{MolyServerPopup}} {
+    mod.widgets.MolyServerPopupBase = #(MolyServerPopup::register_widget(vm))
+    mod.widgets.MolyServerPopup =
+        set_type_default() do mod.widgets.MolyServerPopupBase {
         width: Fit
         height: Fit
 
-        <MolyServerPopupDialog> {
-            <NetworkErrorIcon> {}
-            <NetworkErrorContent> {}
-            close_button = <NetworkErrorCloseButton> {}
+        MolyServerPopupDialog {
+            NetworkErrorIcon {}
+            NetworkErrorContent {}
+            close_button := NetworkErrorCloseButton {}
         }
     }
 }
 
-#[derive(Clone, Debug, DefaultNone)]
+#[derive(Clone, Debug, Default)]
 pub enum MolyServerPopupAction {
+    #[default]
     None,
     CloseButtonClicked,
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct MolyServerPopup {
     #[deref]
     view: View,
@@ -146,7 +142,7 @@ impl Widget for MolyServerPopup {
 
 impl WidgetMatchEvent for MolyServerPopup {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
-        if self.button(ids!(close_button)).clicked(actions) {
+        if self.button(cx, ids!(close_button)).clicked(actions) {
             cx.action(MolyServerPopupAction::CloseButtonClicked);
         }
     }

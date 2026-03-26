@@ -1,59 +1,61 @@
 //! The avatar of a bot in a chat message.
 
 use crate::aitk::protocol::*;
+use crate::utils::makepad::load_image_from_resource;
 use makepad_widgets::*;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-    use link::moly_kit_theme::*;
-    use link::shaders::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    pub Avatar = {{Avatar}} <View> {
-        height: Fit,
-        width: Fit,
-        grapheme = <RoundedView> {
-            visible: false,
-            width: 24,
-            height: 24,
+    mod.widgets.AvatarBase = #(Avatar::register_widget(vm))
+    mod.widgets.Avatar = set_type_default() do mod.widgets.AvatarBase {
+        height: Fit
+        width: Fit
+        grapheme := RoundedView {
+            visible: false
+            width: 24
+            height: 24
 
-            show_bg: true,
-            draw_bg: {
-                color: #37567d,
-                border_radius: 3,
+            show_bg: true
+            draw_bg +: {
+                color: #37567d
+                border_radius: 3
             }
 
-            align: {x: 0.5, y: 0.5},
+            align: Align { x: 0.5, y: 0.5 }
 
-            label = <Label> {
-                width: Fit,
-                height: Fit,
-                draw_text:{
-                    text_style: <THEME_FONT_BOLD>{font_size: 8.5},
-                    color: #fff,
+            label := Label {
+                width: Fit
+                height: Fit
+                draw_text +: {
+                    text_style: theme.font_bold { font_size: 8.5 }
+                    color: #fff
                 }
                 text: "P"
             }
         }
 
-        dependency = <RoundedView> {
+        dependency := RoundedView {
             width: 28, height: 28
             visible: false
 
             show_bg: true
-            draw_bg: {
+            draw_bg +: {
                 border_radius: 2
             }
 
-            image = <Image> {
+            image := Image {
                 width: 28, height: 28
             }
         }
     }
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct Avatar {
+    #[source]
+    source: ScriptObjectRef,
+
     #[deref]
     deref: View,
 
@@ -66,20 +68,16 @@ impl Widget for Avatar {
         if let Some(avatar) = &self.avatar {
             match avatar {
                 EntityAvatar::Text(grapheme) => {
-                    self.view(ids!(grapheme)).set_visible(cx, true);
-                    self.view(ids!(dependency)).set_visible(cx, false);
-                    self.label(ids!(label)).set_text(cx, &grapheme);
+                    self.view(cx, ids!(grapheme)).set_visible(cx, true);
+                    self.view(cx, ids!(dependency)).set_visible(cx, false);
+                    self.label(cx, ids!(label)).set_text(cx, &grapheme);
                 }
                 EntityAvatar::Image(path) => {
-                    self.view(ids!(dependency)).set_visible(cx, true);
-                    self.view(ids!(grapheme)).set_visible(cx, false);
-                    let _ = self
-                        .image(ids!(image))
-                        .load_image_dep_by_path(cx, path)
-                        .or_else(|_| {
-                            self.image(ids!(image))
-                                .load_image_file_by_path(cx, path.as_ref())
-                        });
+                    self.view(cx, ids!(dependency)).set_visible(cx, true);
+                    self.view(cx, ids!(grapheme)).set_visible(cx, false);
+                    let image = self.image(cx, ids!(image));
+                    let _ = load_image_from_resource(&image, cx, path)
+                        .or_else(|_| image.load_image_file_by_path(cx, path.as_ref()));
                 }
             }
         }

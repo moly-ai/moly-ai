@@ -1,3 +1,4 @@
+use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use makepad_widgets::*;
 use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
@@ -15,60 +16,54 @@ use crate::settings::providers::ConnectionSettingsAction;
 use crate::shared::actions::ChatAction;
 use crate::shared::bot_context::BotContext;
 
-live_design! {
-    use link::theme::*;
-    use link::shaders::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-    use crate::shared::styles::*;
-    use crate::shared::widgets::*;
-    use crate::chat::chat_history_panel::ChatHistoryPanel;
-    use crate::chat::chat_screen_mobile::ChatScreenMobile;
-    use crate::chat::chats_deck::ChatsDeck;
-
-    pub ChatScreen = {{ChatScreen}} {
-        width: Fill, height: Fill
+    mod.widgets.ChatScreenBase = #(ChatScreen::register_widget(vm))
+    mod.widgets.ChatScreen = set_type_default() do mod.widgets.ChatScreenBase {
+        width: Fill height: Fill
         spacing: 10
 
-        adaptive_view = <AdaptiveView> {
-            Mobile = {
-                <ChatScreenMobile> {}
+        adaptive_view := AdaptiveView {
+            Mobile +: {
+                mod.widgets.ChatScreenMobile {}
             }
 
-            Desktop = {
-                <View> {
-                    width: Fit, height: Fill
-                    chat_history_panel = <ChatHistoryPanel> {}
+            Desktop +: {
+                View {
+                    width: Fit height: Fill
+                    chat_history_panel := ChatHistoryPanel {}
                 }
 
-                <CachedWidget> {
-                    chats_deck = <ChatsDeck> {}
+                CachedWidget {
+                    chats_deck := ChatsDeck {}
                 }
             }
         }
 
-        // TODO: Add chat params back in, only when the model is a local model (MolyServer)
-        // currenlty MolyKit does not support chat params
-        //
-        // <View> {
-        //     width: Fit,
-        //     height: Fill,
-        //
-        //     chat_params = <ChatParams> {}
-        // }
+        // TODO: Add chat params back in, only when the model is a
+        // local model (MolyServer). Currently MolyKit does not
+        // support chat params.
     }
 }
 
-#[derive(Live, LiveHook, Widget)]
+#[derive(Script, Widget)]
 pub struct ChatScreen {
     #[deref]
     view: View,
 
-    #[rust(true)]
+    #[rust]
     first_render: bool,
 
     #[rust]
     creating_bot_context: bool,
+}
+
+impl ScriptHook for ChatScreen {
+    fn on_after_new(&mut self, _vm: &mut ScriptVm) {
+        self.first_render = true;
+    }
 }
 
 impl Widget for ChatScreen {
@@ -101,21 +96,15 @@ impl Widget for ChatScreen {
 
 impl WidgetMatchEvent for ChatScreen {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
-        if self.button(ids!(new_chat_button)).clicked(&actions) {
-            cx.action(ChatAction::StartWithoutEntity);
-            self.stack_navigation(ids!(navigation)).pop_to_root(cx);
-            self.redraw(cx);
-        }
-
         for action in actions {
             if let ChatAction::ChatSelected(_chat_id) = action.cast() {
-                self.stack_navigation(ids!(navigation)).pop_to_root(cx);
+                self.stack_navigation(cx, ids!(navigation)).pop_to_root(cx);
                 self.redraw(cx);
             }
 
             if let ConnectionSettingsAction::ProviderSelected(provider_id) = action.cast() {
-                self.stack_navigation(ids!(navigation))
-                    .push(cx, live_id!(provider_navigation_view));
+                self.stack_navigation(cx, ids!(navigation))
+                    .push(cx, id!(provider_navigation_view));
 
                 let provider = scope
                     .data
@@ -126,7 +115,7 @@ impl WidgetMatchEvent for ChatScreen {
                     .get(&provider_id);
                 if let Some(provider) = provider {
                     self.view
-                        .provider_view(ids!(provider_view))
+                        .provider_view(cx, ids!(provider_view))
                         .set_provider(cx, provider);
                 } else {
                     eprintln!("Provider not found: {}", provider_id);
@@ -250,10 +239,10 @@ fn has_valid_credentials(provider: &Provider) -> bool {
     }
 }
 
-fn apply_icon(bots: &mut Vec<Bot>, icon_opt: &Option<LiveDependency>) {
+fn apply_icon(bots: &mut Vec<Bot>, icon_opt: &Option<String>) {
     if let Some(icon) = icon_opt {
         for bot in bots.iter_mut() {
-            bot.avatar = EntityAvatar::Image(icon.as_str().to_string());
+            bot.avatar = EntityAvatar::Image(icon.clone());
         }
     }
 }
@@ -309,7 +298,7 @@ fn setup_map_client<C: BotClient + 'static>(
         .find(|sp| sp.id == provider.id)
         .and_then(|sp| sp.supported_models.clone());
 
-    let icon_opt = store.get_provider_icon(&provider.name);
+    let icon_opt = store.get_provider_icon(&provider.name).map(String::from);
     let available_bots = available_bots.clone();
     let providers = providers.clone();
 
