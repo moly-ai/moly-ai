@@ -305,7 +305,7 @@ struct Providers {
     ///
     /// Better than doing something like:
     ///
-    /// ```
+    /// ```text
     /// #[live]
     /// icon_openai: Option<ScriptHandleRef>,
     /// #[live]
@@ -315,7 +315,7 @@ struct Providers {
     ///
     /// Could also be an automatic:
     ///
-    /// ```
+    /// ```text
     /// provider_icon_handles: Vec<ScriptValue>,
     /// ```
     ///
