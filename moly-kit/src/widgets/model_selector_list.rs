@@ -1,6 +1,7 @@
 use super::model_selector_item::{ModelSelectorItemAction, ModelSelectorItemWidgetRefExt};
 use crate::{
     aitk::{controllers::chat::ChatController, protocol::*},
+    utils::makepad::load_image_from_resource,
     widgets::model_selector::{default_grouping, BotGroup},
 };
 use makepad_widgets::*;
@@ -271,9 +272,9 @@ impl ModelSelectorList {
                     section_label
                         .view(cx, ids!(icon_view))
                         .set_visible(cx, true);
-                    let _ = section_label
-                        .image(cx, ids!(icon_image))
-                        .load_image_from_resource_abs_path(cx, &image);
+                    let img = section_label.image(cx, ids!(icon_image));
+                    let _ = load_image_from_resource(&img, cx, &image)
+                        .or_else(|_| img.load_image_file_by_path(cx, image.as_ref()));
                 }
                 EntityAvatar::Text(text) => {
                     section_label

@@ -1,6 +1,7 @@
 //! The avatar of a bot in a chat message.
 
 use crate::aitk::protocol::*;
+use crate::utils::makepad::load_image_from_resource;
 use makepad_widgets::*;
 
 script_mod! {
@@ -74,9 +75,9 @@ impl Widget for Avatar {
                 EntityAvatar::Image(path) => {
                     self.view(cx, ids!(dependency)).set_visible(cx, true);
                     self.view(cx, ids!(grapheme)).set_visible(cx, false);
-                    let _ = self
-                        .image(cx, ids!(image))
-                        .load_image_from_resource_abs_path(cx, path);
+                    let image = self.image(cx, ids!(image));
+                    let _ = load_image_from_resource(&image, cx, path)
+                        .or_else(|_| image.load_image_file_by_path(cx, path.as_ref()));
                 }
             }
         }
