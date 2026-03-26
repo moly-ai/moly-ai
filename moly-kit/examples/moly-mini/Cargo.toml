@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 env_logger = "0.11.8"
-makepad-widgets = { git = "https://github.com/makepad/makepad", rev = "f040a2f2a" }
+makepad-widgets = { git = "https://github.com/makepad/makepad", rev = "788d7a42c" }
 moly-kit = { path = "../..", features = ["full"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
