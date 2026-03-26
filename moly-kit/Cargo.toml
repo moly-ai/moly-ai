@@ -8,8 +8,8 @@ reqwest = { version = "0.12", features = ["rustls-tls"], default-features = fals
 scraper = { version = "0.25.0" }
 serde_json = { version = "1.0.149" }
 
-makepad-widgets = { git = "https://github.com/makepad/makepad", rev = "788d7a42c" }
-makepad-code-editor = { git = "https://github.com/makepad/makepad", rev = "788d7a42c" }
+makepad-widgets = { git = "https://github.com/makepad/makepad", rev = "a517b9cb4" }
+makepad-code-editor = { git = "https://github.com/makepad/makepad", rev = "a517b9cb4" }
 robius-open = { git = "https://github.com/project-robius/robius", rev = "a62b82c8" }
 aitk = { git = "https://github.com/moly-ai/aitk", rev = "15c604e", features = ["async-rt", "http", "mcp"] }
 
