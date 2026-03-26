@@ -348,9 +348,7 @@ impl ScriptHook for Providers {
         for i in 0..len {
             let elem = vm.bx.heap.array_index_unchecked(arr, i);
             let handle = elem.as_handle();
-            if let Some(path) =
-                handle.and_then(|h| vm.with_cx(|cx| cx.get_resource_abs_path(h)))
-            {
+            if let Some(path) = handle.and_then(|h| vm.with_cx(|cx| cx.get_resource_abs_path(h))) {
                 paths.push(path);
             }
         }
@@ -568,9 +566,7 @@ impl ProviderItemRef {
             inner.view(cx, ids!(image_wrapper)).set_visible(cx, true);
             let image = inner.image(cx, ids!(provider_icon_image));
             let _ = load_image_from_resource(&image, cx, &icon)
-                .or_else(|_| {
-                    image.load_image_file_by_path(cx, icon.as_ref())
-                });
+                .or_else(|_| image.load_image_file_by_path(cx, icon.as_ref()));
 
             let label_view = inner.view(cx, ids!(provider_icon_label));
             label_view.set_visible(cx, false);

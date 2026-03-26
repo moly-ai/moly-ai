@@ -1,5 +1,5 @@
-use makepad_widgets::*;
 use makepad_widgets::defer_with_redraw::DeferWithRedraw;
+use makepad_widgets::*;
 use std::cell::{Ref, RefMut};
 use std::sync::{Arc, Mutex};
 
@@ -53,12 +53,7 @@ pub struct Chat {
 }
 
 impl Widget for Chat {
-    fn handle_event(
-        &mut self,
-        cx: &mut Cx,
-        event: &Event,
-        scope: &mut Scope,
-    ) {
+    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         // Handle audio devices setup
         if let Event::AudioDevices(devices) = event {
             let input = devices.default_input();
@@ -77,15 +72,11 @@ impl Widget for Chat {
         self.handle_modal_dismissal(cx, event);
     }
 
-    fn draw_walk(
-        &mut self,
-        cx: &mut Cx2d,
-        scope: &mut Scope,
-        walk: Walk,
-    ) -> DrawStep {
-        let has_stt =
-            self.stt_input_ref(cx).read().stt_utility().is_some();
-        self.prompt_input_ref(cx).write().set_stt_visible(cx, has_stt);
+    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
+        let has_stt = self.stt_input_ref(cx).read().stt_utility().is_some();
+        self.prompt_input_ref(cx)
+            .write()
+            .set_stt_visible(cx, has_stt);
 
         self.deref.draw_walk(cx, scope, walk)
     }
@@ -118,20 +109,26 @@ impl Chat {
     }
 
     fn handle_prompt_input(&mut self, cx: &mut Cx, event: &Event) {
-        let submitted =
-            self.prompt_input_ref(cx).read().submitted(cx, event.actions());
+        let submitted = self
+            .prompt_input_ref(cx)
+            .read()
+            .submitted(cx, event.actions());
         if submitted {
             self.handle_submit(cx);
         }
 
-        let call_pressed =
-            self.prompt_input_ref(cx).read().call_pressed(cx, event.actions());
+        let call_pressed = self
+            .prompt_input_ref(cx)
+            .read()
+            .call_pressed(cx, event.actions());
         if call_pressed {
             self.handle_call(cx);
         }
 
-        let stt_pressed =
-            self.prompt_input_ref(cx).read().stt_pressed(cx, event.actions());
+        let stt_pressed = self
+            .prompt_input_ref(cx)
+            .read()
+            .stt_pressed(cx, event.actions());
         if stt_pressed {
             self.prompt_input_ref(cx).set_visible(cx, false);
             self.stt_input_ref(cx).set_visible(cx, true);
@@ -141,10 +138,7 @@ impl Chat {
     }
 
     fn handle_stt_input_actions(&mut self, cx: &mut Cx, event: &Event) {
-        let transcription = self
-            .stt_input_ref(cx)
-            .read()
-            .transcribed(event.actions());
+        let transcription = self.stt_input_ref(cx).read().transcribed(event.actions());
 
         if let Some(transcription) = transcription {
             self.stt_input_ref(cx).set_visible(cx, false);
@@ -162,8 +156,7 @@ impl Chat {
             self.prompt_input_ref(cx).redraw(cx);
         }
 
-        let cancelled =
-            self.stt_input_ref(cx).read().cancelled(event.actions());
+        let cancelled = self.stt_input_ref(cx).read().cancelled(event.actions());
         if cancelled {
             self.stt_input_ref(cx).set_visible(cx, false);
             self.prompt_input_ref(cx).set_visible(cx, true);
@@ -176,9 +169,7 @@ impl Chat {
             && self
                 .chat_controller
                 .as_ref()
-                .map(|c| {
-                    c.lock().unwrap().state().bot_id.is_some()
-                })
+                .map(|c| c.lock().unwrap().state().bot_id.is_some())
                 .unwrap_or(false)
         {
             self.chat_controller
@@ -208,15 +199,9 @@ impl Chat {
             self.realtime(cx, ids!(realtime)).reset_state(cx);
 
             if !conversation_messages.is_empty() {
-                let chat_controller =
-                    self.chat_controller.clone().unwrap();
+                let chat_controller = self.chat_controller.clone().unwrap();
 
-                let mut all_messages = chat_controller
-                    .lock()
-                    .unwrap()
-                    .state()
-                    .messages
-                    .clone();
+                let mut all_messages = chat_controller.lock().unwrap().state().messages.clone();
 
                 let system_message = Message {
                     from: EntityId::App,
@@ -244,22 +229,19 @@ impl Chat {
                     .unwrap()
                     .dispatch_mutation(VecMutation::Set(all_messages));
 
-                self.messages_ref(cx)
-                    .write()
-                    .instant_scroll_to_bottom(cx);
+                self.messages_ref(cx).write().instant_scroll_to_bottom(cx);
             }
         }
     }
 
     fn handle_capabilities(&mut self, cx: &mut Cx) {
-        let capabilities =
-            self.chat_controller.as_ref().and_then(|controller| {
-                let lock = controller.lock().unwrap();
-                let bot_id = lock.state().bot_id.as_ref()?;
-                lock.state()
-                    .get_bot(bot_id)
-                    .map(|bot| bot.capabilities.clone())
-            });
+        let capabilities = self.chat_controller.as_ref().and_then(|controller| {
+            let lock = controller.lock().unwrap();
+            let bot_id = lock.state().bot_id.as_ref()?;
+            lock.state()
+                .get_bot(bot_id)
+                .map(|bot| bot.capabilities.clone())
+        });
 
         self.prompt_input_ref(cx)
             .write()
@@ -276,20 +258,16 @@ impl Chat {
                 continue;
             }
 
-            let chat_controller =
-                self.chat_controller.clone().unwrap();
+            let chat_controller = self.chat_controller.clone().unwrap();
 
             match action.cast::<MessagesAction>() {
                 MessagesAction::Delete(index) => chat_controller
                     .lock()
                     .unwrap()
-                    .dispatch_mutation(
-                        VecMutation::<Message>::RemoveOne(index),
-                    ),
+                    .dispatch_mutation(VecMutation::<Message>::RemoveOne(index)),
                 MessagesAction::Copy(index) => {
                     let lock = chat_controller.lock().unwrap();
-                    let text =
-                        &lock.state().messages[index].content.text;
+                    let text = &lock.state().messages[index].content.text;
                     cx.copy_to_clipboard(text);
                 }
                 MessagesAction::EditSave(index) => {
@@ -305,25 +283,18 @@ impl Chat {
 
                     let mut lock = chat_controller.lock().unwrap();
 
-                    let mutation = VecMutation::update_with(
-                        &lock.state().messages,
-                        index,
-                        |message| {
+                    let mutation =
+                        VecMutation::update_with(&lock.state().messages, index, |message| {
                             message.update_content(move |content| {
                                 content.text = text;
                             });
-                        },
-                    );
+                        });
 
                     lock.dispatch_mutation(mutation);
                 }
                 MessagesAction::EditRegenerate(index) => {
-                    let mut messages = chat_controller
-                        .lock()
-                        .unwrap()
-                        .state()
-                        .messages[0..=index]
-                        .to_vec();
+                    let mut messages =
+                        chat_controller.lock().unwrap().state().messages[0..=index].to_vec();
 
                     let text = self
                         .messages_ref(cx)
@@ -347,13 +318,7 @@ impl Chat {
                     if self
                         .chat_controller
                         .as_ref()
-                        .map(|c| {
-                            c.lock()
-                                .unwrap()
-                                .state()
-                                .bot_id
-                                .is_some()
-                        })
+                        .map(|c| c.lock().unwrap().state().bot_id.is_some())
                         .unwrap_or(false)
                     {
                         chat_controller
@@ -365,57 +330,37 @@ impl Chat {
                 MessagesAction::ToolApprove(index) => {
                     let mut lock = chat_controller.lock().unwrap();
 
-                    let mut updated_message =
-                        lock.state().messages[index].clone();
+                    let mut updated_message = lock.state().messages[index].clone();
 
-                    for tool_call in
-                        &mut updated_message.content.tool_calls
-                    {
-                        tool_call.permission_status =
-                            ToolCallPermissionStatus::Approved;
+                    for tool_call in &mut updated_message.content.tool_calls {
+                        tool_call.permission_status = ToolCallPermissionStatus::Approved;
                     }
 
-                    lock.dispatch_mutation(VecMutation::Update(
-                        index,
-                        updated_message,
-                    ));
+                    lock.dispatch_mutation(VecMutation::Update(index, updated_message));
 
-                    let tools = lock.state().messages[index]
-                        .content
-                        .tool_calls
-                        .clone();
+                    let tools = lock.state().messages[index].content.tool_calls.clone();
                     let bot_id = lock.state().bot_id.clone();
-                    lock.dispatch_task(ChatTask::Execute(
-                        tools, bot_id,
-                    ));
+                    lock.dispatch_task(ChatTask::Execute(tools, bot_id));
                 }
                 MessagesAction::ToolDeny(index) => {
                     let mut lock = chat_controller.lock().unwrap();
 
-                    let mut updated_message =
-                        lock.state().messages[index].clone();
+                    let mut updated_message = lock.state().messages[index].clone();
 
                     updated_message.update_content(|content| {
                         for tool_call in &mut content.tool_calls {
-                            tool_call.permission_status =
-                                ToolCallPermissionStatus::Denied;
+                            tool_call.permission_status = ToolCallPermissionStatus::Denied;
                         }
                     });
 
-                    lock.dispatch_mutation(VecMutation::Update(
-                        index,
-                        updated_message,
-                    ));
+                    lock.dispatch_mutation(VecMutation::Update(index, updated_message));
 
-                    let tool_results: Vec<ToolResult> = lock
-                        .state()
-                        .messages[index]
+                    let tool_results: Vec<ToolResult> = lock.state().messages[index]
                         .content
                         .tool_calls
                         .iter()
                         .map(|tc| {
-                            let display_name =
-                                display_name_from_namespaced(&tc.name);
+                            let display_name = display_name_from_namespaced(&tc.name);
                             ToolResult {
                                 tool_call_id: tc.id.clone(),
                                 content: format!(
@@ -453,9 +398,7 @@ impl Chat {
             && self
                 .chat_controller
                 .as_ref()
-                .map(|c| {
-                    c.lock().unwrap().state().bot_id.is_some()
-                })
+                .map(|c| c.lock().unwrap().state().bot_id.is_some())
                 .unwrap_or(false)
         {
             let text = prompt.text();
@@ -536,8 +479,7 @@ impl Chat {
         self.unlink_current_controller();
         self.chat_controller = chat_controller;
 
-        self.messages_ref(cx).write().chat_controller =
-            self.chat_controller.clone();
+        self.messages_ref(cx).write().chat_controller = self.chat_controller.clone();
         self.realtime(cx, ids!(realtime))
             .set_chat_controller(self.chat_controller.clone());
         self.prompt_input_ref(cx)
@@ -553,9 +495,7 @@ impl Chat {
     }
 
     /// Returns a reference to the chat controller, if set.
-    pub fn chat_controller(
-        &self,
-    ) -> Option<&Arc<Mutex<ChatController>>> {
+    pub fn chat_controller(&self) -> Option<&Arc<Mutex<ChatController>>> {
         self.chat_controller.as_ref()
     }
 
@@ -609,10 +549,7 @@ impl ChatRef {
     /// Mutable writer to the underlying [Chat].
     ///
     /// Panics if the widget reference is empty or if it's already borrowed.
-    pub fn write_with<R>(
-        &mut self,
-        f: impl FnOnce(&mut Chat) -> R,
-    ) -> R {
+    pub fn write_with<R>(&mut self, f: impl FnOnce(&mut Chat) -> R) -> R {
         f(&mut *self.write())
     }
 }
@@ -634,11 +571,7 @@ impl Plugin {
 }
 
 impl ChatControllerPlugin for Plugin {
-    fn on_state_ready(
-        &mut self,
-        _state: &ChatState,
-        mutations: &[ChatStateMutation],
-    ) {
+    fn on_state_ready(&mut self, _state: &ChatState, mutations: &[ChatStateMutation]) {
         for mutation in mutations {
             match mutation {
                 ChatStateMutation::SetIsStreaming(true) => {
@@ -653,25 +586,13 @@ impl ChatControllerPlugin for Plugin {
                 }
                 ChatStateMutation::MutateBots(_) => {
                     self.ui.defer(|chat, cx, _| {
-                        if let Some(controller) =
-                            &chat.chat_controller
-                        {
-                            let mut lock =
-                                controller.lock().unwrap();
-                            if let Some(bot_id) =
-                                lock.state().bot_id.clone()
-                            {
-                                let bot_still_available = lock
-                                    .state()
-                                    .bots
-                                    .iter()
-                                    .any(|b| &b.id == &bot_id);
+                        if let Some(controller) = &chat.chat_controller {
+                            let mut lock = controller.lock().unwrap();
+                            if let Some(bot_id) = lock.state().bot_id.clone() {
+                                let bot_still_available =
+                                    lock.state().bots.iter().any(|b| &b.id == &bot_id);
                                 if !bot_still_available {
-                                    lock.dispatch_mutation(
-                                        ChatStateMutation::SetBotId(
-                                            None,
-                                        ),
-                                    );
+                                    lock.dispatch_mutation(ChatStateMutation::SetBotId(None));
                                 }
                             }
                         }
@@ -692,11 +613,7 @@ impl ChatControllerPlugin for Plugin {
         self.ui.defer_with_redraw(move |_, _, _| {});
     }
 
-    fn on_upgrade(
-        &mut self,
-        upgrade: Upgrade,
-        bot_id: &BotId,
-    ) -> Option<Upgrade> {
+    fn on_upgrade(&mut self, upgrade: Upgrade, bot_id: &BotId) -> Option<Upgrade> {
         match upgrade {
             Upgrade::Realtime(channel) => {
                 let entity_id = EntityId::Bot(bot_id.clone());
@@ -705,8 +622,7 @@ impl ChatControllerPlugin for Plugin {
 
                     let mut realtime = me.realtime(cx, ids!(realtime));
                     realtime.set_bot_entity_id(cx, entity_id);
-                    realtime
-                        .set_realtime_channel(channel.clone());
+                    realtime.set_realtime_channel(channel.clone());
 
                     let modal = me.moly_modal(cx, ids!(audio_modal));
                     modal.open_as_dialog(cx);

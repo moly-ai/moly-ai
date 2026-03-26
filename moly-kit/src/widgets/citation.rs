@@ -1,7 +1,7 @@
 use crate::aitk::utils::asynchronous::spawn;
 use crate::utils::scraping::*;
-use makepad_widgets::*;
 use makepad_widgets::defer_with_redraw::DeferWithRedraw;
+use makepad_widgets::*;
 use url::Url;
 
 script_mod! {
@@ -77,10 +77,7 @@ impl Widget for Citation {
         if let Hit::FingerUp(fu) = event.hits(cx, self.area()) {
             if fu.was_tap() {
                 if let Some(url) = &self.url {
-                    cx.widget_action(
-                        self.widget_uid(),
-                        CitationAction::Open(url.clone()),
-                    );
+                    cx.widget_action(self.widget_uid(), CitationAction::Open(url.clone()));
                 }
             }
         }

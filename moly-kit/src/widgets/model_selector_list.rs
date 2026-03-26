@@ -2,7 +2,7 @@ use super::model_selector_item::{ModelSelectorItemAction, ModelSelectorItemWidge
 use crate::{
     aitk::{controllers::chat::ChatController, protocol::*},
     utils::makepad::load_image_from_resource,
-    widgets::model_selector::{default_grouping, BotGroup},
+    widgets::model_selector::{BotGroup, default_grouping},
 };
 use makepad_widgets::*;
 use std::collections::HashMap;

@@ -455,10 +455,7 @@ impl Store {
 
         self.provider_icons
             .iter()
-            .find(|icon| {
-                icon.to_lowercase()
-                    .contains(&base_name.to_lowercase())
-            })
+            .find(|icon| icon.to_lowercase().contains(&base_name.to_lowercase()))
             .map(|s| s.as_str())
     }
 

@@ -8,8 +8,7 @@ use crate::{
     },
     utils::makepad::events::EventExt,
     widgets::{
-        model_selector_item::ModelSelectorItemAction,
-        model_selector_list::ModelSelectorList,
+        model_selector_item::ModelSelectorItemAction, model_selector_list::ModelSelectorList,
         moly_modal::MolyModalWidgetExt,
     },
 };
@@ -148,12 +147,7 @@ pub struct ModelSelector {
 }
 
 impl Widget for ModelSelector {
-    fn handle_event(
-        &mut self,
-        cx: &mut Cx,
-        event: &Event,
-        scope: &mut Scope,
-    ) {
+    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.view.handle_event(cx, event, scope);
         self.widget_match_event(cx, event, scope);
 
@@ -175,9 +169,7 @@ impl Widget for ModelSelector {
 
         // On mobile, handle clicks on background view to dismiss modal
         if self.open && !cx.display_context.is_desktop() {
-            if let Hit::FingerUp(fe) =
-                event.hits(cx, self.view(cx, ids!(modal.bg_view)).area())
-            {
+            if let Hit::FingerUp(fe) = event.hits(cx, self.view(cx, ids!(modal.bg_view)).area()) {
                 if fe.was_tap() {
                     self.close_modal(cx);
                     self.clear_search(cx);
@@ -187,21 +179,14 @@ impl Widget for ModelSelector {
         }
     }
 
-    fn draw_walk(
-        &mut self,
-        cx: &mut Cx2d,
-        scope: &mut Scope,
-        walk: Walk,
-    ) -> DrawStep {
+    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         // Read state from controller
-        let (bots, selected_bot_id) =
-            if let Some(chat_controller) = &self.chat_controller {
-                let state =
-                    chat_controller.lock().unwrap().state().clone();
-                (state.bots, state.bot_id)
-            } else {
-                (Vec::new(), None)
-            };
+        let (bots, selected_bot_id) = if let Some(chat_controller) = &self.chat_controller {
+            let state = chat_controller.lock().unwrap().state().clone();
+            (state.bots, state.bot_id)
+        } else {
+            (Vec::new(), None)
+        };
 
         // Handle empty bots case - disable button
         if bots.is_empty() {
@@ -247,12 +232,7 @@ impl Widget for ModelSelector {
 }
 
 impl WidgetMatchEvent for ModelSelector {
-    fn handle_actions(
-        &mut self,
-        cx: &mut Cx,
-        actions: &Actions,
-        _scope: &mut Scope,
-    ) {
+    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, _scope: &mut Scope) {
         // Handle search input changes
         if let Some(text) = self
             .text_input(cx, ids!(options.search_container.search_input))
@@ -271,8 +251,7 @@ impl WidgetMatchEvent for ModelSelector {
         // Handle bot selection from list items.
         // Only process actions from our own list widget to avoid
         // handling global actions.
-        let list_widget =
-            self.widget(cx, ids!(options.list_container.list));
+        let list_widget = self.widget(cx, ids!(options.list_container.list));
         for action in actions {
             let Some(action) = action.as_widget_action() else {
                 continue;
@@ -288,9 +267,7 @@ impl WidgetMatchEvent for ModelSelector {
                         controller
                             .lock()
                             .unwrap()
-                            .dispatch_mutation(
-                                ChatStateMutation::SetBotId(Some(bot_id)),
-                            );
+                            .dispatch_mutation(ChatStateMutation::SetBotId(Some(bot_id)));
                     }
 
                     self.button(cx, ids!(button)).reset_hover(cx);
@@ -347,8 +324,7 @@ impl ModelSelector {
                 x: 0.0,
                 y: screen_size.y,
             };
-            self.moly_modal(cx, ids!(modal))
-                .open_as_popup(cx, pos);
+            self.moly_modal(cx, ids!(modal)).open_as_popup(cx, pos);
         }
     }
 
@@ -374,10 +350,7 @@ impl ModelSelector {
 
 impl ModelSelectorRef {
     /// Sets the chat controller for the model selector.
-    pub fn set_chat_controller(
-        &mut self,
-        controller: Option<Arc<Mutex<ChatController>>>,
-    ) {
+    pub fn set_chat_controller(&mut self, controller: Option<Arc<Mutex<ChatController>>>) {
         if let Some(mut inner) = self.borrow_mut() {
             inner.chat_controller = controller;
         }

@@ -286,9 +286,5 @@ impl DownloadedFilesRowRef {
 }
 
 fn dash_if_empty(input: &str) -> &str {
-    if input.is_empty() {
-        "-"
-    } else {
-        input
-    }
+    if input.is_empty() { "-" } else { input }
 }

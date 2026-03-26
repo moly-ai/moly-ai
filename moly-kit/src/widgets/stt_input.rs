@@ -1,9 +1,5 @@
-use crate::aitk::protocol::{
-    Attachment, BotClient, BotId, EntityId, Message, MessageContent,
-};
-use crate::aitk::utils::asynchronous::{
-    AbortOnDropHandle, spawn_abort_on_drop,
-};
+use crate::aitk::protocol::{Attachment, BotClient, BotId, EntityId, Message, MessageContent};
+use crate::aitk::utils::asynchronous::{AbortOnDropHandle, spawn_abort_on_drop};
 use crate::utils::makepad::events::EventExt;
 use makepad_widgets::defer_with_redraw::DeferWithRedraw;
 use makepad_widgets::*;
@@ -144,30 +140,17 @@ pub struct SttInput {
 }
 
 impl Widget for SttInput {
-    fn draw_walk(
-        &mut self,
-        cx: &mut Cx2d,
-        scope: &mut Scope,
-        walk: Walk,
-    ) -> DrawStep {
+    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         self.deref.draw_walk(cx, scope, walk)
     }
 
-    fn handle_event(
-        &mut self,
-        cx: &mut Cx,
-        event: &Event,
-        scope: &mut Scope,
-    ) {
+    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.ui_runner().handle(cx, event, scope, self);
         self.deref.handle_event(cx, event, scope);
 
         if self.timer.is_event(event).is_some() {
-            if let SttInputState::Recording(recording_state) =
-                &self.state
-            {
-                let elapsed =
-                    Cx::time_now() - recording_state.start_time;
+            if let SttInputState::Recording(recording_state) = &self.state {
+                let elapsed = Cx::time_now() - recording_state.start_time;
                 self.label(cx, ids!(status))
                     .set_text(cx, &time_to_minutes_seconds(elapsed));
                 self.timer = cx.start_timeout(TIMER_PRECISION);
@@ -207,8 +190,7 @@ impl SttInput {
         self.timer = cx.start_timeout(TIMER_PRECISION);
 
         if self.audio_buffer.is_none() {
-            self.audio_buffer =
-                Some(Arc::new(Mutex::new(AudioData::default())));
+            self.audio_buffer = Some(Arc::new(Mutex::new(AudioData::default())));
         }
 
         if let Some(arc) = &self.audio_buffer {
@@ -223,8 +205,7 @@ impl SttInput {
 
                 if let Ok(mut recorded) = buffer_clone.try_lock() {
                     if recorded.sample_rate.is_none() {
-                        recorded.sample_rate =
-                            Some(info.sample_rate);
+                        recorded.sample_rate = Some(info.sample_rate);
                     }
                     recorded.data.extend_from_slice(channel);
                 }
@@ -237,15 +218,10 @@ impl SttInput {
     }
 
     /// Completes the recording and starts the transcription process.
-    pub fn finish_recording(
-        &mut self,
-        cx: &mut Cx,
-        scope: &mut Scope,
-    ) {
+    pub fn finish_recording(&mut self, cx: &mut Cx, scope: &mut Scope) {
         self.stop_recording(cx);
         self.state = SttInputState::Sending;
-        self.label(cx, ids!(status))
-            .set_text(cx, "Transcribing...");
+        self.label(cx, ids!(status)).set_text(cx, "Transcribing...");
         self.button(cx, ids!(confirm)).set_visible(cx, false);
 
         if let Some(buffer_arc) = self.audio_buffer.clone() {
@@ -257,11 +233,7 @@ impl SttInput {
     ///
     /// This stops the audio device and aborts the async transcription
     /// request.
-    pub fn cancel_recording(
-        &mut self,
-        cx: &mut Cx,
-        _scope: &mut Scope,
-    ) {
+    pub fn cancel_recording(&mut self, cx: &mut Cx, _scope: &mut Scope) {
         self.stop_recording(cx);
         self.state = SttInputState::Idle;
         self.abort_handle = None;
@@ -291,13 +263,8 @@ impl SttInput {
                 return;
             }
 
-            let sample_rate =
-                sample_rate.unwrap_or(48000.0) as u32;
-            let wav_bytes = match crate::utils::audio::build_wav(
-                &samples,
-                sample_rate,
-                1,
-            ) {
+            let sample_rate = sample_rate.unwrap_or(48000.0) as u32;
+            let wav_bytes = match crate::utils::audio::build_wav(&samples, sample_rate, 1) {
                 Ok(bytes) => bytes,
                 Err(e) => {
                     ::log::error!("Error encoding audio: {}", e);
@@ -323,33 +290,22 @@ impl SttInput {
 
             let future = async move {
                 use futures::{StreamExt, pin_mut};
-                let stream =
-                    client.send(&bot_id, &[message], &[]);
+                let stream = client.send(&bot_id, &[message], &[]);
 
                 let filtered = stream
-                    .filter_map(|r| async move {
-                        r.value().map(|c| c.text.clone())
-                    })
-                    .filter(|text| {
-                        futures::future::ready(!text.is_empty())
-                    });
+                    .filter_map(|r| async move { r.value().map(|c| c.text.clone()) })
+                    .filter(|text| futures::future::ready(!text.is_empty()));
                 pin_mut!(filtered);
                 let text = filtered.next().await;
 
                 if let Some(text) = text {
-                    ui.defer_with_redraw(
-                        move |me: &mut SttInput, cx, scope| {
-                            me.handle_transcription(
-                                cx, text, scope,
-                            );
-                        },
-                    );
+                    ui.defer_with_redraw(move |me: &mut SttInput, cx, scope| {
+                        me.handle_transcription(cx, text, scope);
+                    });
                 } else {
-                    ui.defer_with_redraw(
-                        move |me: &mut SttInput, cx, scope| {
-                            me.cancel_recording(cx, scope);
-                        },
-                    );
+                    ui.defer_with_redraw(move |me: &mut SttInput, cx, scope| {
+                        me.cancel_recording(cx, scope);
+                    });
                 }
             };
 
@@ -357,12 +313,7 @@ impl SttInput {
         }
     }
 
-    fn handle_transcription(
-        &mut self,
-        cx: &mut Cx,
-        text: String,
-        _scope: &mut Scope,
-    ) {
+    fn handle_transcription(&mut self, cx: &mut Cx, text: String, _scope: &mut Scope) {
         self.state = SttInputState::Idle;
         self.abort_handle = None;
         let uid = self.widget_uid();
@@ -385,9 +336,7 @@ impl SttInput {
         actions
             .find_widget_action(self.widget_uid())
             .map(|wa| wa.cast::<SttInputAction>())
-            .map_or(false, |action| {
-                matches!(action, SttInputAction::Cancelled)
-            })
+            .map_or(false, |action| matches!(action, SttInputAction::Cancelled))
     }
 }
 

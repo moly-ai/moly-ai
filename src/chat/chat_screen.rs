@@ -1,5 +1,5 @@
-use makepad_widgets::*;
 use makepad_widgets::defer_with_redraw::DeferWithRedraw;
+use makepad_widgets::*;
 use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_kit::prelude::*;
 

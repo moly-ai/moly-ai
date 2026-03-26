@@ -1,8 +1,8 @@
 use std::net::UdpSocket;
 
 use anyhow::Error;
-use makepad_widgets::*;
 use makepad_widgets::defer_with_redraw::DeferWithRedraw;
+use makepad_widgets::*;
 use moly_kit::aitk::utils::asynchronous::spawn;
 use moly_sync::fetch_json;
 
@@ -355,31 +355,19 @@ pub enum SyncStatus {
 }
 
 impl Widget for SyncModal {
-    fn handle_event(
-        &mut self,
-        cx: &mut Cx,
-        event: &Event,
-        scope: &mut Scope,
-    ) {
+    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.ui_runner().handle(cx, event, scope, self);
         self.view.handle_event(cx, event, scope);
         self.widget_match_event(cx, event, scope);
     }
 
-    fn draw_walk(
-        &mut self,
-        cx: &mut Cx2d,
-        scope: &mut Scope,
-        walk: Walk,
-    ) -> DrawStep {
+    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         #[cfg(target_arch = "wasm32")]
         {
             self.view(cx, ids!(sync_buttons)).set_visible(cx, false);
             self.view(cx, ids!(import_view)).set_visible(cx, true);
-            self.label(cx, ids!(hint)).set_text(
-                cx,
-                "Import your settings from another Moly instance",
-            );
+            self.label(cx, ids!(hint))
+                .set_text(cx, "Import your settings from another Moly instance");
         }
 
         self.view
@@ -388,12 +376,7 @@ impl Widget for SyncModal {
 }
 
 impl WidgetMatchEvent for SyncModal {
-    fn handle_actions(
-        &mut self,
-        cx: &mut Cx,
-        actions: &Actions,
-        scope: &mut Scope,
-    ) {
+    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions, scope: &mut Scope) {
         if self.button(cx, ids!(close_button)).clicked(actions) {
             self.reset_state(cx);
             cx.action(SyncModalAction::ModalDismissed);
@@ -429,10 +412,7 @@ impl WidgetMatchEvent for SyncModal {
         }
 
         if let Some(selected_sync_mode) = self
-            .radio_button_set(cx, ids_array!(
-                radios.radio_merge,
-                radios.radio_replace
-            ))
+            .radio_button_set(cx, ids_array!(radios.radio_merge, radios.radio_replace))
             .selected(cx, actions)
         {
             self.should_merge = match selected_sync_mode {
@@ -450,54 +430,33 @@ impl WidgetMatchEvent for SyncModal {
 impl SyncModal {
     #[cfg(not(target_arch = "wasm32"))]
     fn serve(&mut self, _cx: &mut Cx, scope: &mut Scope) {
-        let json_file = scope
-            .data
-            .get_mut::<Store>()
-            .unwrap()
-            .preferences
-            .as_json();
+        let json_file = scope.data.get_mut::<Store>().unwrap().preferences.as_json();
 
         let ui = self.ui_runner();
         spawn(async move {
-            let server_result =
-                start_server(json_file, None).await;
+            let server_result = start_server(json_file, None).await;
             match server_result {
                 Ok(server_handle) => {
                     let addr = server_handle.addr;
-                    ::log::info!(
-                        "Sync server started at {:?}",
-                        addr
-                    );
+                    ::log::info!("Sync server started at {:?}", addr);
                     ui.defer_with_redraw(move |me: &mut SyncModal, cx, _| {
                         me.label(cx, ids!(sync_pin))
                             .set_text(cx, &server_handle.pin);
                         me.server_handle = Some(server_handle);
 
-                        let full_server_url = format!(
-                            "http://{}:{}",
-                            get_local_ip_address(),
-                            addr.port()
-                        );
+                        let full_server_url =
+                            format!("http://{}:{}", get_local_ip_address(), addr.port());
                         me.label(cx, ids!(serving_url))
                             .set_text(cx, &full_server_url);
                     });
                 }
                 Err(e) => {
-                    ::log::error!(
-                        "Failed to start sync server: {}",
-                        e
-                    );
+                    ::log::error!("Failed to start sync server: {}", e);
                     ui.defer_with_redraw(move |me: &mut SyncModal, cx, _| {
                         me.sync_status = SyncStatus::None;
-                        me.label(cx, ids!(status_message)).set_text(
-                            cx,
-                            &format!(
-                                "Failed to start server: {}",
-                                e
-                            ),
-                        );
-                        me.view(cx, ids!(status_view))
-                            .set_visible(cx, true);
+                        me.label(cx, ids!(status_message))
+                            .set_text(cx, &format!("Failed to start server: {}", e));
+                        me.view(cx, ids!(status_view)).set_visible(cx, true);
                     });
                 }
             }
@@ -535,10 +494,8 @@ impl SyncModal {
     }
 
     fn import(&mut self, cx: &mut Cx) {
-        let url =
-            self.text_input(cx, ids!(import_view.import_url)).text();
-        let pin =
-            self.text_input(cx, ids!(import_view.import_pin)).text();
+        let url = self.text_input(cx, ids!(import_view.import_url)).text();
+        let pin = self.text_input(cx, ids!(import_view.import_pin)).text();
 
         let ui = self.ui_runner();
         self.sync_status = SyncStatus::Importing;
@@ -546,13 +503,9 @@ impl SyncModal {
         spawn(async move {
             match fetch_json(&url, &pin).await {
                 Ok(json) => {
-                    ui.defer_with_redraw(
-                        move |me: &mut SyncModal, cx, scope| {
-                            me.handle_import_success(
-                                cx, &json, scope,
-                            );
-                        },
-                    );
+                    ui.defer_with_redraw(move |me: &mut SyncModal, cx, scope| {
+                        me.handle_import_success(cx, &json, scope);
+                    });
                 }
                 Err(e) => {
                     ui.defer_with_redraw(move |me: &mut SyncModal, cx, _| {
@@ -563,23 +516,16 @@ impl SyncModal {
         });
     }
 
-    fn handle_import_success(
-        &mut self,
-        cx: &mut Cx,
-        json: &str,
-        scope: &mut Scope,
-    ) {
+    fn handle_import_success(&mut self, cx: &mut Cx, json: &str, scope: &mut Scope) {
         self.view(cx, ids!(status_view)).set_visible(cx, true);
         self.sync_status = SyncStatus::None;
-        let include_mcp_servers =
-            self.check_box(cx, ids!(include_mcp_servers)).active(cx);
+        let include_mcp_servers = self.check_box(cx, ids!(include_mcp_servers)).active(cx);
 
         let store = scope.data.get_mut::<Store>().unwrap();
-        match store.preferences.import_from_json(
-            json,
-            self.should_merge,
-            include_mcp_servers,
-        ) {
+        match store
+            .preferences
+            .import_from_json(json, self.should_merge, include_mcp_servers)
+        {
             Ok(_) => {
                 self.label(cx, ids!(status_message))
                     .set_text(cx, "Import successful");
@@ -604,10 +550,8 @@ impl SyncModal {
     fn handle_import_error(&mut self, cx: &mut Cx, error: Error) {
         ::log::error!("Failed to fetch settings: {:?}", error);
         self.view(cx, ids!(status_view)).set_visible(cx, true);
-        self.label(cx, ids!(status_message)).set_text(
-            cx,
-            &format!("Failed to fetch settings: {:?}", error),
-        );
+        self.label(cx, ids!(status_message))
+            .set_text(cx, &format!("Failed to fetch settings: {:?}", error));
     }
 
     fn reset_state(&mut self, cx: &mut Cx) {
@@ -629,8 +573,7 @@ impl SyncModalRef {
 }
 
 fn get_local_ip_address() -> String {
-    let socket =
-        UdpSocket::bind("0.0.0.0:0").expect("Failed to bind socket");
+    let socket = UdpSocket::bind("0.0.0.0:0").expect("Failed to bind socket");
 
     if socket.connect("8.8.8.8:80").is_ok() {
         if let Ok(local_addr) = socket.local_addr() {

@@ -6,8 +6,8 @@ use crate::{
     utils::makepad::hex_rgb_color,
     widgets::image_view::{ImageViewRef, ImageViewWidgetExt},
 };
-use makepad_widgets::*;
 use makepad_widgets::defer_with_redraw::DeferWithRedraw;
+use makepad_widgets::*;
 
 script_mod! {
     use mod.prelude.widgets.*
@@ -169,9 +169,7 @@ impl AttachmentView {
     }
 
     fn try_load_preview(&mut self) {
-        if !crate::widgets::image_view::can_load(
-            self.attachment.content_type_or_octet_stream(),
-        ) {
+        if !crate::widgets::image_view::can_load(self.attachment.content_type_or_octet_stream()) {
             return;
         }
 
@@ -193,11 +191,7 @@ impl AttachmentView {
                     .image_ref(cx)
                     .borrow_mut()
                     .unwrap()
-                    .load_with_contet_type(
-                        cx,
-                        &content,
-                        attachment.content_type_or_octet_stream(),
-                    )
+                    .load_with_contet_type(cx, &content, attachment.content_type_or_octet_stream())
                 {
                     ::log::warn!(
                         "Failed to load attachment {} as {}: {}",
@@ -245,7 +239,5 @@ fn preview_color() -> Vec4 {
 /// If this widget could generate a preview for the attachment.
 pub fn can_preview(attachment: &Attachment) -> bool {
     attachment.is_available()
-        && crate::widgets::image_view::can_load(
-            attachment.content_type_or_octet_stream(),
-        )
+        && crate::widgets::image_view::can_load(attachment.content_type_or_octet_stream())
 }

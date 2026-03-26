@@ -673,14 +673,16 @@ impl Widget for Realtime {
                         self.label(cx, ids!(status_label)).set_text(cx, "⚠️ Moly needs microphone access to have realtime conversations.\nClick on the button below to trigger another request");
                         self.view(cx, ids!(request_permission_button))
                             .set_visible(cx, true);
-                        self.view(cx, ids!(start_stop_button)).set_visible(cx, false);
+                        self.view(cx, ids!(start_stop_button))
+                            .set_visible(cx, false);
                         self.mic_permission_status = MicPermissionStatus::Denied;
                     }
                     _ => {
                         self.label(cx, ids!(status_label)).set_text(cx, "⚠️ Moly does not have access to your microphone.\nTo continue, allow Moly to access your microphone\nin your system settings\nand then restart the app.");
                         self.view(cx, ids!(request_permission_button))
                             .set_visible(cx, false);
-                        self.view(cx, ids!(start_stop_button)).set_visible(cx, false);
+                        self.view(cx, ids!(start_stop_button))
+                            .set_visible(cx, false);
                         self.mic_permission_status = MicPermissionStatus::Denied;
                     }
                 }
@@ -854,7 +856,10 @@ impl WidgetMatchEvent for Realtime {
         // Mute
         let mute_button = self.button(cx, ids!(mute_button));
         let mute_label = self.label(cx, ids!(mute_status));
-        if self.view(cx, ids!(mute_control)).finger_down(actions).is_some()
+        if self
+            .view(cx, ids!(mute_control))
+            .finger_down(actions)
+            .is_some()
             || mute_button.clicked(actions)
         {
             let mut is_muted = self.is_muted.lock().unwrap();
@@ -951,7 +956,8 @@ impl Realtime {
         self.transcript.clear();
 
         self.update_ui(cx);
-        self.label(cx, ids!(status_label)).set_text(cx, "Loading..."); // This will be removed by the greeting message
+        self.label(cx, ids!(status_label))
+            .set_text(cx, "Loading..."); // This will be removed by the greeting message
         self.start_audio_streaming(cx);
         self.create_greeting_response(cx);
     }
@@ -1000,7 +1006,8 @@ impl Realtime {
             self.connection_request_sent = false;
         }
         self.transcript.clear();
-        self.label(cx, ids!(status_label)).set_text(cx, status_message);
+        self.label(cx, ids!(status_label))
+            .set_text(cx, status_message);
 
         // Hide tool permission UI and clear pending tool call
         self.chat_line(cx, ids!(tool_permission_line))
@@ -1010,7 +1017,8 @@ impl Realtime {
         // Show voice selector again
         self.view(cx, ids!(voice_selector_wrapper))
             .set_visible(cx, true);
-        self.view(cx, ids!(selected_voice_view)).set_visible(cx, false);
+        self.view(cx, ids!(selected_voice_view))
+            .set_visible(cx, false);
 
         self.update_ui(cx);
     }
@@ -1166,7 +1174,8 @@ impl Realtime {
                     }
                 }
                 RealtimeEvent::SpeechStopped => {
-                    self.label(cx, ids!(status_label)).set_text(cx, "Processing...");
+                    self.label(cx, ids!(status_label))
+                        .set_text(cx, "Processing...");
 
                     // Temporarily stop recording while waiting for response
                     if self.conversation_active {
@@ -1631,7 +1640,8 @@ impl Realtime {
         self.selected_voice = self.drop_down(cx, ids!(voice_selector)).selected_label();
         self.view(cx, ids!(voice_selector_wrapper))
             .set_visible(cx, false);
-        self.view(cx, ids!(selected_voice_view)).set_visible(cx, true);
+        self.view(cx, ids!(selected_voice_view))
+            .set_visible(cx, true);
         self.label(cx, ids!(selected_voice)).set_text(
             cx,
             format!("Selected voice: {}", self.selected_voice).as_str(),
