@@ -3009,6 +3009,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "moly-widgets"
+version = "0.1.0"
+dependencies = [
+ "makepad-widgets",
+]
+
+[[package]]
+name = "moly-zoo"
+version = "0.1.0"
+dependencies = [
+ "makepad-widgets",
+ "moly-widgets",
+]
+
+[[package]]
 name = "moxcms"
 version = "0.7.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"

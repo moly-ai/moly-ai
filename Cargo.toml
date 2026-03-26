@@ -5,6 +5,8 @@ members = [
     "moly-kit",
     "moly-kit/examples/*",
     "moly-sync",
+    "moly-widgets",
+    "moly-zoo",
 ]
 exclude = ["packaging/before-packaging-command"]
 
