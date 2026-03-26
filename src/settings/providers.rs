@@ -348,15 +348,9 @@ impl ScriptHook for Providers {
         for i in 0..len {
             let elem = vm.bx.heap.array_index_unchecked(arr, i);
             let handle = elem.as_handle();
-            if let Some(path) = handle.and_then(|h| {
-                vm.with_cx(|cx| {
-                    let resources = cx.script_data.resources.resources.borrow();
-                    resources
-                        .iter()
-                        .find(|res| res.handle == h)
-                        .map(|res| res.abs_path.clone())
-                })
-            }) {
+            if let Some(path) =
+                handle.and_then(|h| vm.with_cx(|cx| cx.get_resource_abs_path(h)))
+            {
                 paths.push(path);
             }
         }
