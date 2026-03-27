@@ -6,13 +6,8 @@
 
 # Moly Kit (crate)
 
-- [Basics](basics.md)
-  - [Quickstart](quickstart.md)
-  - [Use multiple providers](multiple-providers.md)
-  - [Integrate and customize behavior](integrate.md)
-  - [Web support](web.md)
-
-- [Advanced](advanced.md)
-  - [Implement your own client](custom-client.md)
-  - [Handle provider-specific content format](custom-content.md)
+- [Quickstart](quickstart.md)
+- [Multiple Providers and Dynamic Models](improving.md)
+- [Custom Content](custom-content.md)
+- [Web Support](web.md)
 - [Crate Documentation](crate-docs.md)

@@ -1,62 +1,43 @@
-# Handle provider-specific content format
+# Custom Content
 
-```admonish warning
-This documentation covers an older API of Moly Kit. The documentation will be reworked. For reference, commit `1eb9630` is the last commit where this documentation was valid.
-```
+By default, Moly Kit renders bot messages using the `StandardMessageContent` widget,
+which handles markdown, thinking blocks, and citations.
+
+Some providers return content in formats that require specialized rendering beyond
+what the standard widget supports. The `CustomContent` trait lets you provide your
+own Makepad widget for these cases.
 
 ## Prerequisites
-This guide assumes you have already read [Implement your own client](custom-client.md).
 
-## Introduction
+This guide assumes you have read the [Quickstart](quickstart.md) and are comfortable
+with Makepad widget development.
 
-By default, Moly Kit displays `MessageContent` using the `StandardMessageContent`
-widget.
+## Overview
 
-This widget can render common content types returned by current LLMs,
-such as simple markdown, thinking blocks, and citations from web searches.
+1. Create a Makepad widget for your custom content.
+2. Implement the `CustomContent` trait.
+3. Register it on the `Messages` widget inside `Chat`.
 
-However, a `BotClient` might interact with models or agents that return more complex
-or unique content than what Moly Kit currently supports.
+## Step 1: Create a widget
 
-Therefore, `BotClient`s need a way to extend Moly Kit to render such unique
-content.
-
-This is quite straightforward. Clients can implement the `content_widget` method,
-which allows them to return a custom UI widget to be rendered in place of the default
-content widget, whenever the method deems it appropriate.
-
-However, due to Makepad's architecture, users of your client must also perform
-some "registration" steps for this to work.
-
-In summary, the high-level steps are:
-- Create a standard Makepad widget tailored to your content needs.
-- Implement `content_widget` in your client. This method will create the widget
-  using a template obtained by its ID.
-- Instruct users of your client to register the widget manually, like any Makepad
-  widget, using `live_design(cx)`.
-- Instruct users of your client to create a template in Makepad's DSL and insert
-  the `LivePtr` to that template under the expected ID.
-
-## Detailed instructions with an example
-
-Let's start by creating our custom content widget. This can be anything you need.
-For this example, we'll implement one that simply displays text in a `Label`:
+Create a standard Makepad widget that can display your content. It should use
+`height: Fit` to avoid layout issues within the message list.
 
 ```rust
 use makepad_widgets::*;
+use moly_kit::prelude::*;
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
+script_mod! {
+    use mod.prelude.widgets.*
 
-    pub MyCustomContent = {{MyCustomContent}} {
-        // It's important that height is set to Fit to avoid layout issues with Makepad.
-        height: Fit,
-        label = <Label> {}
+    mod.widgets.MyCustomContentBase = #(MyCustomContent::register_widget(vm))
+    mod.widgets.MyCustomContent = set_type_default() do mod.widgets.MyCustomContentBase {
+        height: Fit
+        label := Label {}
     }
 }
 
-#[derive(Live, Widget, LiveHook)]
+#[derive(Script, ScriptHook, Widget)]
 pub struct MyCustomContent {
     #[deref]
     deref: View,
@@ -74,56 +55,71 @@ impl Widget for MyCustomContent {
 
 impl MyCustomContent {
     pub fn set_content(&mut self, cx: &mut Cx, content: &MessageContent) {
-        self.label(id!(label)).set_text(cx, &content.text);
+        self.label(cx, ids!(label)).set_text(cx, &content.text);
     }
 }
 ```
 
-> **Note:** Making a `set_content` method that takes `MessageContent` is just a
-> convention. It's not strictly necessary. You can design it however you want.
+## Step 2: Implement `CustomContent`
 
-The next step is to implement the `content_widget` method in your `BotClient`:
+The `CustomContent` trait has a single method:
 
 ```rust
-impl BotClient for MyCustomClient {
-    // ... other methods implemented ...
-
+pub trait CustomContent {
     fn content_widget(
         &mut self,
         cx: &mut Cx,
         previous_widget: WidgetRef,
-        templates: &HashMap<LiveId, LivePtr>,
+        content: &MessageContent,
+    ) -> Option<WidgetRef>;
+}
+```
+
+Return `Some(widget)` when your implementation should handle the given content, or
+`None` to fall through to the default rendering. The `previous_widget` parameter is
+the widget currently in the slot -- reuse it when possible to preserve state.
+
+Here is an example that checks `content.data` to decide whether to handle the
+message:
+
+```rust
+pub struct MyContentProvider {
+    template: ScriptObjectRef,
+}
+
+impl MyContentProvider {
+    pub fn new(template: ScriptObjectRef) -> Self {
+        Self { template }
+    }
+}
+
+impl CustomContent for MyContentProvider {
+    fn content_widget(
+        &mut self,
+        cx: &mut Cx,
+        previous_widget: WidgetRef,
         content: &MessageContent,
     ) -> Option<WidgetRef> {
-        // We expect the user of our client to register a template with the
-        // id `MyCustomContent`.
-        let Some(template) = templates.get(&live_id!(MyCustomContent)).copied() else {
+        // Only handle messages with specific data.
+        let data = content.data.as_deref()?;
+        if !data.contains("my_custom_format") {
             return None;
-        };
-
-        let Some(data) = content.data.as_deref() else {
-            return None;
-        };
-
-        // Let's assume `MessageContent` yielded from our `send` contains
-        // this arbitrary data, explicitly stating it wants to be rendered with
-        // `MyCustomContent`.
-        if data != "I want to be displayed with MyCustomContent widget" {
-          return None;
         }
 
-        // If a widget already exists, let's try to reuse it to avoid losing
-        // state.
-        let widget = if previous_widget.as_my_custom_content().borrow().is_some() {
+        // Reuse the existing widget if possible, otherwise create from template.
+        let widget = if previous_widget
+            .as_my_custom_content()
+            .borrow()
+            .is_some()
+        {
             previous_widget
         } else {
-            // If the widget was not created yet, let's create it from the template
-            // we obtained.
-            WidgetRef::new_from_ptr(cx, Some(template))
+            cx.with_vm(|vm| {
+                let value: ScriptValue = self.template.as_object().into();
+                WidgetRef::script_from_value(vm, value)
+            })
         };
 
-        // Let's call the `set_content` method we defined earlier to update the
-        // content.
         widget
             .as_my_custom_content()
             .borrow_mut()
@@ -135,79 +131,26 @@ impl BotClient for MyCustomClient {
 }
 ```
 
-Now, anyone who wants to use this client will need to register the widget like any
-normal Makepad widget:
+## Step 3: Register it
+
+Register the custom content provider on the `Messages` widget inside `Chat`:
 
 ```rust
-impl LiveRegister for App {
-    fn live_register(cx: &mut Cx) {
-        makepad_widgets::live_design(cx);
-        moly_kit::live_design(cx);
-
-        // Add this line.
-        my_custom_client::my_custom_content::live_design(cx);
-
-        crate::widgets::live_design(cx);
-    }
-}
+self.chat(cx, ids!(chat))
+    .read()
+    .messages_ref(cx)
+    .write()
+    .register_custom_content(MyContentProvider::new(template));
 ```
 
-And finally, let's create a template for it and insert it into the `Chat` widget's
-`Messages` component.
+You can register multiple `CustomContent` implementations. At draw time, the
+`Messages` widget iterates through them in order. The first one to return
+`Some(widget)` for a given message wins. If none match, the default
+`StandardMessageContent` is used.
 
-```rust
-use makepad_widgets::*;
+## Real-world example
 
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-
-    use moly_kit::widgets::chat::*;
-    use my_custom_client::my_custom_content::*;
-
-    pub MyCoolUi = {{MyCoolUi}} {
-        // Notice the `:` here instead of `=`, to bind to the `#[live]` property
-        // below.
-        my_custom_content: <MyCustomContent> {}
-        chat = <Chat> {}
-    }
-}
-
-#[derive(Live, Widget)]
-pub struct MyCoolUi {
-    #[deref]
-    deref: View,
-
-    #[live]
-    my_custom_content: LivePtr,
-}
-
-impl Widget for MyCoolUi {
-    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        self.deref.draw_walk(cx, scope, walk)
-    }
-
-    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
-        self.deref.handle_event(cx, event, scope)
-    }
-}
-
-impl LiveHook for MyCoolUi {
-    // Let's insert the template as soon as the widget is created.
-    fn after_new_from_doc(&mut self, _cx: &mut Cx) {
-        // ... other initialization code ...
-
-        let chat = self.chat(id!(chat));
-        let messages = chat.read().messages_ref();
-
-        // We must use the ID that `content_widget` expects.
-        messages.write().templates
-            .insert(live_id!(MyCustomContent), self.my_custom_content);
-    }
-}
-```
-
-And that's it! All four pieces are in place. Now, whenever `content_widget`
-returns `Some(a_custom_widget)`, `Messages` (the widget that renders the
-list of messages inside `Chat`) will replace its default content widget with
-the custom one.
+The [Moly app](https://github.com/moly-ai/moly-ai) uses this mechanism for its
+DeepInquire integration. The `DeepInquireCustomContent` checks if a message's `data`
+field contains DeepInquire-formatted JSON and, if so, renders it with a specialized
+multi-stage widget instead of the standard markdown view.
