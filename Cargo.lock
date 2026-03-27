@@ -2045,7 +2045,7 @@ dependencies = [
 
 [[package]]
 name = "moly"
-version = "0.2.4"
+version = "0.2.5-rc1"
 dependencies = [
  "anyhow",
  "async-fs",
@@ -2081,7 +2081,7 @@ dependencies = [
 
 [[package]]
 name = "moly-kit"
-version = "0.2.4"
+version = "0.2.5-rc1"
 dependencies = [
  "aitk",
  "cfg-if",
@@ -2098,7 +2098,7 @@ dependencies = [
 
 [[package]]
 name = "moly-mini"
-version = "0.2.4"
+version = "0.2.5-rc1"
 dependencies = [
  "env_logger",
  "makepad-widgets",

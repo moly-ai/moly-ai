@@ -1,6 +1,6 @@
 [package]
 name = "moly-kit"
-version = "0.2.4"
+version = "0.2.5-rc1"
 edition = "2024"
 
 [dependencies]
