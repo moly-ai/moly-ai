@@ -1,120 +1,164 @@
 # Quickstart
 
-```admonish warning
-This documentation covers an older API of Moly Kit. The documentation will be reworked. For reference, commit `1eb9630` is the last commit where this documentation was valid.
-```
+This guide gets you from zero to a working chat in a Makepad app.
 
 ## Prerequisites
 
-This guide assumes you are familiar with Makepad and you have a
-bare-bones app ready to start integrating Moly Kit while following this guide.
+This guide assumes you are familiar with Makepad and have a bare-bones app ready.
+You should also have read the [aitk documentation](https://moly-ai.github.io/aitk/),
+as Moly Kit builds on its types and patterns.
 
 ## Installation
 
-Add Moly Kit to your `Cargo.toml` dependencies:
+Add Moly Kit to your `Cargo.toml`:
 
 ```toml
-moly-kit = { git = "https://github.com/moly-ai/moly-ai.git", features = ["full"], branch = "main" }
+[dependencies]
+makepad-widgets = { git = "https://github.com/makepad/makepad", branch = "main" }
+moly-kit = { git = "https://github.com/moly-ai/moly-ai.git", features = ["full"] }
 ```
 
 ```admonish tip
-Change `branch = "main"` to (for example) `tag = "v0.2.1"` if you want to
-stay on a stable version.
+Pin to a specific version with `tag = "x.x.x"` or `rev = "<commit>"` instead
+of `branch = "main"` if you want to stay on a stable version.
 ```
 
 ## Register widgets
 
-As with any Makepad app, we need to register the widgets we want to use in the `live_register`
-of your app before any widget that uses Moly Kit.
+Define your `App` and register Moly Kit's widgets in `script_mod`:
 
 ```rust
-impl LiveRegister for App {
-    fn live_register(cx: &mut Cx) {
-        makepad_widgets::live_design(cx);
-        
-        // Add this line
-        moly_kit::live_design(cx);
+app_main!(App);
 
-        crate::your_amazing_widgets::live_design(cx);
+#[derive(Script, ScriptHook)]
+pub struct App {
+    #[live]
+    ui: WidgetRef,
+}
+
+impl AppMain for App {
+    fn script_mod(vm: &mut ScriptVm) -> ScriptValue {
+        makepad_widgets::script_mod(vm);
+        moly_kit::widgets::script_mod(vm);
+        self::script_mod(vm)
+    }
+
+    fn handle_event(&mut self, cx: &mut Cx, event: &Event) {
+        self.ui.handle_event(cx, event, &mut Scope::empty());
     }
 }
 ```
 
-## DSL
+## Place the Chat widget
 
-Import the batteries-included `Chat` widget into your own widget and place it
-somewhere.
-
-```rust
-live_design! {
-    use link::theme::*;
-    use link::widgets::*;
-
-    // Add this line
-    use moly_kit::widgets::chat::Chat;
-    
-
-    pub YourAmazingWidget = {{YourAmazingWidget}} {
-        // And this line
-        chat = <Chat> {}
-    }
-}
-```
-
-## Rust-side configuration
-
-The `Chat` widget as it is will not work. We need to configure some one-time stuff
-from the Rust side.
-
-The `Chat` widget pulls information about available bots from a synchronous interface
-called a `BotContext`. We don't need to understand how it works, but we need to create
-and pass one to `Chat`.
-
-A `BotContext` can be directly created from a `BotClient`, which is an asynchronous
-interface to interact with (mostly remote) bot providers like OpenAI, Ollama, OpenRouter,
-Moly Server, MoFa, etc.
-
-Once again, we don't need to understand how a `BotClient` works (unless you need
-to implement your own) as Moly Kit already comes with some built-in ones. We can
-simply use `OpenAiClient` to interact with any OpenAI-compatible remote API.
-
-We will also need to set the "current bot" in the `Chat` widget, which is the bot
-that will respond to user messages (specified with a `BotId` type) and also trigger
-the async load of the `BotContext` once.
-
-We should ensure this configuration code runs once and before the `Chat` widget
-is used by Makepad, so a good place to write it is in Makepad's `after_new_from_doc`
-lifecycle hook. The practical tl;dr of all this theory would be simply the following:
+Use the `Chat` widget in your DSL layout:
 
 ```rust
-use moly_kit::*;
+script_mod! {
+    use mod.prelude.widgets.*
+    use mod.widgets.*
 
-impl LiveHook for YourAmazingWidget {
-    fn after_new_from_doc(&mut self, cx: &mut Cx) {
-        let provider = "https://api.openai.com/v1";
-        let key = "<YOUR_KEY>";
-        let model = "gpt-5-mini";
+    mod.widgets.MyChatBase = #(MyChat::register_widget(vm))
 
-        let mut client = OpenAiClient::new(provider.into());
-        client.set_key(key.into());
-
-        let bot_context = BotContext::from(client);
-        let bot_id = BotId::new(model, url);
-
-        let mut chat = self.chat(id!(chat));
-        chat.write().set_bot_context(cx, Some(bot_context));
-        chat.write().set_current_bot(cx, Some(bot_id));
-
-        moly_kit::utils::asynchronous::spawn(async move {
-            for error in bot_context.load().await.into_errors() {
-                error!("Error loading bots: {error}");
+    load_all_resources() do #(App::script_component(vm)) {
+        ui: Root {
+            main_window := Window {
+                window +: { inner_size: vec2(800 600) }
+                pass +: { clear_color: #xfff }
+                body +: {
+                    my_chat := mod.widgets.MyChatBase {
+                        width: Fill
+                        height: Fill
+                        flow: Down
+                        padding: 12
+                        chat := Chat {}
+                    }
+                }
             }
+        }
+    }
+}
+```
+
+## Configure the Chat widget
+
+The `Chat` widget needs a `ChatController` from aitk to function. Set it up in
+`on_after_new`, which runs once when the widget is created:
+
+```rust
+use std::sync::{Arc, Mutex};
+use makepad_widgets::*;
+use moly_kit::prelude::*;
+
+#[derive(Script, Widget)]
+struct MyChat {
+    #[deref]
+    view: View,
+
+    #[rust]
+    controller: Option<Arc<Mutex<ChatController>>>,
+}
+
+impl Widget for MyChat {
+    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+        self.view.handle_event(cx, event, scope);
+    }
+
+    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
+        self.view.draw_walk(cx, scope, walk)
+    }
+}
+
+impl ScriptHook for MyChat {
+    fn on_after_new(&mut self, vm: &mut ScriptVm) {
+        let mut client = OpenAiClient::new("https://api.openai.com/v1".into());
+        client.set_key("your-api-key").unwrap();
+
+        let controller = ChatController::builder()
+            .with_client(client)
+            .with_basic_spawner()
+            .build_arc();
+
+        controller
+            .lock()
+            .unwrap()
+            .dispatch_mutation(ChatStateMutation::SetBotId(
+                Some(BotId::new("gpt-4.1-nano")),
+            ));
+
+        self.controller = Some(controller.clone());
+        vm.with_cx_mut(|cx| {
+            self.chat(cx, ids!(chat))
+                .write()
+                .set_chat_controller(cx, Some(controller));
         });
     }
 }
 ```
 
+That's it. After this setup, the `Chat` widget handles user input, streaming
+responses, and message rendering automatically.
+
+### What's happening
+
+1. **Create a client**: `OpenAiClient` connects to any OpenAI-compatible endpoint
+   (OpenAI, Ollama, OpenRouter, etc.).
+2. **Build the controller**: `ChatController::builder()` creates the state manager
+   that coordinates the conversation. `with_basic_spawner()` provides cross-platform
+   async task execution.
+3. **Set the model**: `SetBotId` is a state mutation that directly sets a specific
+   model on the controller.
+4. **Give it to the widget**: `set_chat_controller` gives the controller to `Chat`
+   so it can drive the conversation.
+
 ```admonish note
 Moly Kit doesn't duplicate methods from `Chat` into Makepad's autogenerated
 `ChatRef` but provides `read()` and `write()` helpers to access the inner widget.
 ```
+
+## Next steps
+
+This minimal setup uses a single client with a hardcoded model. The next chapter,
+[Multiple Providers and Dynamic Models](improving.md), shows how to support multiple
+providers, dynamically load available models, and use plugins to automate model
+selection.

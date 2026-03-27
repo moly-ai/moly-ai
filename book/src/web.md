@@ -1,17 +1,6 @@
-# Web support
+# Web Support
 
-```admonish warning
-This documentation covers an older API of Moly Kit. The documentation will be reworked. For reference, commit `1eb9630` is the last commit where this documentation was valid.
-```
-
-## Prerequisites
-
-This guide assumes you have already read the [Quickstart](quickstart.md).
-
-## How to
-
-Moly Kit has been designed with web support from day one. To run your app on the web,
-you will need to do it like this:
+Moly Kit supports WebAssembly out of the box. To run your app in the browser:
 
 ```shell
 cargo makepad wasm --bindgen run -p your_application_package
@@ -26,11 +15,9 @@ documentation for more information.
 By default, Makepad uses its own glue code to work in a web browser and doesn't
 work with `wasm-bindgen` out of the box.
 
-The `--bindgen` argument we passed to `cargo makepad` earlier is very important
-as it enables `wasm-bindgen` interoperability in Makepad.
+The `--bindgen` argument passed to `cargo makepad` is important as it enables
+`wasm-bindgen` interoperability in Makepad.
 
-But with that argument enabled, if we don't use `wasm-bindgen` in our app, we may
-see `wasm-bindgen` related errors on the browser console related to missing values,
-which are solved by ensuring we use `wasm-bindgen` somewhere in our app.
+However, if you pass `--bindgen` but don't actually use `wasm-bindgen` anywhere
+in your app, you may see errors on the browser console about missing values.
 ```
-
